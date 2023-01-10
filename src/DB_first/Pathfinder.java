@@ -12,9 +12,14 @@ public strictfp class Pathfinder {
 
     static MapLocation lastLocation;
 
+    static MapLocation lastTarget;
+
     public static Direction pathBF(RobotController rc, MapLocation target) throws GameActionException {
 
-
+        if(!target.equals(lastTarget)){
+            currentlyBug= false;
+            rotating = false;
+        }
         double currentDist = Math.sqrt(rc.getLocation().distanceSquaredTo(target));
          if (currentlyBug || (rotating && currentDist>=lowestDist && rotationCount<=8) ){
 

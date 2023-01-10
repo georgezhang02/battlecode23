@@ -1,6 +1,5 @@
 package DB_VERY_DB;
 
-import DB_first.Pathfinder;
 import battlecode.common.*;
 
 import java.util.Arrays;
