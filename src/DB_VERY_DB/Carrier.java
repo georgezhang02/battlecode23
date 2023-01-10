@@ -42,7 +42,6 @@ public strictfp class Carrier {
                 int adAmount = rc.getResourceAmount(ResourceType.ADAMANTIUM);
                 int elixirAmount = rc.getResourceAmount(ResourceType.ELIXIR);
                 if(rc.canTransferResource(HQ_LOCATION, ResourceType.MANA, manaAmount) && manaAmount != 0){
-                    System.out.println("THIS WORKS I SWEAR");
                     rc.transferResource(HQ_LOCATION,ResourceType.MANA, manaAmount);
                 }
                 else if(rc.canTransferResource(HQ_LOCATION, ResourceType.ADAMANTIUM, adAmount) && adAmount != 0){
