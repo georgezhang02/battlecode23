@@ -1,6 +1,5 @@
 package DB_VERY_DB;
 
-import DB_first.BFPathing20;
 import battlecode.common.*;
 
 import java.util.Arrays;
@@ -12,7 +11,7 @@ public strictfp class Carrier {
 
     static final Random rng = new Random(6147);
 
-    static CarrierType carrierType = CarrierType.None;
+    static CarrierState state = CarrierState.None;
     static final Direction[] directions = {
             Direction.NORTH,
             Direction.NORTHEAST,
@@ -24,8 +23,8 @@ public strictfp class Carrier {
             Direction.NORTHWEST,
     };
 
-    private static enum CarrierType {
-        None, ExploreCarrier, ReturnCarrier, AnchorCarrier, WellCarrier, AnchorReturnCarrier;
+    private static enum CarrierState {
+        None, Exploring, Returning, Anchoring, Gathering, AnchorReturnCarrier;
     }
 
     static MapLocation WELL_LOCATION = null;
@@ -35,7 +34,21 @@ public strictfp class Carrier {
 
         RobotInfo nearbyRobots[] = rc.senseNearbyRobots();
 
-        if(carrierType == carrierType.ReturnCarrier){
+
+        switch (state) {
+            case Exploring:
+                explore(rc);
+            case Anchoring:
+                anchor(rc);
+            case Returning:
+                returnToHQ(rc);
+            case Gathering:
+                gather(rc);
+            break;
+        }
+
+
+        if(state == state.Returning){
             //If the hq location is in action range, deposit resources to HQ
             if(HQ_LOCATION.distanceSquaredTo(rc.getLocation()) < 10){
                 int manaAmount = rc.getResourceAmount(ResourceType.MANA);
@@ -51,7 +64,7 @@ public strictfp class Carrier {
                     rc.transferResource(HQ_LOCATION,ResourceType.ELIXIR, elixirAmount);
                 }
                 else{
-                    carrierType = carrierType.WellCarrier;
+                    state = state.Gathering;
                 }
             }
 
@@ -66,24 +79,24 @@ public strictfp class Carrier {
         }
 
         //If there is no anchor, become an explorer carrier
-        if (carrierType == carrierType.None) {
+        if (state == state.None) {
             for(int i = 0; i < nearbyRobots.length; i++){
                 if(nearbyRobots[i].getType() == RobotType.HEADQUARTERS){
                     HQ_LOCATION = nearbyRobots[i].getLocation();
                     //If it can take an anchor then get the anchor
                     if(rc.canTakeAnchor(nearbyRobots[i].getLocation(), Anchor.STANDARD) && rc.getAnchor() == null){
                         rc.takeAnchor(nearbyRobots[i].getLocation(), Anchor.STANDARD);
-                        carrierType = CarrierType.AnchorCarrier;
+                        state = CarrierState.Anchoring;
                     }
                     else{
-                        carrierType = CarrierType.ExploreCarrier;
+                        state = CarrierState.Exploring;
                     }
                 }
             }
         }
 
         //As an explore carrier, explore the surrounding area randomly
-        if(carrierType == carrierType.ExploreCarrier){
+        if(state == state.Exploring){
             Direction dir = directions[rng.nextInt(directions.length)];
             if (rc.canMove(dir)) {
                 rc.move(dir);
@@ -94,13 +107,13 @@ public strictfp class Carrier {
             if (wells.length > 0) {
                 if(wells[0].getMapLocation().distanceSquaredTo(rc.getLocation()) < 16){
                     WELL_LOCATION = wells[0].getMapLocation();
-                    carrierType = CarrierType.WellCarrier;
+                    state = CarrierState.Gathering;
                 }
             }
         }
 
         //If it is an anchor carrier, find an island
-        else if(carrierType == carrierType.AnchorCarrier) {
+        else if(state == state.Anchoring) {
             //If the robot has an anchor, move towards an island to place the anchor
             if (rc.getAnchor() != null) {
                 // If I have an anchor singularly focus on getting it to the first island I see
@@ -123,7 +136,7 @@ public strictfp class Carrier {
                         if (rc.canPlaceAnchor()) {
                             rc.setIndicatorString("Huzzah, placed anchor!");
                             rc.placeAnchor();
-                            carrierType = carrierType.ReturnCarrier;
+                            state = state.Returning;
                         }
                     }
                 }
@@ -138,7 +151,7 @@ public strictfp class Carrier {
         }
 
         //If wellCarrier, get resources
-        else if(carrierType == carrierType.WellCarrier){
+        else if(state == state.Gathering){
             if(WELL_LOCATION.distanceSquaredTo(rc.getLocation()) < 10){
                 // Try to gather from squares around us.
                 MapLocation me = rc.getLocation();
@@ -155,7 +168,7 @@ public strictfp class Carrier {
                         //if a carrier cannot get anymore resources, return to base
                         if(rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA)
                                 + rc.getResourceAmount(ResourceType.ELIXIR) > 38)
-                            carrierType = carrierType.ReturnCarrier;
+                            state = state.Returning;
                         }
                     }
                 }
@@ -196,6 +209,24 @@ public strictfp class Carrier {
         }
          */
     }
+
+    static void explore(RobotController rc) throws GameActionException{
+
+    }
+
+    static void returnToHQ(RobotController rc) throws GameActionException{
+
+    }
+
+    static void anchor(RobotController rc) throws GameActionException{
+
+    }
+
+    static void gather(RobotController rc) throws GameActionException{
+
+    }
+
+
 
 
 }

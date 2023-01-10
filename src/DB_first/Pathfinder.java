@@ -10,6 +10,8 @@ public strictfp class Pathfinder {
     static int rotationCount;
     static double lowestDist;
 
+    static double
+
     public static Direction pathBF(RobotController rc, MapLocation target) throws GameActionException {
 
 
