@@ -34,9 +34,6 @@ public strictfp class Carrier {
         if(state == CarrierState.None){
             assign(rc);
         }
-        if(rc.getID()==13075){
-            System.out.println(String.valueOf(Clock.getBytecodesLeft()));
-        }
 
         switch (state) {
             case Exploring:
@@ -48,9 +45,6 @@ public strictfp class Carrier {
             case Gathering:
                 gather(rc);
                 break;
-        }
-        if(rc.getID()==13075){
-            System.out.println(String.valueOf(Clock.getBytecodesLeft()));
         }
     }
         /*
