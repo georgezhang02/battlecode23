@@ -20,6 +20,7 @@ public strictfp class Pathfinder {
             currentlyBug= false;
             rotating = false;
         }
+        lastTarget=target;
         double currentDist = Math.sqrt(rc.getLocation().distanceSquaredTo(target));
          if (currentlyBug || (rotating && currentDist>=lowestDist && rotationCount<=8) ){
 
