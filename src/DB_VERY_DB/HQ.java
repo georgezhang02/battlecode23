@@ -1,7 +1,6 @@
 package DB_VERY_DB;
 
 import battlecode.common.*;
-
 import java.util.Random;
 
 public strictfp class HQ {
@@ -24,17 +23,18 @@ public strictfp class HQ {
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation newLoc = rc.getLocation().add(dir);
 
-        //If there are less than 15 bots, or one of mana or ad is booming
-        if (rc.getRobotCount() <= 15 || rc.getResourceAmount(ResourceType.MANA) > 150 || rc.getResourceAmount(ResourceType.ADAMANTIUM) > 150) {
-
-            //Build Carrier
-            if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
-                rc.buildRobot(RobotType.CARRIER, newLoc);
-            }
-
+        //If mana is above 120
+        if (rc.getResourceAmount(ResourceType.MANA) > 120) {
             //Build Launcher
             if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
                 rc.buildRobot(RobotType.LAUNCHER, newLoc);
+            }
+        }
+
+        //carrier spam lol
+        if(rc.getRobotCount() <= 40){
+            if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
+                rc.buildRobot(RobotType.CARRIER, newLoc);
             }
         }
 
