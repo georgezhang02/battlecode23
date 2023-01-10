@@ -34,6 +34,10 @@ public strictfp class Carrier {
         if(state == CarrierState.None){
             assign(rc);
         }
+        if(rc.getID()==13075){
+            System.out.println(String.valueOf(Clock.getBytecodesLeft()));
+        }
+
         switch (state) {
             case Exploring:
                 explore(rc);
@@ -44,6 +48,9 @@ public strictfp class Carrier {
             case Gathering:
                 gather(rc);
                 break;
+        }
+        if(rc.getID()==13075){
+            System.out.println(String.valueOf(Clock.getBytecodesLeft()));
         }
     }
         /*
@@ -89,6 +96,9 @@ public strictfp class Carrier {
             rc.move(dir);
         }
 
+
+
+
         //If there is a well nearby, become a well carrier
         WellInfo[] wells = rc.senseNearbyWells();
         if (wells.length > 0) {
@@ -97,11 +107,12 @@ public strictfp class Carrier {
                 state = CarrierState.Gathering;
             }
         }
+        rc.setIndicatorString(String.valueOf(Clock.getBytecodesLeft()));
     }
 
     static void returnToHQ(RobotController rc) throws GameActionException{
         //If the hq location is in action range, deposit resources to HQ
-        if(HQ_LOCATION.distanceSquaredTo(rc.getLocation()) < 5){
+        if(HQ_LOCATION.distanceSquaredTo(rc.getLocation()) <=2){
             int manaAmount = rc.getResourceAmount(ResourceType.MANA);
             int adAmount = rc.getResourceAmount(ResourceType.ADAMANTIUM);
             int elixirAmount = rc.getResourceAmount(ResourceType.ELIXIR);
@@ -121,7 +132,7 @@ public strictfp class Carrier {
 
         //move back to HQ
         else{
-            Direction moveDir = Pathfinder.pathBF(rc, HQ_LOCATION);
+            Direction moveDir = Pathfinder.pathBug(rc, HQ_LOCATION);
 
             if(moveDir != null && rc.canMove(moveDir)){
                 rc.move(moveDir);
@@ -167,7 +178,7 @@ public strictfp class Carrier {
     }
 
     static void gather(RobotController rc) throws GameActionException{
-        if(WELL_LOCATION.distanceSquaredTo(rc.getLocation()) < 5){
+        if(WELL_LOCATION.distanceSquaredTo(rc.getLocation()) <= 2){
             MapLocation me = rc.getLocation();
             for (int dx = -1; dx <= 1; dx++) {
                 for (int dy = -1; dy <= 1; dy++) {
@@ -187,7 +198,7 @@ public strictfp class Carrier {
             }
         }
         if(rc.isMovementReady()) {
-            Direction moveDir = Pathfinder.pathBF(rc, WELL_LOCATION);
+            Direction moveDir = Pathfinder.pathBug(rc, WELL_LOCATION);
 
             if(moveDir != null && rc.canMove(moveDir)){
                 rc.move(moveDir);
