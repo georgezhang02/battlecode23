@@ -1,8 +1,7 @@
 package DB_first;
 
-        import battlecode.common.*;
-
-        import java.util.Random;
+import battlecode.common.*;
+import java.util.Random;
 
 public strictfp class HQ {
 

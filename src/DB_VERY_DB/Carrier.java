@@ -1,6 +1,5 @@
 package DB_VERY_DB;
 
-import DB_first.BFPathing20;
 import battlecode.common.*;
 
 import java.util.Arrays;
@@ -25,10 +24,9 @@ public strictfp class Carrier {
     };
 
     private static enum CarrierType {
-        None, ExploreCarrier, ReturnCarrier, AnchorCarrier, WellCarrier, AnchorReturnCarrier;
+        None, ExploreCarrier, ReturnCarrier, AnchorCarrier, WellCarrier;
     }
 
-    static MapLocation WELL_LOCATION = null;
     static MapLocation HQ_LOCATION = null;
 
     static void run(RobotController rc) throws GameActionException {
@@ -36,13 +34,13 @@ public strictfp class Carrier {
         RobotInfo nearbyRobots[] = rc.senseNearbyRobots();
 
         if(carrierType == carrierType.ReturnCarrier){
+
             //If the hq location is in action range, deposit resources to HQ
-            if(HQ_LOCATION.distanceSquaredTo(rc.getLocation()) < 10){
+            if(HQ_LOCATION.distanceSquaredTo(rc.getLocation()) < 20){
                 int manaAmount = rc.getResourceAmount(ResourceType.MANA);
                 int adAmount = rc.getResourceAmount(ResourceType.ADAMANTIUM);
                 int elixirAmount = rc.getResourceAmount(ResourceType.ELIXIR);
                 if(rc.canTransferResource(HQ_LOCATION, ResourceType.MANA, manaAmount) && manaAmount != 0){
-                    System.out.println("THIS WORKS I SWEAR");
                     rc.transferResource(HQ_LOCATION,ResourceType.MANA, manaAmount);
                 }
                 else if(rc.canTransferResource(HQ_LOCATION, ResourceType.ADAMANTIUM, adAmount) && adAmount != 0){
@@ -51,17 +49,15 @@ public strictfp class Carrier {
                 else if(rc.canTransferResource(HQ_LOCATION, ResourceType.ELIXIR, elixirAmount) && elixirAmount != 0){
                     rc.transferResource(HQ_LOCATION,ResourceType.ELIXIR, elixirAmount);
                 }
+                //Reassign the carrier accordingly
                 else{
-                    carrierType = carrierType.WellCarrier;
+                    carrierType = carrierType.None;
                 }
             }
-
-            //move back to HQ
             else{
-                Direction moveDir = BFPathing21.bfPathToTarget(rc, HQ_LOCATION);
-
-                if(moveDir != null && rc.canMove(moveDir)){
-                    rc.move(moveDir);
+                Direction dir = rc.getLocation().directionTo(HQ_LOCATION);
+                if (rc.canMove(dir)) {
+                    rc.move(dir);
                 }
             }
         }
@@ -90,11 +86,22 @@ public strictfp class Carrier {
                 rc.move(dir);
             }
 
+            //If Anchor ready, get reassigned (SUPER INEFFICIENT IK)
+            for(int i = 0; i < nearbyRobots.length; i++){
+                if(nearbyRobots[i].getType() == RobotType.HEADQUARTERS){
+                    HQ_LOCATION = nearbyRobots[i].getLocation();
+                    //If it can take an anchor then get the anchor
+                    if(rc.canTakeAnchor(nearbyRobots[i].getLocation(), Anchor.STANDARD) && rc.getAnchor() == null){
+                        rc.takeAnchor(nearbyRobots[i].getLocation(), Anchor.STANDARD);
+                        carrierType = CarrierType.AnchorCarrier;
+                    }
+                }
+            }
+
             //If there is a well nearby, become a well carrier
             WellInfo[] wells = rc.senseNearbyWells();
             if (wells.length > 0) {
-                if(wells[0].getMapLocation().distanceSquaredTo(rc.getLocation()) < 16){
-                    WELL_LOCATION = wells[0].getMapLocation();
+                if(wells[0].getMapLocation().distanceSquaredTo(rc.getLocation()) < 20){
                     carrierType = CarrierType.WellCarrier;
                 }
             }
@@ -140,36 +147,29 @@ public strictfp class Carrier {
 
         //If wellCarrier, get resources
         else if(carrierType == carrierType.WellCarrier){
-            if(WELL_LOCATION.distanceSquaredTo(rc.getLocation()) < 10){
-                // Try to gather from squares around us.
-                MapLocation me = rc.getLocation();
-                for (int dx = -1; dx <= 1; dx++) {
-                    for (int dy = -1; dy <= 1; dy++) {
-                        MapLocation wellLocation = new MapLocation(me.x + dx, me.y + dy);
-                        if (rc.canCollectResource(wellLocation, -1)) {
+            // Try to gather from squares around us.
+            MapLocation me = rc.getLocation();
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dy = -1; dy <= 1; dy++) {
+                    MapLocation wellLocation = new MapLocation(me.x + dx, me.y + dy);
+                    if (rc.canCollectResource(wellLocation, -1)) {
+                        if (rng.nextBoolean()) {
                             rc.collectResource(wellLocation, -1);
                             rc.setIndicatorString("Collecting, now have, AD:" +
                                     rc.getResourceAmount(ResourceType.ADAMANTIUM) +
                                     " MN: " + rc.getResourceAmount(ResourceType.MANA) +
                                     " EX: " + rc.getResourceAmount(ResourceType.ELIXIR));
                         }
-                        //if a carrier cannot get anymore resources, return to base
-                        if(rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA)
-                                + rc.getResourceAmount(ResourceType.ELIXIR) > 38)
-                            carrierType = carrierType.ReturnCarrier;
-                        }
+                    }
+                    //if a carrier cannot get anymore resources, return to base
+                    else{
+                        carrierType = carrierType.ReturnCarrier;
                     }
                 }
-          //  else{
-                if(rc.isMovementReady()) {
-                    Direction moveDir = BFPathing21.bfPathToTarget(rc, WELL_LOCATION);
-
-                    if(moveDir != null && rc.canMove(moveDir)){
-                        rc.move(moveDir);
-                    }
-                }
-        //    }
+            }
         }
+
+        // Occasionally try out the carriers attack
         /*
         if (rng.nextInt(20) == 1) {
             RobotInfo[] enemyRobots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
