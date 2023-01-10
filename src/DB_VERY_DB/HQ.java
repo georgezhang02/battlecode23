@@ -22,7 +22,7 @@ public strictfp class HQ {
         // Pick a direction to build in.
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation newLoc = rc.getLocation().add(dir);
-
+/*
         //If mana is above 120
         if (rc.getResourceAmount(ResourceType.MANA) > 120) {
             //Build Launcher
@@ -30,9 +30,9 @@ public strictfp class HQ {
                 rc.buildRobot(RobotType.LAUNCHER, newLoc);
             }
         }
-
+*/
         //carrier spam lol
-        if(rc.getRobotCount() <= 40){
+        if(rc.getRobotCount() <= 10){
             if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
                 rc.buildRobot(RobotType.CARRIER, newLoc);
             }
