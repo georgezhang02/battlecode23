@@ -402,6 +402,8 @@ public strictfp class BFPathing20 {
         MapLocation ml0 = rc.getLocation();
         if (ml0.equals(target)) return Direction.CENTER;
 
+
+
         ml1 = ml0.add(Direction.SOUTH);
         ml2 = ml1.add(Direction.EAST);
         ml3 = ml2.add(Direction.NORTH);
@@ -1950,181 +1952,203 @@ public strictfp class BFPathing20 {
                 break;
         }
 
-
         double gain;
         Direction ans = Direction.CENTER;
-
-
         double initDist = Math.sqrt(ml0.distanceSquaredTo(target));
         double maxGainPerCost = 0;
         gain = (initDist - Math.sqrt(ml45.distanceSquaredTo(target))) / dist45;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist45 < 5000){
             maxGainPerCost = gain;
             ans = dir45;
+            rc.setIndicatorString("45");
         }
         gain = (initDist - Math.sqrt(ml46.distanceSquaredTo(target))) / dist46;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist46 < 5000){
             maxGainPerCost = gain;
             ans = dir46;
+            rc.setIndicatorString("46");
         }
         gain = (initDist - Math.sqrt(ml47.distanceSquaredTo(target))) / dist47;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist47 < 5000){
             maxGainPerCost = gain;
             ans = dir47;
+            rc.setIndicatorString("47");
         }
         gain = (initDist - Math.sqrt(ml48.distanceSquaredTo(target))) / dist48;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist48 < 5000){
             maxGainPerCost = gain;
             ans = dir48;
+            rc.setIndicatorString("48");
         }
         gain = (initDist - Math.sqrt(ml49.distanceSquaredTo(target))) / dist49;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist49 < 5000){
             maxGainPerCost = gain;
             ans = dir49;
+            rc.setIndicatorString("49");
         }
         gain = (initDist - Math.sqrt(ml50.distanceSquaredTo(target))) / dist50;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist50 < 5000){
             maxGainPerCost = gain;
             ans = dir50;
+            rc.setIndicatorString("50");
         }
         gain = (initDist - Math.sqrt(ml51.distanceSquaredTo(target))) / dist51;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist51 < 5000){
             maxGainPerCost = gain;
             ans = dir51;
+            rc.setIndicatorString("51");
         }
         gain = (initDist - Math.sqrt(ml52.distanceSquaredTo(target))) / dist52;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist52 < 5000){
             maxGainPerCost = gain;
             ans = dir52;
+            rc.setIndicatorString("52");
         }
         gain = (initDist - Math.sqrt(ml53.distanceSquaredTo(target))) / dist53;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist53 < 5000){
             maxGainPerCost = gain;
             ans = dir53;
+            rc.setIndicatorString("53");
         }
         gain = (initDist - Math.sqrt(ml54.distanceSquaredTo(target))) / dist54;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist54 < 5000){
             maxGainPerCost = gain;
             ans = dir54;
+            rc.setIndicatorString("54");
         }
         gain = (initDist - Math.sqrt(ml55.distanceSquaredTo(target))) / dist55;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist55 < 5000){
             maxGainPerCost = gain;
             ans = dir55;
+            rc.setIndicatorString("55");
         }
         gain = (initDist - Math.sqrt(ml56.distanceSquaredTo(target))) / dist56;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist56 < 5000){
             maxGainPerCost = gain;
             ans = dir56;
+            rc.setIndicatorString("56");
         }
         gain = (initDist - Math.sqrt(ml57.distanceSquaredTo(target))) / dist57;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist57 < 5000){
             maxGainPerCost = gain;
             ans = dir57;
+            rc.setIndicatorString("57");
         }
         gain = (initDist - Math.sqrt(ml58.distanceSquaredTo(target))) / dist58;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist58 < 5000){
             maxGainPerCost = gain;
             ans = dir58;
+            rc.setIndicatorString("58");
         }
         gain = (initDist - Math.sqrt(ml59.distanceSquaredTo(target))) / dist59;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist59 < 5000){
             maxGainPerCost = gain;
             ans = dir59;
+            rc.setIndicatorString("59");
         }
         gain = (initDist - Math.sqrt(ml60.distanceSquaredTo(target))) / dist60;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist60 < 5000){
             maxGainPerCost = gain;
             ans = dir60;
+            rc.setIndicatorString("60");
         }
         gain = (initDist - Math.sqrt(ml61.distanceSquaredTo(target))) / dist61;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist61 < 5000){
             maxGainPerCost = gain;
             ans = dir61;
+            rc.setIndicatorString("61");
         }
         gain = (initDist - Math.sqrt(ml62.distanceSquaredTo(target))) / dist62;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist62 < 5000){
             maxGainPerCost = gain;
             ans = dir62;
+            rc.setIndicatorString("62");
         }
         gain = (initDist - Math.sqrt(ml63.distanceSquaredTo(target))) / dist63;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist63 < 5000){
             maxGainPerCost = gain;
             ans = dir63;
+            rc.setIndicatorString("63");
         }
         gain = (initDist - Math.sqrt(ml64.distanceSquaredTo(target))) / dist64;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist64 < 5000){
             maxGainPerCost = gain;
             ans = dir64;
+            rc.setIndicatorString("64");
         }
         gain = (initDist - Math.sqrt(ml65.distanceSquaredTo(target))) / dist65;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist65 < 5000){
             maxGainPerCost = gain;
             ans = dir65;
+            rc.setIndicatorString("65");
         }
         gain = (initDist - Math.sqrt(ml66.distanceSquaredTo(target))) / dist66;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist66 < 5000){
             maxGainPerCost = gain;
             ans = dir66;
+            rc.setIndicatorString("66");
         }
         gain = (initDist - Math.sqrt(ml67.distanceSquaredTo(target))) / dist67;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist67 < 5000){
             maxGainPerCost = gain;
             ans = dir67;
+            rc.setIndicatorString("67");
         }
         gain = (initDist - Math.sqrt(ml68.distanceSquaredTo(target))) / dist68;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist68 < 5000){
             maxGainPerCost = gain;
             ans = dir68;
+            rc.setIndicatorString("68");
         }
         gain = (initDist - Math.sqrt(ml44.distanceSquaredTo(target))) / dist44;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist44 < 5000){
             maxGainPerCost = gain;
             ans = dir44;
+            rc.setIndicatorString("44");
         }
         gain = (initDist - Math.sqrt(ml25.distanceSquaredTo(target))) / dist25;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist25 < 5000){
             maxGainPerCost = gain;
             ans = dir25;
+            rc.setIndicatorString("25");
         }
         gain = (initDist - Math.sqrt(ml29.distanceSquaredTo(target))) / dist29;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist29 < 5000){
             maxGainPerCost = gain;
             ans = dir29;
+            rc.setIndicatorString("29");
         }
         gain = (initDist - Math.sqrt(ml30.distanceSquaredTo(target))) / dist30;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist30 < 5000){
             maxGainPerCost = gain;
             ans = dir30;
+            rc.setIndicatorString("30");
         }
         gain = (initDist - Math.sqrt(ml34.distanceSquaredTo(target))) / dist34;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist34 < 5000){
             maxGainPerCost = gain;
             ans = dir34;
+            rc.setIndicatorString("34");
         }
         gain = (initDist - Math.sqrt(ml35.distanceSquaredTo(target))) / dist35;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist35 < 5000){
             maxGainPerCost = gain;
             ans = dir35;
+            rc.setIndicatorString("35");
         }
         gain = (initDist - Math.sqrt(ml39.distanceSquaredTo(target))) / dist39;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist39 < 5000){
             maxGainPerCost = gain;
             ans = dir39;
+            rc.setIndicatorString("39");
         }
         gain = (initDist - Math.sqrt(ml40.distanceSquaredTo(target))) / dist40;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist40 < 5000){
             maxGainPerCost = gain;
             ans = dir40;
+            rc.setIndicatorString("40");
         }
-        rc.setIndicatorString(String.valueOf(dist9));
         return ans;
-
-
-
-
-
-
 
 
 

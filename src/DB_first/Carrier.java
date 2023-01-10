@@ -32,7 +32,7 @@ public strictfp class Carrier {
     static void run(RobotController rc) throws GameActionException {
 
         if(rc.isMovementReady()) {
-            Direction moveDir = BFPathing20.bfPathToTarget(rc, new MapLocation(0, 0));
+            Direction moveDir = Pathfinder.pathBF(rc, new MapLocation(25, 25));
 
             if(moveDir != null && rc.canMove(moveDir)){
                 rc.move(moveDir);

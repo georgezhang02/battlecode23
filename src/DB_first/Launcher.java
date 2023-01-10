@@ -29,7 +29,7 @@ public strictfp class Launcher {
     static void run(RobotController rc) throws GameActionException {
         // Try to attack someone
         if(rc.isMovementReady()) {
-            Direction moveDir = BFPathing20.bfPathToTarget(rc, new MapLocation(0, 0));
+            Direction moveDir = Pathfinder.pathBF(rc, new MapLocation(25, 25));
             if(moveDir != null && rc.canMove(moveDir)){
                 rc.move(moveDir);
             }
