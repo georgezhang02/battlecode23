@@ -24,23 +24,26 @@ public strictfp class Carrier {
     };
 
     private static enum CarrierState {
-        None, Exploring, Returning, Anchoring, Gathering, AnchorReturnCarrier;
+        None, Exploring, Returning, Anchoring, Gathering, ReturningAnchor;
     }
 
     static MapLocation WELL_LOCATION = null;
     static MapLocation HQ_LOCATION = null;
 
     static void run(RobotController rc) throws GameActionException {
-        if(state == CarrierState.None){
-            assign(rc);
-        }
+
+        rc.setIndicatorString(state.name());
         switch (state) {
+            case None:
+                assign(rc);
             case Exploring:
                 explore(rc);
             case Anchoring:
                 anchor(rc);
             case Returning:
                 returnToHQ(rc);
+            case ReturningAnchor:
+                returnToHQAnchor(rc);
             case Gathering:
                 gather(rc);
                 break;
@@ -97,11 +100,12 @@ public strictfp class Carrier {
                 state = CarrierState.Gathering;
             }
         }
+        //rc.setIndicatorString(String.valueOf(Clock.getBytecodesLeft()));
     }
 
     static void returnToHQ(RobotController rc) throws GameActionException{
         //If the hq location is in action range, deposit resources to HQ
-        if(HQ_LOCATION.distanceSquaredTo(rc.getLocation()) < 5){
+        if(HQ_LOCATION.distanceSquaredTo(rc.getLocation()) <=2){
             int manaAmount = rc.getResourceAmount(ResourceType.MANA);
             int adAmount = rc.getResourceAmount(ResourceType.ADAMANTIUM);
             int elixirAmount = rc.getResourceAmount(ResourceType.ELIXIR);
@@ -121,7 +125,23 @@ public strictfp class Carrier {
 
         //move back to HQ
         else{
-            Direction moveDir = Pathfinder.pathBF(rc, HQ_LOCATION);
+            Direction moveDir = Pathfinder.pathBug(rc, HQ_LOCATION);
+
+            if(moveDir != null && rc.canMove(moveDir)){
+                rc.move(moveDir);
+            }
+        }
+    }
+
+    static void returnToHQAnchor(RobotController rc) throws GameActionException{
+        //Returning Carrier just gets reassigned
+        if(HQ_LOCATION.distanceSquaredTo(rc.getLocation()) <=2){
+                state = state.None;
+        }
+
+        //move back to HQ
+        else{
+            Direction moveDir = Pathfinder.pathBug(rc, HQ_LOCATION);
 
             if(moveDir != null && rc.canMove(moveDir)){
                 rc.move(moveDir);
@@ -142,17 +162,16 @@ public strictfp class Carrier {
                 }
                 if (islandLocs.size() > 0) {
                     MapLocation islandLocation = islandLocs.iterator().next();
-                    rc.setIndicatorString("Moving my anchor towards " + islandLocation);
-                    while (!rc.getLocation().equals(islandLocation)) {
-                        Direction dir = rc.getLocation().directionTo(islandLocation);
-                        if (rc.canMove(dir)) {
-                            rc.move(dir);
-                        }
+                    //rc.setIndicatorString("Moving my anchor towards " + islandLocation);
+                    Direction moveDir = Pathfinder.pathBug(rc, islandLocation);
+
+                    if(moveDir != null && rc.canMove(moveDir)){
+                        rc.move(moveDir);
                     }
                     if (rc.canPlaceAnchor()) {
                         rc.setIndicatorString("Huzzah, placed anchor!");
                         rc.placeAnchor();
-                        state = state.Returning;
+                        state = state.ReturningAnchor;
                     }
                 }
             }
@@ -167,27 +186,22 @@ public strictfp class Carrier {
     }
 
     static void gather(RobotController rc) throws GameActionException{
-        if(WELL_LOCATION.distanceSquaredTo(rc.getLocation()) < 5){
-            MapLocation me = rc.getLocation();
-            for (int dx = -1; dx <= 1; dx++) {
-                for (int dy = -1; dy <= 1; dy++) {
-                    MapLocation wellLocation = new MapLocation(me.x + dx, me.y + dy);
-                    if (rc.canCollectResource(wellLocation, -1)) {
-                        rc.collectResource(wellLocation, -1);
-                        rc.setIndicatorString("Collecting, now have, AD:" +
-                                rc.getResourceAmount(ResourceType.ADAMANTIUM) +
-                                " MN: " + rc.getResourceAmount(ResourceType.MANA) +
-                                " EX: " + rc.getResourceAmount(ResourceType.ELIXIR));
-                    }
-                    //if a carrier cannot get anymore resources, return to base
-                    if(rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA)
-                            + rc.getResourceAmount(ResourceType.ELIXIR) > 38)
-                        state = state.Returning;
-                }
+        if(WELL_LOCATION.distanceSquaredTo(rc.getLocation()) <= 2){
+            if (rc.canCollectResource(WELL_LOCATION, -1)) {
+                rc.collectResource(WELL_LOCATION, -1);
+                rc.setIndicatorString("Collecting, now have, AD:" +
+                        rc.getResourceAmount(ResourceType.ADAMANTIUM) +
+                        " MN: " + rc.getResourceAmount(ResourceType.MANA) +
+                        " EX: " + rc.getResourceAmount(ResourceType.ELIXIR));
+            }
+            //if a carrier cannot get anymore resources, return to base
+            if(rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA)
+                    + rc.getResourceAmount(ResourceType.ELIXIR) > 38){
+                state = state.Returning;
             }
         }
         if(rc.isMovementReady()) {
-            Direction moveDir = Pathfinder.pathBF(rc, WELL_LOCATION);
+            Direction moveDir = Pathfinder.pathBug(rc, WELL_LOCATION);
 
             if(moveDir != null && rc.canMove(moveDir)){
                 rc.move(moveDir);

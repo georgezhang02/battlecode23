@@ -1,8 +1,6 @@
 package DB_VERY_DB;
-
 import battlecode.common.*;
-
-public strictfp class BFPathing21 {
+public strictfp class BFPathing20 {
     static Direction dir9;
     static Direction dir10;
     static Direction dir11;
@@ -403,6 +401,8 @@ public strictfp class BFPathing21 {
 
         MapLocation ml0 = rc.getLocation();
         if (ml0.equals(target)) return Direction.CENTER;
+
+
 
         ml1 = ml0.add(Direction.SOUTH);
         ml2 = ml1.add(Direction.EAST);
@@ -1776,357 +1776,414 @@ public strictfp class BFPathing21 {
 
         int xDiff = target.x - ml0.x;
         int yDiff = target.y - ml0.y;
-
         switch (xDiff){
             case -4:
                 switch (yDiff){
                     case -2:
-                        return dir68 ;
+                        if(dist68  <5000) return dir68 ;
+                        else return Direction.CENTER;
                     case -1:
-                        return dir67 ;
+                        if(dist67  <5000) return dir67 ;
+                        else return Direction.CENTER;
                     case 0:
-                        return dir66 ;
+                        if(dist66  <5000) return dir66 ;
+                        else return Direction.CENTER;
                     case 1:
-                        return dir65 ;
+                        if(dist65  <5000) return dir65 ;
+                        else return Direction.CENTER;
                     case 2:
-                        return dir64 ;
+                        if(dist64  <5000) return dir64 ;
+                        else return Direction.CENTER;
                 }
                 break;
             case -3:
                 switch (yDiff){
                     case -3:
-                        return dir45 ;
+                        if(dist45  <5000) return dir45 ;
+                        else return Direction.CENTER;
                     case -2:
-                        return dir44 ;
+                        if(dist44  <5000) return dir44 ;
+                        else return Direction.CENTER;
                     case -1:
-                        return dir43 ;
+                        if(dist43  <5000) return dir43 ;
+                        else return Direction.CENTER;
                     case 0:
-                        return dir42 ;
+                        if(dist42  <5000) return dir42 ;
+                        else return Direction.CENTER;
                     case 1:
-                        return dir41 ;
+                        if(dist41  <5000) return dir41 ;
+                        else return Direction.CENTER;
                     case 2:
-                        return dir40 ;
+                        if(dist40  <5000) return dir40 ;
+                        else return Direction.CENTER;
                     case 3:
-                        return dir63 ;
+                        if(dist63  <5000) return dir63 ;
+                        else return Direction.CENTER;
                 }
                 break;
             case -2:
                 switch (yDiff){
                     case -4:
-                        return dir46 ;
+                        if(dist46  <5000) return dir46 ;
+                        else return Direction.CENTER;
                     case -3:
-                        return dir25 ;
+                        if(dist25  <5000) return dir25 ;
+                        else return Direction.CENTER;
                     case -2:
-                        return dir24 ;
+                        if(dist24  <5000) return dir24 ;
+                        else return Direction.CENTER;
                     case -1:
-                        return dir23 ;
+                        if(dist23  <5000) return dir23 ;
+                        else return Direction.CENTER;
                     case 0:
-                        return dir22 ;
+                        if(dist22  <5000) return dir22 ;
+                        else return Direction.CENTER;
                     case 1:
-                        return dir21 ;
+                        if(dist21  <5000) return dir21 ;
+                        else return Direction.CENTER;
                     case 2:
-                        return dir20 ;
+                        if(dist20  <5000) return dir20 ;
+                        else return Direction.CENTER;
                     case 3:
-                        return dir39 ;
+                        if(dist39  <5000) return dir39 ;
+                        else return Direction.CENTER;
                     case 4:
-                        return dir62 ;
+                        if(dist62  <5000) return dir62 ;
+                        else return Direction.CENTER;
                 }
                 break;
             case -1:
                 switch (yDiff){
                     case -4:
-                        return dir47 ;
+                        if(dist47  <5000) return dir47 ;
+                        else return Direction.CENTER;
                     case -3:
-                        return dir26 ;
+                        if(dist26  <5000) return dir26 ;
+                        else return Direction.CENTER;
                     case -2:
-                        return dir9 ;
+                        if(dist9  <5000) return dir9 ;
+                        else return Direction.CENTER;
                     case -1:
-                        return dir8 ;
+                        if(dist8  <5000) return dir8 ;
+                        else return Direction.CENTER;
                     case 0:
-                        return dir7 ;
+                        if(dist7  <5000) return dir7 ;
+                        else return Direction.CENTER;
                     case 1:
-                        return dir6 ;
+                        if(dist6  <5000) return dir6 ;
+                        else return Direction.CENTER;
                     case 2:
-                        return dir19 ;
+                        if(dist19  <5000) return dir19 ;
+                        else return Direction.CENTER;
                     case 3:
-                        return dir38 ;
+                        if(dist38  <5000) return dir38 ;
+                        else return Direction.CENTER;
                     case 4:
-                        return dir61 ;
+                        if(dist61  <5000) return dir61 ;
+                        else return Direction.CENTER;
                 }
                 break;
             case 0:
                 switch (yDiff){
                     case -4:
-                        return dir48 ;
+                        if(dist48  <5000) return dir48 ;
+                        else return Direction.CENTER;
                     case -3:
-                        return dir27 ;
+                        if(dist27  <5000) return dir27 ;
+                        else return Direction.CENTER;
                     case -2:
-                        return dir10 ;
+                        if(dist10  <5000) return dir10 ;
+                        else return Direction.CENTER;
                     case -1:
-                        return dir1 ;
+                        if(dist1  <5000) return dir1 ;
+                        else return Direction.CENTER;
                     case 1:
-                        return dir5 ;
+                        if(dist5  <5000) return dir5 ;
+                        else return Direction.CENTER;
                     case 2:
-                        return dir18 ;
+                        if(dist18  <5000) return dir18 ;
+                        else return Direction.CENTER;
                     case 3:
-                        return dir37 ;
+                        if(dist37  <5000) return dir37 ;
+                        else return Direction.CENTER;
                     case 4:
-                        return dir60 ;
+                        if(dist60  <5000) return dir60 ;
+                        else return Direction.CENTER;
                 }
                 break;
             case 1:
                 switch (yDiff){
                     case -4:
-                        return dir49 ;
+                        if(dist49  <5000) return dir49 ;
+                        else return Direction.CENTER;
                     case -3:
-                        return dir28 ;
+                        if(dist28  <5000) return dir28 ;
+                        else return Direction.CENTER;
                     case -2:
-                        return dir11 ;
+                        if(dist11  <5000) return dir11 ;
+                        else return Direction.CENTER;
                     case -1:
-                        return dir2 ;
+                        if(dist2  <5000) return dir2 ;
+                        else return Direction.CENTER;
                     case 0:
-                        return dir3 ;
+                        if(dist3  <5000) return dir3 ;
+                        else return Direction.CENTER;
                     case 1:
-                        return dir4 ;
+                        if(dist4  <5000) return dir4 ;
+                        else return Direction.CENTER;
                     case 2:
-                        return dir17 ;
+                        if(dist17  <5000) return dir17 ;
+                        else return Direction.CENTER;
                     case 3:
-                        return dir36 ;
+                        if(dist36  <5000) return dir36 ;
+                        else return Direction.CENTER;
                     case 4:
-                        return dir59 ;
+                        if(dist59  <5000) return dir59 ;
+                        else return Direction.CENTER;
                 }
                 break;
             case 2:
                 switch (yDiff){
                     case -4:
-                        return dir50 ;
+                        if(dist50  <5000) return dir50 ;
+                        else return Direction.CENTER;
                     case -3:
-                        return dir29 ;
+                        if(dist29  <5000) return dir29 ;
+                        else return Direction.CENTER;
                     case -2:
-                        return dir12 ;
+                        if(dist12  <5000) return dir12 ;
+                        else return Direction.CENTER;
                     case -1:
-                        return dir13 ;
+                        if(dist13  <5000) return dir13 ;
+                        else return Direction.CENTER;
                     case 0:
-                        return dir14 ;
+                        if(dist14  <5000) return dir14 ;
+                        else return Direction.CENTER;
                     case 1:
-                        return dir15 ;
+                        if(dist15  <5000) return dir15 ;
+                        else return Direction.CENTER;
                     case 2:
-                        return dir16 ;
+                        if(dist16  <5000) return dir16 ;
+                        else return Direction.CENTER;
                     case 3:
-                        return dir35 ;
+                        if(dist35  <5000) return dir35 ;
+                        else return Direction.CENTER;
                     case 4:
-                        return dir58 ;
+                        if(dist58  <5000) return dir58 ;
+                        else return Direction.CENTER;
                 }
                 break;
             case 3:
                 switch (yDiff){
                     case -3:
-                        return dir51 ;
+                        if(dist51  <5000) return dir51 ;
+                        else return Direction.CENTER;
                     case -2:
-                        return dir30 ;
+                        if(dist30  <5000) return dir30 ;
+                        else return Direction.CENTER;
                     case -1:
-                        return dir31 ;
+                        if(dist31  <5000) return dir31 ;
+                        else return Direction.CENTER;
                     case 0:
-                        return dir32 ;
+                        if(dist32  <5000) return dir32 ;
+                        else return Direction.CENTER;
                     case 1:
-                        return dir33 ;
+                        if(dist33  <5000) return dir33 ;
+                        else return Direction.CENTER;
                     case 2:
-                        return dir34 ;
+                        if(dist34  <5000) return dir34 ;
+                        else return Direction.CENTER;
                     case 3:
-                        return dir57 ;
+                        if(dist57  <5000) return dir57 ;
+                        else return Direction.CENTER;
                 }
                 break;
             case 4:
                 switch (yDiff){
                     case -2:
-                        return dir52 ;
+                        if(dist52  <5000) return dir52 ;
+                        else return Direction.CENTER;
                     case -1:
-                        return dir53 ;
+                        if(dist53  <5000) return dir53 ;
+                        else return Direction.CENTER;
                     case 0:
-                        return dir54 ;
+                        if(dist54  <5000) return dir54 ;
+                        else return Direction.CENTER;
                     case 1:
-                        return dir55 ;
+                        if(dist55  <5000) return dir55 ;
+                        else return Direction.CENTER;
                     case 2:
-                        return dir56 ;
+                        if(dist56  <5000) return dir56 ;
+                        else return Direction.CENTER;
                 }
                 break;
         }
 
-
         double gain;
         Direction ans = Direction.CENTER;
-
-
         double initDist = Math.sqrt(ml0.distanceSquaredTo(target));
         double maxGainPerCost = 0;
         gain = (initDist - Math.sqrt(ml45.distanceSquaredTo(target))) / dist45;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist45 < 5000){
             maxGainPerCost = gain;
             ans = dir45;
         }
         gain = (initDist - Math.sqrt(ml46.distanceSquaredTo(target))) / dist46;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist46 < 5000){
             maxGainPerCost = gain;
             ans = dir46;
         }
         gain = (initDist - Math.sqrt(ml47.distanceSquaredTo(target))) / dist47;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist47 < 5000){
             maxGainPerCost = gain;
             ans = dir47;
         }
         gain = (initDist - Math.sqrt(ml48.distanceSquaredTo(target))) / dist48;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist48 < 5000){
             maxGainPerCost = gain;
             ans = dir48;
         }
         gain = (initDist - Math.sqrt(ml49.distanceSquaredTo(target))) / dist49;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist49 < 5000){
             maxGainPerCost = gain;
             ans = dir49;
         }
         gain = (initDist - Math.sqrt(ml50.distanceSquaredTo(target))) / dist50;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist50 < 5000){
             maxGainPerCost = gain;
             ans = dir50;
         }
         gain = (initDist - Math.sqrt(ml51.distanceSquaredTo(target))) / dist51;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist51 < 5000){
             maxGainPerCost = gain;
             ans = dir51;
         }
         gain = (initDist - Math.sqrt(ml52.distanceSquaredTo(target))) / dist52;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist52 < 5000){
             maxGainPerCost = gain;
             ans = dir52;
         }
         gain = (initDist - Math.sqrt(ml53.distanceSquaredTo(target))) / dist53;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist53 < 5000){
             maxGainPerCost = gain;
             ans = dir53;
         }
         gain = (initDist - Math.sqrt(ml54.distanceSquaredTo(target))) / dist54;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist54 < 5000){
             maxGainPerCost = gain;
             ans = dir54;
         }
         gain = (initDist - Math.sqrt(ml55.distanceSquaredTo(target))) / dist55;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist55 < 5000){
             maxGainPerCost = gain;
             ans = dir55;
         }
         gain = (initDist - Math.sqrt(ml56.distanceSquaredTo(target))) / dist56;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist56 < 5000){
             maxGainPerCost = gain;
             ans = dir56;
         }
         gain = (initDist - Math.sqrt(ml57.distanceSquaredTo(target))) / dist57;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist57 < 5000){
             maxGainPerCost = gain;
             ans = dir57;
         }
         gain = (initDist - Math.sqrt(ml58.distanceSquaredTo(target))) / dist58;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist58 < 5000){
             maxGainPerCost = gain;
             ans = dir58;
         }
         gain = (initDist - Math.sqrt(ml59.distanceSquaredTo(target))) / dist59;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist59 < 5000){
             maxGainPerCost = gain;
             ans = dir59;
         }
         gain = (initDist - Math.sqrt(ml60.distanceSquaredTo(target))) / dist60;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist60 < 5000){
             maxGainPerCost = gain;
             ans = dir60;
         }
         gain = (initDist - Math.sqrt(ml61.distanceSquaredTo(target))) / dist61;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist61 < 5000){
             maxGainPerCost = gain;
             ans = dir61;
         }
         gain = (initDist - Math.sqrt(ml62.distanceSquaredTo(target))) / dist62;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist62 < 5000){
             maxGainPerCost = gain;
             ans = dir62;
         }
         gain = (initDist - Math.sqrt(ml63.distanceSquaredTo(target))) / dist63;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist63 < 5000){
             maxGainPerCost = gain;
             ans = dir63;
         }
         gain = (initDist - Math.sqrt(ml64.distanceSquaredTo(target))) / dist64;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist64 < 5000){
             maxGainPerCost = gain;
             ans = dir64;
         }
         gain = (initDist - Math.sqrt(ml65.distanceSquaredTo(target))) / dist65;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist65 < 5000){
             maxGainPerCost = gain;
             ans = dir65;
         }
         gain = (initDist - Math.sqrt(ml66.distanceSquaredTo(target))) / dist66;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist66 < 5000){
             maxGainPerCost = gain;
             ans = dir66;
         }
         gain = (initDist - Math.sqrt(ml67.distanceSquaredTo(target))) / dist67;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist67 < 5000){
             maxGainPerCost = gain;
             ans = dir67;
         }
         gain = (initDist - Math.sqrt(ml68.distanceSquaredTo(target))) / dist68;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist68 < 5000){
             maxGainPerCost = gain;
             ans = dir68;
         }
         gain = (initDist - Math.sqrt(ml44.distanceSquaredTo(target))) / dist44;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist44 < 5000){
             maxGainPerCost = gain;
             ans = dir44;
         }
         gain = (initDist - Math.sqrt(ml25.distanceSquaredTo(target))) / dist25;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist25 < 5000){
             maxGainPerCost = gain;
             ans = dir25;
         }
         gain = (initDist - Math.sqrt(ml29.distanceSquaredTo(target))) / dist29;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist29 < 5000){
             maxGainPerCost = gain;
             ans = dir29;
         }
         gain = (initDist - Math.sqrt(ml30.distanceSquaredTo(target))) / dist30;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist30 < 5000){
             maxGainPerCost = gain;
             ans = dir30;
         }
         gain = (initDist - Math.sqrt(ml34.distanceSquaredTo(target))) / dist34;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist34 < 5000){
             maxGainPerCost = gain;
             ans = dir34;
         }
         gain = (initDist - Math.sqrt(ml35.distanceSquaredTo(target))) / dist35;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist35 < 5000){
             maxGainPerCost = gain;
             ans = dir35;
         }
         gain = (initDist - Math.sqrt(ml39.distanceSquaredTo(target))) / dist39;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist39 < 5000){
             maxGainPerCost = gain;
             ans = dir39;
         }
         gain = (initDist - Math.sqrt(ml40.distanceSquaredTo(target))) / dist40;
-        if(gain > maxGainPerCost){
+        if(gain > maxGainPerCost && dist40 < 5000){
             maxGainPerCost = gain;
             ans = dir40;
         }
-        rc.setIndicatorString(String.valueOf(dist9));
         return ans;
-
-
-
-
-
-
 
 
 

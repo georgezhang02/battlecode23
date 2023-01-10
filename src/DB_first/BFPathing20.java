@@ -1772,185 +1772,255 @@ public strictfp class BFPathing20 {
             }
 
         }
-
+        rc.setIndicatorString("h");
 
         int xDiff = target.x - ml0.x;
         int yDiff = target.y - ml0.y;
-
         switch (xDiff){
             case -4:
                 switch (yDiff){
                     case -2:
+                        rc.setIndicatorString("68 ");
                         return dir68 ;
                     case -1:
+                        rc.setIndicatorString("67 ");
                         return dir67 ;
                     case 0:
+                        rc.setIndicatorString("66 ");
                         return dir66 ;
                     case 1:
+                        rc.setIndicatorString("65 ");
                         return dir65 ;
                     case 2:
+                        rc.setIndicatorString("64 ");
                         return dir64 ;
                 }
                 break;
             case -3:
                 switch (yDiff){
                     case -3:
+                        rc.setIndicatorString("45 ");
                         return dir45 ;
                     case -2:
+                        rc.setIndicatorString("44 ");
                         return dir44 ;
                     case -1:
+                        rc.setIndicatorString("43 ");
                         return dir43 ;
                     case 0:
+                        rc.setIndicatorString("42 ");
                         return dir42 ;
                     case 1:
+                        rc.setIndicatorString("41 ");
                         return dir41 ;
                     case 2:
+                        rc.setIndicatorString("40 ");
                         return dir40 ;
                     case 3:
+                        rc.setIndicatorString("63 ");
                         return dir63 ;
                 }
                 break;
             case -2:
                 switch (yDiff){
                     case -4:
+                        rc.setIndicatorString("46 ");
                         return dir46 ;
                     case -3:
+                        rc.setIndicatorString("25 ");
                         return dir25 ;
                     case -2:
+                        rc.setIndicatorString("24 ");
                         return dir24 ;
                     case -1:
+                        rc.setIndicatorString("23 ");
                         return dir23 ;
                     case 0:
+                        rc.setIndicatorString("22 ");
                         return dir22 ;
                     case 1:
+                        rc.setIndicatorString("21 ");
                         return dir21 ;
                     case 2:
+                        rc.setIndicatorString("20 ");
                         return dir20 ;
                     case 3:
+                        rc.setIndicatorString("39 ");
                         return dir39 ;
                     case 4:
+                        rc.setIndicatorString("62 ");
                         return dir62 ;
                 }
                 break;
             case -1:
                 switch (yDiff){
                     case -4:
+                        rc.setIndicatorString("47 ");
                         return dir47 ;
                     case -3:
+                        rc.setIndicatorString("26 ");
                         return dir26 ;
                     case -2:
+                        rc.setIndicatorString("9 ");
                         return dir9 ;
                     case -1:
+                        rc.setIndicatorString("8 ");
                         return dir8 ;
                     case 0:
+                        rc.setIndicatorString("7 ");
                         return dir7 ;
                     case 1:
+                        rc.setIndicatorString("6 ");
                         return dir6 ;
                     case 2:
+                        rc.setIndicatorString("19 ");
                         return dir19 ;
                     case 3:
+                        rc.setIndicatorString("38 ");
                         return dir38 ;
                     case 4:
+                        rc.setIndicatorString("61 ");
                         return dir61 ;
                 }
                 break;
             case 0:
                 switch (yDiff){
                     case -4:
+                        rc.setIndicatorString("48 ");
                         return dir48 ;
                     case -3:
+                        rc.setIndicatorString("27 ");
                         return dir27 ;
                     case -2:
+                        rc.setIndicatorString("10 ");
                         return dir10 ;
                     case -1:
+                        rc.setIndicatorString("1 ");
                         return dir1 ;
                     case 1:
+                        rc.setIndicatorString("5 ");
                         return dir5 ;
                     case 2:
+                        rc.setIndicatorString("18 ");
                         return dir18 ;
                     case 3:
+                        rc.setIndicatorString("37 ");
                         return dir37 ;
                     case 4:
+                        rc.setIndicatorString("60 ");
                         return dir60 ;
                 }
                 break;
             case 1:
                 switch (yDiff){
                     case -4:
+                        rc.setIndicatorString("49 ");
                         return dir49 ;
                     case -3:
+                        rc.setIndicatorString("28 ");
                         return dir28 ;
                     case -2:
+                        rc.setIndicatorString("11 ");
                         return dir11 ;
                     case -1:
+                        rc.setIndicatorString("2 ");
                         return dir2 ;
                     case 0:
+                        rc.setIndicatorString("3 ");
                         return dir3 ;
                     case 1:
+                        rc.setIndicatorString("4 ");
                         return dir4 ;
                     case 2:
+                        rc.setIndicatorString("17 ");
                         return dir17 ;
                     case 3:
+                        rc.setIndicatorString("36 ");
                         return dir36 ;
                     case 4:
+                        rc.setIndicatorString("59 ");
                         return dir59 ;
                 }
                 break;
             case 2:
                 switch (yDiff){
                     case -4:
+                        rc.setIndicatorString("50 ");
                         return dir50 ;
                     case -3:
+                        rc.setIndicatorString("29 ");
                         return dir29 ;
                     case -2:
+                        rc.setIndicatorString("12 ");
                         return dir12 ;
                     case -1:
+                        rc.setIndicatorString("13 ");
                         return dir13 ;
                     case 0:
+                        rc.setIndicatorString("14 ");
                         return dir14 ;
                     case 1:
+                        rc.setIndicatorString("15 ");
                         return dir15 ;
                     case 2:
+                        rc.setIndicatorString("16 ");
                         return dir16 ;
                     case 3:
+                        rc.setIndicatorString("35 ");
                         return dir35 ;
                     case 4:
+                        rc.setIndicatorString("58 ");
                         return dir58 ;
                 }
                 break;
             case 3:
                 switch (yDiff){
                     case -3:
+                        rc.setIndicatorString("51 ");
                         return dir51 ;
                     case -2:
+                        rc.setIndicatorString("30 ");
                         return dir30 ;
                     case -1:
+                        rc.setIndicatorString("31 ");
                         return dir31 ;
                     case 0:
+                        rc.setIndicatorString("32 ");
                         return dir32 ;
                     case 1:
+                        rc.setIndicatorString("33 ");
                         return dir33 ;
                     case 2:
+                        rc.setIndicatorString("34 ");
                         return dir34 ;
                     case 3:
+                        rc.setIndicatorString("57 ");
                         return dir57 ;
                 }
                 break;
             case 4:
                 switch (yDiff){
                     case -2:
+                        rc.setIndicatorString("52 ");
                         return dir52 ;
                     case -1:
+                        rc.setIndicatorString("53 ");
                         return dir53 ;
                     case 0:
+                        rc.setIndicatorString("54 ");
                         return dir54 ;
                     case 1:
+                        rc.setIndicatorString("55 ");
                         return dir55 ;
                     case 2:
+                        rc.setIndicatorString("56 ");
                         return dir56 ;
                 }
                 break;
         }
+
+
+
 
         double gain;
         Direction ans = Direction.CENTER;
