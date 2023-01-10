@@ -1,6 +1,7 @@
-package DB_first;
+package DB_VERY_DB;
 
 import battlecode.common.*;
+
 import java.util.Random;
 
 public strictfp class HQ {
