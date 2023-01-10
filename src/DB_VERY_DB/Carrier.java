@@ -32,43 +32,28 @@ public strictfp class Carrier {
 
     static void run(RobotController rc) throws GameActionException {
 
-        rc.setIndicatorString(state.name());
+       // rc.setIndicatorString(state.name());
         switch (state) {
             case None:
                 assign(rc);
+                break;
             case Exploring:
                 explore(rc);
+                break;
             case Anchoring:
                 anchor(rc);
+                break;
             case Returning:
                 returnToHQ(rc);
+                break;
             case ReturningAnchor:
                 returnToHQAnchor(rc);
+                break;
             case Gathering:
                 gather(rc);
                 break;
         }
     }
-        /*
-        if (rng.nextInt(20) == 1) {
-            RobotInfo[] enemyRobots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-            if (enemyRobots.length > 0) {
-                if (rc.canAttack(enemyRobots[0].location)) {
-                    rc.attack(enemyRobots[0].location);
-                }
-            }
-        }
-
-
-        // If we can see a well, move towards it
-        WellInfo[] wells = rc.senseNearbyWells();
-        if (wells.length > 1 && rng.nextInt(3) == 1) {
-            WellInfo well_one = wells[1];
-            Direction dir = me.directionTo(well_one.getMapLocation());
-            if (rc.canMove(dir))
-                rc.move(dir);
-        }
-         */
 
     static void assign(RobotController rc) throws GameActionException{
         RobotInfo nearbyRobots[] = rc.senseNearbyRobots();
@@ -79,6 +64,8 @@ public strictfp class Carrier {
                 if(rc.canTakeAnchor(nearbyRobots[i].getLocation(), Anchor.STANDARD) && rc.getAnchor() == null){
                     rc.takeAnchor(nearbyRobots[i].getLocation(), Anchor.STANDARD);
                     state = CarrierState.Anchoring;
+
+
                 }
                 else{
                     state = CarrierState.Exploring;
