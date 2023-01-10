@@ -1,2 +1,4 @@
-package DB_first;public class Pathfinder {
+package DB_first;
+
+public class Pathfinder {
 }

@@ -28,23 +28,11 @@ public strictfp class Launcher {
 
     static void run(RobotController rc) throws GameActionException {
         // Try to attack someone
-        int radius = rc.getType().actionRadiusSquared;
-        Team opponent = rc.getTeam().opponent();
-        RobotInfo[] enemies = rc.senseNearbyRobots(radius, opponent);
-        if (enemies.length >= 0) {
-            // MapLocation toAttack = enemies[0].location;
-            MapLocation toAttack = rc.getLocation().add(Direction.EAST);
-
-            if (rc.canAttack(toAttack)) {
-                rc.setIndicatorString("Attacking");
-                rc.attack(toAttack);
+        if(rc.isMovementReady()) {
+            Direction moveDir = BFPathing20.bfPathToTarget(rc, new MapLocation(0, 0));
+            if(moveDir != null && rc.canMove(moveDir)){
+                rc.move(moveDir);
             }
-        }
-
-        // Also try to move randomly.
-        Direction dir = directions[rng.nextInt(directions.length)];
-        if (rc.canMove(dir)) {
-            rc.move(dir);
         }
     }
 
