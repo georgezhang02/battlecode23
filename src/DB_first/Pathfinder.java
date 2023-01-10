@@ -10,7 +10,7 @@ public strictfp class Pathfinder {
     static int rotationCount;
     static double lowestDist;
 
-    static double
+    static MapLocation lastLocation;
 
     public static Direction pathBF(RobotController rc, MapLocation target) throws GameActionException {
 
@@ -24,10 +24,12 @@ public strictfp class Pathfinder {
              rotating = false;
              Direction moveDir = BFPathing20.bfPathToTarget(rc, target);
 
-             if(moveDir ==null || moveDir == Direction.CENTER){
+             if(moveDir ==null || moveDir == Direction.CENTER || rc.getLocation().add(moveDir).equals(lastLocation)){
                  currentlyBug = true;
                   return pathBug(rc, target);
              }
+
+             lastLocation = rc.getLocation();
              return moveDir;
          }
     }
