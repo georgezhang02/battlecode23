@@ -57,7 +57,12 @@ public strictfp class Pathfinder {
     }
 
     public static Direction pathAwayFrom(RobotController rc, MapLocation target) throws GameActionException{
-        return pathBug(rc, rc.getLocation().subtract(target.subtract(rc.getLocation())));
+        MapLocation curLoc = rc.getLocation();
+        int distXToTarget = target.x - curLoc.x;
+        int distYToTarget = target.y - curLoc.y;
+
+        MapLocation runawayTarget = new MapLocation(curLoc.x-distXToTarget, curLoc.y-distYToTarget);
+        return pathBug(rc, runawayTarget);
 
     }
 
