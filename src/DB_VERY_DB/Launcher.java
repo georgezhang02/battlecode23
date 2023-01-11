@@ -2,20 +2,19 @@ package DB_VERY_DB;
 
 import battlecode.common.*;
 
-import java.awt.*;
 import java.util.Random;
 
 public strictfp class Launcher {
 
-    public enum LauncherState {
-        Combat, Pursuing, Exploring
-    }
+    /**
+     * A random number generator.
+     * We will use this RNG to make some random moves. The Random class is provided by the java.util.Random
+     * import at the top of this file. Here, we *seed* the RNG with a constant number (6147); this makes sure
+     * we get the same sequence of numbers every time this code is run. This is very useful for debugging!
+     */
+    static final Random rng = new Random(6147);
 
-    static RobotInfo[] enemies;
-
-    static WellInfo[]wells;
-    static boolean initialized = false;
-
+    /** Array containing all the possible movement directions. */
     static final Direction[] directions = {
             Direction.NORTH,
             Direction.NORTHEAST,
@@ -27,77 +26,14 @@ public strictfp class Launcher {
             Direction.NORTHWEST,
     };
 
-    static LauncherState state;
-
     static void run(RobotController rc) throws GameActionException {
-        if(!initialized){
-            onUnitInit(rc); // first time starting the bot, do some setup
-            initialized = true;
-        }
-
-        initTurn(rc); // cleanup for when the turn starts
-
-        // interpret overall macro state
-        readComms(rc);
-
-        // sense part
-        sense(rc);
-
-
-        switch (state){
-            case Combat:
-                combat(rc);
-                break;
-            case Pursuing:
-                pursue(rc);
-                break;
-            case Exploring:
-                explore(rc);
-                break;
-        }
-
-
-    }
-
-
-    static void onUnitInit(RobotController rc) throws GameActionException{
-
-    }
-
-    static void initTurn(RobotController rc) throws GameActionException{
-
-    }
-
-    static void readComms(RobotController rc)throws GameActionException{
-
-    }
-
-    static void sense(RobotController rc) throws GameActionException{
-        enemies = rc.senseNearbyRobots(RobotType.LAUNCHER.visionRadiusSquared, rc.getTeam().opponent());
-        wells = rc.senseNearbyWells();
-        if(enemies.length > 0){
-            state = LauncherState.Combat;
+        // Try to attack someone
+        if(rc.isMovementReady()) {
+            Direction moveDir = Pathfinder.pathBF(rc, new MapLocation(25, 25));
+            if(moveDir != null && rc.canMove(moveDir)){
+                rc.move(moveDir);
+            }
         }
     }
-
-    static void combat(RobotController rc) throws GameActionException{
-
-    }
-
-    static void pursue(RobotController rc) throws GameActionException{
-
-    }
-
-    static void explore(RobotController rc) throws GameActionException{
-
-        Direction dir = Helper.directions[Helper.rng.nextInt(Helper.directions.length)];
-        if (rc.canMove(dir)) {
-            rc.move(dir);
-        }
-
-    }
-
-
-
 
 }

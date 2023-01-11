@@ -79,7 +79,7 @@ public strictfp class Pathfinder {
 
             if(wallLeft){
                 if(canMoveThrough(rc, lastBugDir.rotateLeft().rotateLeft(), rc.getLocation())
-                || !rc.onTheMap(rc.getLocation().add(lastBugDir.rotateLeft().rotateLeft()))){
+                        || !rc.onTheMap(rc.getLocation().add(lastBugDir.rotateLeft().rotateLeft()))){
                     rotatingBug = false;
                     rc.setIndicatorString("canmovethrough");
                 } else{
@@ -151,7 +151,7 @@ public strictfp class Pathfinder {
                         wallLeft = false;
 
                         if(left==Direction.NORTHEAST||left==Direction.NORTHWEST||left==Direction.SOUTHEAST||
-                        left==Direction.SOUTHWEST){
+                                left==Direction.SOUTHWEST){
                             lastBugDir= left.rotateRight();
                         } else{
                             lastBugDir= left;

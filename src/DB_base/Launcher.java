@@ -44,7 +44,7 @@ public strictfp class Launcher {
 
         selectState(rc);
 
-        rc.setIndicatorString(state+"");
+
 
         //select action based on state
         switch (state){
@@ -84,12 +84,13 @@ public strictfp class Launcher {
         // combatCD will be necessary in the future for avoiding high-cd multiplier squares
         if(enemies.length > 0){
             int i = 0;
-            while(i< enemies.length && enemies[i].getType() != RobotType.HEADQUARTERS){
+            while(i< enemies.length && enemies[i].getType() == RobotType.HEADQUARTERS){
                 i++;
             }
             if(i != enemies.length){
                 combatCD =1;
                 state = LauncherState.Combat;
+                rc.setIndicatorString("inCombat");
             } else{
                 state = LauncherState.Exploring;
             }
@@ -108,7 +109,10 @@ public strictfp class Launcher {
         RobotInfo attackRobot = findAttack(rc);
         if(attackRobot!=null){
             MapLocation attackLoc = attackRobot.getLocation();
-            rc.attack(attackLoc);
+            if(rc.canAttack(attackLoc)){
+                rc.attack(attackLoc);
+            }
+
 
             // chase after attacked person
             if(rc.isMovementReady() && rc.getLocation().distanceSquaredTo(attackLoc) > 10){
@@ -124,7 +128,7 @@ public strictfp class Launcher {
         int maxValue = 0;
         RobotInfo enemyToAttack = null;
         for(RobotInfo enemy : enemies){
-            if(rc.canAttack(enemy.location)){
+            if(enemy.getType() != RobotType.HEADQUARTERS){
                 int attackValue = 0;
 
                 // weight value based on unit attacked
