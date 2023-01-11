@@ -35,7 +35,7 @@ public class Comms {
             if (decode(value, 2) != 0) {
                 int x = decode(value, 0);
                 int y = decode(value, 1);
-                int distance = Math.max(Math.abs(x - current.x), Math.abs(y - current.y));
+                int distance = Helper.distanceTo(current.x, current.y, x, y);
                 if (distance < lowest_dist) {
                     lowest_dist = distance;
                     closest = new MapLocation(x, y);
@@ -67,14 +67,11 @@ public class Comms {
         }
     }
 
-    public static void printWellLocations(RobotController rc) throws GameActionException {
-        int count = decode(rc.readSharedArray(COUNT_OFFSET), 1);
-        for (int i = 0; i < count; i++) {
-            int value = rc.readSharedArray(i + WELL_OFFSET);
-            int wellXAtIndex = decode(value, 0);
-            int wellYAtIndex = decode(value, 1);
-            System.out.println("Well at: " + wellXAtIndex + ", " + wellYAtIndex);
-        }
+    public static MapLocation getWellLocation(RobotController rc, int index) throws GameActionException {
+        int value = rc.readSharedArray(index + WELL_OFFSET);
+        int x = decode(value, 0);
+        int y = decode(value, 1);
+        return new MapLocation(x, y);
     }
 
     /**

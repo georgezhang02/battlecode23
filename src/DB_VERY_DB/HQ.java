@@ -5,12 +5,15 @@ import DB_VERY_DB.Helper;
 import DB_VERY_DB.Pathfinder;
 import battlecode.common.*;
 
+import java.util.Map;
+
 public strictfp class HQ {
 
     static boolean initialized = false;
     static MapLocation location;
     static boolean firstHQ;
     static String indicatorString;
+    static int wellIndex;
 
     public static void run(RobotController rc) throws GameActionException {
 
@@ -32,14 +35,8 @@ public strictfp class HQ {
         // interpret overall macro state
         readComms();
 
-        // optimize selected action/movement over all sensed objects
-        // you should be writing to comms as you detect important information
-        perEnemy();
-        perAlly();
-        perObjective();
-
         //act part should be triggered by think part, see methods below
-        act(rc);
+        build(rc);
 
         debug(rc);
         // prints the indicator string
@@ -52,6 +49,7 @@ public strictfp class HQ {
         for (WellInfo well : rc.senseNearbyWells()) {
             Comms.addWellLocation(rc, well.getMapLocation());
         }
+        wellIndex = 0;
     }
 
     static void initTurn(RobotController rc) throws GameActionException {
@@ -66,19 +64,7 @@ public strictfp class HQ {
 
     }
 
-    static void perEnemy(){
-
-    }
-
-    static void perAlly(){
-
-    }
-
-    static void perObjective(){
-
-    }
-
-    static void act(RobotController rc) throws GameActionException{
+    static void build(RobotController rc) throws GameActionException{
         // Pick a direction to build in.
         Direction dir = Helper.directions[Helper.rng.nextInt(Helper.directions.length)];
         MapLocation newLoc = rc.getLocation().add(dir);
@@ -87,8 +73,9 @@ public strictfp class HQ {
         if (rc.getRobotCount() <= 15 || rc.getResourceAmount(ResourceType.MANA) > 150 || rc.getResourceAmount(ResourceType.ADAMANTIUM) > 150) {
 
             //Build Carrier
-            if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
-                rc.buildRobot(RobotType.CARRIER, newLoc);
+            MapLocation buildLoc = buildTowards(rc, Comms.getWellLocation(rc, wellIndex));
+            if (rc.canBuildRobot(RobotType.CARRIER, buildLoc)) {
+                rc.buildRobot(RobotType.CARRIER, buildLoc);
             }
 
             //Build Launcher
@@ -107,5 +94,21 @@ public strictfp class HQ {
 
     static void debug(RobotController rc){
         rc.setIndicatorString(indicatorString);
+    }
+
+
+
+    private static MapLocation buildTowards(RobotController rc, MapLocation target) throws GameActionException {
+        int lowestDist = 10000;
+        MapLocation buildSquare = null;
+        MapLocation[] locs = rc.getAllLocationsWithinRadiusSquared(location, 9);
+        for (MapLocation loc : locs) {
+            int distance = Helper.distanceTo(loc.x, loc.y, target.x, target.y);
+            if (distance < lowestDist && rc.sensePassability(loc)) {
+                lowestDist = distance;
+                buildSquare = new MapLocation(loc.x, loc.y);
+            }
+        }
+        return buildSquare;
     }
 }

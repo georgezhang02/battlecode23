@@ -1,6 +1,7 @@
 package DB_VERY_DB;
 
 import battlecode.common.Direction;
+import battlecode.common.MapLocation;
 
 import java.util.Random;
 
@@ -17,4 +18,8 @@ public class Helper {
             Direction.WEST,
             Direction.NORTHWEST,
     };
+
+    static int distanceTo(int x1, int y1, int x2, int y2) {
+        return Math.max(Math.abs(x1 - x2), Math.abs(y1 - y2));
+    }
 }
