@@ -78,7 +78,8 @@ public strictfp class Pathfinder {
             }
 
             if(wallLeft){
-                if(canMoveThrough(rc, lastBugDir.rotateLeft().rotateLeft(), rc.getLocation())){
+                if(canMoveThrough(rc, lastBugDir.rotateLeft().rotateLeft(), rc.getLocation())
+                || !rc.onTheMap(rc.getLocation().add(lastBugDir.rotateLeft().rotateLeft()))){
                     rotatingBug = false;
                     rc.setIndicatorString("canmovethrough");
                 } else{
@@ -99,7 +100,8 @@ public strictfp class Pathfinder {
                 }
 
             } else{
-                if(canMoveThrough(rc, lastBugDir.rotateRight().rotateRight(), rc.getLocation())){
+                if(canMoveThrough(rc, lastBugDir.rotateRight().rotateRight(), rc.getLocation())
+                        || !rc.onTheMap(rc.getLocation().add(lastBugDir.rotateRight().rotateRight()))){
                     rotatingBug = false;
                 } else{
                     int count = 0;
