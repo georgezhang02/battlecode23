@@ -5,15 +5,36 @@ import DB_VERY_DB.Helper;
 import DB_VERY_DB.Pathfinder;
 import battlecode.common.*;
 
+import java.awt.*;
 import java.util.Map;
 
 public strictfp class HQ {
 
+    static final int PERWELL = 3;
+
     static boolean initialized = false;
     static MapLocation location;
-    static boolean firstHQ;
+    static int HQIndex;
+
+    static MapLocation[] starterADWell = new MapLocation[144];
+    static int starterADWellCount = 0;
+    static int starterADWellAssigned = 0;
+    static MapLocation[] starterMNWell = new MapLocation[144];
+    static int starterMNWellCount = 0;
+    static int starterMNWellAssigned = 0;
+
     static String indicatorString;
-    static int wellIndex;
+
+    static enum HQState{
+        STARTERAD, STARTERMN, EXPLORER
+    }
+    static HQState state;
+    static int id;
+
+    static RobotType buildType;
+    static int totalAnchorCount = 0;
+    static int anchorsProduced = 0;
+    static int robotsProduced = 0;
 
     public static void run(RobotController rc) throws GameActionException {
 
@@ -25,70 +46,107 @@ public strictfp class HQ {
         initTurn(rc); // cleanup for when the turn starts
 
         // sense part
-        sense();
-
-        //think part, NOTE -> later one we might want to t
-        // take into account whether your action and movement are available,
-        //and what order you want to do them in
-        //select your next state, movement, and action based on comms, sensor data, and state
+        sense(rc);
 
         // interpret overall macro state
         readComms();
 
+        think(rc);
+
         //act part should be triggered by think part, see methods below
         build(rc);
 
-        debug(rc);
         // prints the indicator string
-
+        debug(rc);
     }
 
     static void onUnitInit(RobotController rc) throws GameActionException {
+        state = HQState.STARTERAD;
         location = rc.getLocation();
-        firstHQ = Comms.setTeamHQLocation(rc, location);
+        HQIndex = Comms.setTeamHQLocation(rc, location);
+        id = rc.getID();
         for (WellInfo well : rc.senseNearbyWells()) {
-            Comms.addWellLocation(rc, well.getMapLocation());
+            if (well.getResourceType() == ResourceType.ADAMANTIUM) {
+                starterADWell[starterADWellCount++] = well.getMapLocation();
+            } else if (well.getResourceType() == ResourceType.MANA) {
+                starterMNWell[starterMNWellCount++] = well.getMapLocation();
+            }
+            int wellIndex = Comms.addWellLocation(rc, well.getMapLocation());
+            Comms.setWellStatus(rc, wellIndex, 5);
         }
-        wellIndex = 0;
     }
 
     static void initTurn(RobotController rc) throws GameActionException {
         indicatorString = "";
     }
 
+    static void sense(RobotController rc) throws GameActionException {
+        totalAnchorCount = rc.senseRobot(id).getTotalAnchors();
+    }
+
     static void readComms(){
 
     }
 
-    static void sense(){
-
+    static void think(RobotController rc) {
+        if (state == HQState.STARTERAD) {
+            if (starterADWellCount == 0 || starterADWellAssigned >= PERWELL * starterADWellCount) {
+                state = HQState.STARTERMN;
+            } else {
+                MapLocation selectedWell = starterADWell[starterADWellAssigned / PERWELL];
+                //Comms.setCommand(rc, HQIndex, selectedWell);
+                buildType = RobotType.CARRIER;
+            }
+        }
+        if (state == HQState.STARTERMN) {
+            if (starterMNWellCount == 0 || starterMNWellAssigned >= PERWELL * starterMNWellCount) {
+                state = HQState.EXPLORER;
+            } else {
+                MapLocation selectedWell = starterMNWell[starterMNWellAssigned / PERWELL];
+                //Comms.setCommand(rc, HQIndex, selectedWell);
+                buildType = RobotType.CARRIER;
+            }
+        }
+        indicatorString = state.toString();
     }
 
     static void build(RobotController rc) throws GameActionException{
-        // Pick a direction to build in.
-        Direction dir = Helper.directions[Helper.rng.nextInt(Helper.directions.length)];
-        MapLocation newLoc = rc.getLocation().add(dir);
-
-        //If there are less than 15 bots, or one of mana or ad is booming
-        if (rc.getRobotCount() <= 15 || rc.getResourceAmount(ResourceType.MANA) > 150 || rc.getResourceAmount(ResourceType.ADAMANTIUM) > 150) {
-
-            //Build Carrier
-            MapLocation buildLoc = buildTowards(rc, Comms.getWellLocation(rc, wellIndex));
-            if (rc.canBuildRobot(RobotType.CARRIER, buildLoc)) {
-                rc.buildRobot(RobotType.CARRIER, buildLoc);
-            }
-
-            //Build Launcher
-            if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
-                rc.buildRobot(RobotType.LAUNCHER, newLoc);
-            }
-        }
-
-        //Otherwise, build anchors!
-        else if (rc.canBuildAnchor(Anchor.STANDARD)) {
-            // If we can build an anchor do it!
-            rc.buildAnchor(Anchor.STANDARD);
-            rc.setIndicatorString("Building anchor! " + rc.getAnchor());
+        MapLocation carrierBuildLoc;
+        MapLocation launcherBuildLoc;
+        switch(state) {
+            case STARTERAD:
+                carrierBuildLoc = buildTowards(rc, starterADWell[starterADWellAssigned / PERWELL]);
+                if (rc.canBuildRobot(RobotType.CARRIER, carrierBuildLoc)) {
+                    rc.buildRobot(RobotType.CARRIER, carrierBuildLoc);
+                    starterADWellAssigned++;
+                    robotsProduced++;
+                }
+                break;
+            case STARTERMN:
+                carrierBuildLoc = buildTowards(rc, starterMNWell[starterMNWellAssigned / PERWELL]);
+                if (rc.canBuildRobot(RobotType.CARRIER, carrierBuildLoc)) {
+                    rc.buildRobot(RobotType.CARRIER, carrierBuildLoc);
+                    starterMNWellAssigned++;
+                    robotsProduced++;
+                }
+                break;
+            case EXPLORER:
+                Direction dir = Helper.directions[Helper.rng.nextInt(Helper.directions.length)];
+                launcherBuildLoc = rc.getLocation().add(dir);
+                carrierBuildLoc = rc.getLocation().add(dir);
+                if (totalAnchorCount == 0 && rc.canBuildAnchor(Anchor.STANDARD)) {
+                    rc.buildAnchor(Anchor.STANDARD);
+                    anchorsProduced++;
+                } else if (robotsProduced < 25 * (anchorsProduced+1)) {
+                    if (rc.canBuildRobot(RobotType.LAUNCHER, launcherBuildLoc)) {
+                        rc.buildRobot(RobotType.LAUNCHER, launcherBuildLoc);
+                        robotsProduced++;
+                    } else if (rc.canBuildRobot(RobotType.CARRIER, launcherBuildLoc)) {
+                        rc.buildRobot(RobotType.CARRIER, carrierBuildLoc);
+                        robotsProduced++;
+                    }
+                }
+                break;
         }
     }
 

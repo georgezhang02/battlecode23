@@ -15,13 +15,13 @@ public class Comms {
     // HQ
     /**
      * Sets the team HQ location in the next available location
-     * @return true if the HQ is the first to set its location
+     * @return the index corresponding to the HQ
      */
-    public static boolean setTeamHQLocation(RobotController rc, MapLocation HQLocation) throws GameActionException {
+    public static int setTeamHQLocation(RobotController rc, MapLocation HQLocation) throws GameActionException {
         int count = decode(rc.readSharedArray(COUNT_OFFSET), 0);
         rc.writeSharedArray(count + TEAM_HQ_OFFSET, encode(HQLocation.x, HQLocation.y));
         rc.writeSharedArray(COUNT_OFFSET, encode(count + 1));
-        return count == 0;
+        return count;
     }
 
     /**
@@ -50,7 +50,7 @@ public class Comms {
     /**
      * Add the location of a newly discovered well
      */
-    public static void addWellLocation(RobotController rc, MapLocation well) throws GameActionException {
+    public static int addWellLocation(RobotController rc, MapLocation well) throws GameActionException {
         int count = decode(rc.readSharedArray(COUNT_OFFSET), 1);
         if (count < MAX_WELLS) {
             for (int i = 0; i < count; i++) {
@@ -58,13 +58,15 @@ public class Comms {
                 int wellXAtIndex = decode(value, 0);
                 int wellYAtIndex = decode(value, 1);
                 if (wellXAtIndex == well.x && wellYAtIndex == well.y) {
-                    return;
+                    return -1;
                 }
             }
             rc.writeSharedArray(count + WELL_OFFSET, encode(well.x, well.y));
             int HQCount = decode(rc.readSharedArray(COUNT_OFFSET), 0);
             rc.writeSharedArray(COUNT_OFFSET, encode(HQCount, count + 1));
+            return count;
         }
+        return -1;
     }
 
     public static MapLocation getWellLocation(RobotController rc, int index) throws GameActionException {
@@ -74,6 +76,16 @@ public class Comms {
         return new MapLocation(x, y);
     }
 
+    /**
+     * Sets the status of the well
+     * 5: starter well
+     */
+    public static void setWellStatus(RobotController rc, int wellIndex, int status) throws GameActionException {
+        int value = rc.readSharedArray(wellIndex + WELL_OFFSET);
+        int x = decode(value, 0);
+        int y = decode(value, 1);
+        rc.writeSharedArray(wellIndex + WELL_OFFSET, encode(x, y, status));
+    }
     /**
      * Decodes one array value at an index 0, 1, or 2
      */

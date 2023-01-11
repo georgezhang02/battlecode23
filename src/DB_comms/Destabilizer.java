@@ -1,4 +1,4 @@
-package COMMS_first;
+package DB_comms;
 
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;

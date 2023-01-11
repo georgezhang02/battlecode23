@@ -1,4 +1,4 @@
-package COMMS_first;
+package DB_comms;
 
 public class Booster {
 }

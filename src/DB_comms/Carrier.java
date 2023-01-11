@@ -1,8 +1,6 @@
-package COMMS_first;
+package DB_comms;
 
 import battlecode.common.*;
-
-import java.util.Random;
 
 public strictfp class Carrier {
 

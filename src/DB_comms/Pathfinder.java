@@ -1,4 +1,4 @@
-package COMMS_first;
+package DB_comms;
 
 import battlecode.common.*;
 public strictfp class Pathfinder {
