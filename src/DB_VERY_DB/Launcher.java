@@ -2,19 +2,20 @@ package DB_VERY_DB;
 
 import battlecode.common.*;
 
+import java.awt.*;
 import java.util.Random;
 
 public strictfp class Launcher {
 
-    /**
-     * A random number generator.
-     * We will use this RNG to make some random moves. The Random class is provided by the java.util.Random
-     * import at the top of this file. Here, we *seed* the RNG with a constant number (6147); this makes sure
-     * we get the same sequence of numbers every time this code is run. This is very useful for debugging!
-     */
-    static final Random rng = new Random(6147);
+    public enum LauncherState {
+        Combat, Pursuing, Exploring
+    }
 
-    /** Array containing all the possible movement directions. */
+    static RobotInfo[] enemies;
+
+    static WellInfo[]wells;
+    static boolean initialized = false;
+
     static final Direction[] directions = {
             Direction.NORTH,
             Direction.NORTHEAST,
@@ -26,26 +27,77 @@ public strictfp class Launcher {
             Direction.NORTHWEST,
     };
 
-    static void run(RobotController rc) throws GameActionException {
-        // Try to attack someone
-        int radius = rc.getType().actionRadiusSquared;
-        Team opponent = rc.getTeam().opponent();
-        RobotInfo[] enemies = rc.senseNearbyRobots(radius, opponent);
-        if (enemies.length >= 0) {
-            // MapLocation toAttack = enemies[0].location;
-            MapLocation toAttack = rc.getLocation().add(Direction.EAST);
+    static LauncherState state;
 
-            if (rc.canAttack(toAttack)) {
-                rc.setIndicatorString("Attacking");
-                rc.attack(toAttack);
-            }
+    static void run(RobotController rc) throws GameActionException {
+        if(!initialized){
+            onUnitInit(rc); // first time starting the bot, do some setup
+            initialized = true;
         }
 
-        // Also try to move randomly.
-        Direction dir = directions[rng.nextInt(directions.length)];
+        initTurn(rc); // cleanup for when the turn starts
+
+        // interpret overall macro state
+        readComms(rc);
+
+        // sense part
+        sense(rc);
+
+
+        switch (state){
+            case Combat:
+                combat(rc);
+                break;
+            case Pursuing:
+                pursue(rc);
+                break;
+            case Exploring:
+                explore(rc);
+                break;
+        }
+
+
+    }
+
+
+    static void onUnitInit(RobotController rc) throws GameActionException{
+
+    }
+
+    static void initTurn(RobotController rc) throws GameActionException{
+
+    }
+
+    static void readComms(RobotController rc)throws GameActionException{
+
+    }
+
+    static void sense(RobotController rc) throws GameActionException{
+        enemies = rc.senseNearbyRobots(RobotType.LAUNCHER.visionRadiusSquared, rc.getTeam().opponent());
+        wells = rc.senseNearbyWells();
+        if(enemies.length > 0){
+            state = LauncherState.Combat;
+        }
+    }
+
+    static void combat(RobotController rc) throws GameActionException{
+
+    }
+
+    static void pursue(RobotController rc) throws GameActionException{
+
+    }
+
+    static void explore(RobotController rc) throws GameActionException{
+
+        Direction dir = Helper.directions[Helper.rng.nextInt(Helper.directions.length)];
         if (rc.canMove(dir)) {
             rc.move(dir);
         }
+
     }
+
+
+
 
 }

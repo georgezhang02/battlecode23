@@ -99,7 +99,7 @@ public strictfp class Carrier {
         }
         //move back to HQ
         else{
-            Direction moveDir = Pathfinder.pathBug(rc, HQ_LOCATION);
+            Direction moveDir = Pathfinder.pathBF(rc, HQ_LOCATION);
 
             if(moveDir != null && rc.canMove(moveDir)){
                 rc.move(moveDir);
@@ -115,7 +115,7 @@ public strictfp class Carrier {
 
         //move back to HQ
         else{
-            Direction moveDir = Pathfinder.pathBug(rc, HQ_LOCATION);
+            Direction moveDir = Pathfinder.pathBF(rc, HQ_LOCATION);
 
             if(moveDir != null && rc.canMove(moveDir)){
                 rc.move(moveDir);
@@ -145,7 +145,7 @@ public strictfp class Carrier {
                 }
                 if (islandLocs.size() > 0) {
                     MapLocation islandLocation = islandLocs.iterator().next();
-                    Direction moveDir = Pathfinder.pathBug(rc, islandLocation);
+                    Direction moveDir = Pathfinder.pathBF(rc, islandLocation);
 
                     if(moveDir != null && rc.canMove(moveDir)){
                         rc.move(moveDir);
@@ -184,7 +184,7 @@ public strictfp class Carrier {
             }
         }
         if(rc.isMovementReady()) {
-            Direction moveDir = Pathfinder.pathBug(rc, WELL_LOCATION);
+            Direction moveDir = Pathfinder.pathBF(rc, WELL_LOCATION);
 
             if(moveDir != null && rc.canMove(moveDir)){
                 rc.move(moveDir);
