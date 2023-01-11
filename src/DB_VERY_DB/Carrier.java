@@ -4,24 +4,12 @@ import battlecode.common.*;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Random;
 import java.util.Set;
+import DB_VERY_DB.Helper;
 
 public strictfp class Carrier {
 
-    static final Random rng = new Random(6147);
-
     static CarrierState state = CarrierState.None;
-    static final Direction[] directions = {
-            Direction.NORTH,
-            Direction.NORTHEAST,
-            Direction.EAST,
-            Direction.SOUTHEAST,
-            Direction.SOUTH,
-            Direction.SOUTHWEST,
-            Direction.WEST,
-            Direction.NORTHWEST,
-    };
 
     private static enum CarrierState {
         None, Exploring, Returning, Anchoring, Gathering, ReturningAnchor;
@@ -74,7 +62,7 @@ public strictfp class Carrier {
         }
     }
     static void explore(RobotController rc) throws GameActionException{
-        Direction dir = directions[rng.nextInt(directions.length)];
+        Direction dir = Helper.directions[Helper.rng.nextInt(Helper.directions.length)];
         if (rc.canMove(dir)) {
             rc.move(dir);
         }
@@ -172,7 +160,7 @@ public strictfp class Carrier {
             }
             //Move randomly until you find an island
             else{
-                Direction dir = directions[rng.nextInt(directions.length)];
+                Direction dir = Helper.directions[Helper.rng.nextInt(Helper.directions.length)];
                 if (rc.canMove(dir)) {
                     rc.move(dir);
                 }
