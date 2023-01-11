@@ -6,7 +6,11 @@ import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 
 public class Comms {
-    private static final int TEAM_HQ_OFFSET = 0;
+    private static final int COUNT_OFFSET = 0;
+    private static final int TEAM_HQ_OFFSET = 1;
+    private static final int WELL_OFFSET = 9;
+    private static final int MAX_WELLS = 8;
+
 
     // HQ
     /**
@@ -14,14 +18,10 @@ public class Comms {
      * @return true if the HQ is the first to set its location
      */
     public static boolean setTeamHQLocation(RobotController rc, MapLocation HQLocation) throws GameActionException {
-        for (int i = 0; i < GameConstants.MAX_STARTING_HEADQUARTERS; i++) {
-            int value = rc.readSharedArray(i + TEAM_HQ_OFFSET);
-            if (decode(value, 2) == 0) {
-                rc.writeSharedArray(i + TEAM_HQ_OFFSET, encode(HQLocation.x, HQLocation.y, 1));
-                return i == 0;
-            }
-        }
-        return false;
+        int count = decode(rc.readSharedArray(COUNT_OFFSET), 0);
+        rc.writeSharedArray(count + TEAM_HQ_OFFSET, encode(HQLocation.x, HQLocation.y));
+        rc.writeSharedArray(COUNT_OFFSET, encode(count + 1));
+        return count == 0;
     }
 
     /**
@@ -45,6 +45,36 @@ public class Comms {
             }
         }
         return closest;
+    }
+
+    /**
+     * Add the location of a newly discovered well
+     */
+    public static void addWellLocation(RobotController rc, MapLocation well) throws GameActionException {
+        int count = decode(rc.readSharedArray(COUNT_OFFSET), 1);
+        if (count < MAX_WELLS) {
+            for (int i = 0; i < count; i++) {
+                int value = rc.readSharedArray(i + WELL_OFFSET);
+                int wellXAtIndex = decode(value, 0);
+                int wellYAtIndex = decode(value, 1);
+                if (wellXAtIndex == well.x && wellYAtIndex == well.y) {
+                    return;
+                }
+            }
+            rc.writeSharedArray(count + WELL_OFFSET, encode(well.x, well.y));
+            int HQCount = decode(rc.readSharedArray(COUNT_OFFSET), 0);
+            rc.writeSharedArray(COUNT_OFFSET, encode(HQCount, count + 1));
+        }
+    }
+
+    public static void printWellLocations(RobotController rc) throws GameActionException {
+        int count = decode(rc.readSharedArray(COUNT_OFFSET), 1);
+        for (int i = 0; i < count; i++) {
+            int value = rc.readSharedArray(i + WELL_OFFSET);
+            int wellXAtIndex = decode(value, 0);
+            int wellYAtIndex = decode(value, 1);
+            System.out.println("Well at: " + wellXAtIndex + ", " + wellYAtIndex);
+        }
     }
 
     /**

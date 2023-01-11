@@ -7,15 +7,10 @@ import battlecode.common.*;
 
 public strictfp class HQ {
 
-    static Pathfinder pathfinder;
-    static RobotInfo[] enemies;
-    static RobotInfo[] allies;
     static boolean initialized = false;
-    static MapLocation target;
-    static String indicatorString;
-
     static MapLocation location;
     static boolean firstHQ;
+    static String indicatorString;
 
     public static void run(RobotController rc) throws GameActionException {
 
@@ -54,6 +49,9 @@ public strictfp class HQ {
     static void onUnitInit(RobotController rc) throws GameActionException {
         location = rc.getLocation();
         firstHQ = Comms.setTeamHQLocation(rc, location);
+        for (WellInfo well : rc.senseNearbyWells()) {
+            Comms.addWellLocation(rc, well.getMapLocation());
+        }
     }
 
     static void initTurn(RobotController rc) throws GameActionException {
