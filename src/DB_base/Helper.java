@@ -1,7 +1,6 @@
 package DB_base;
 
 import battlecode.common.Direction;
-import battlecode.common.MapLocation;
 
 import java.util.Random;
 
