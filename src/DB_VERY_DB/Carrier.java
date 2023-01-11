@@ -106,10 +106,9 @@ public strictfp class Carrier {
                 rc.transferResource(HQ_LOCATION,ResourceType.ELIXIR, elixirAmount);
             }
             else{
-                state = state.Exploring;
+                state = state.None;
             }
         }
-
         //move back to HQ
         else{
             Direction moveDir = Pathfinder.pathBug(rc, HQ_LOCATION);
@@ -141,22 +140,31 @@ public strictfp class Carrier {
         if (rc.getAnchor() != null) {
             // If I have an anchor singularly focus on getting it to the first island I see
             int[] islands = rc.senseNearbyIslands();
+            int inc = 0;
+            for (int id : islands) {
+                if(rc.senseTeamOccupyingIsland(id) == rc.getTeam()){
+                    inc += 1;
+                }
+            }
             Set<MapLocation> islandLocs = new HashSet<>();
-            if (islands.length > 0) {
+            if (islands.length - inc > 0) {
                 for (int id : islands) {
-                    MapLocation[] thisIslandLocs = rc.senseNearbyIslandLocations(id);
-                    islandLocs.addAll(Arrays.asList(thisIslandLocs));
+                    if(rc.senseTeamOccupyingIsland(id) != rc.getTeam()){
+                        MapLocation[] thisIslandLocs = rc.senseNearbyIslandLocations(id);
+
+                        islandLocs.addAll(Arrays.asList(thisIslandLocs));
+                    }
                 }
                 if (islandLocs.size() > 0) {
                     MapLocation islandLocation = islandLocs.iterator().next();
-                    //rc.setIndicatorString("Moving my anchor towards " + islandLocation);
                     Direction moveDir = Pathfinder.pathBug(rc, islandLocation);
 
                     if(moveDir != null && rc.canMove(moveDir)){
                         rc.move(moveDir);
                     }
+
                     if (rc.canPlaceAnchor()) {
-                        rc.setIndicatorString("Huzzah, placed anchor!");
+                        rc.setIndicatorString("placed anchor");
                         rc.placeAnchor();
                         state = state.ReturningAnchor;
                     }
