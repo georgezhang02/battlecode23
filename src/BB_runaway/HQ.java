@@ -105,8 +105,14 @@ public strictfp class HQ {
     }
 
     static void build(RobotController rc) throws GameActionException{
-        MapLocation carrierBuildLoc;
-        MapLocation launcherBuildLoc;
+        Direction dir = Helper.directions[Helper.rng.nextInt(Helper.directions.length)];
+        MapLocation launcherBuildLoc = rc.getLocation().add(dir);
+        MapLocation carrierBuildLoc = rc.getLocation().add(dir);
+        if (rc.canBuildRobot(RobotType.LAUNCHER, launcherBuildLoc)) {
+            rc.buildRobot(RobotType.LAUNCHER, launcherBuildLoc);
+            robotsProduced++;
+            return;
+        }
         switch(state) {
             case STARTERAD:
                 carrierBuildLoc = buildTowards(rc, starterADWell[starterADWellAssigned / PERWELL]);
@@ -125,17 +131,11 @@ public strictfp class HQ {
                 }
                 break;
             case EXPLORER:
-                Direction dir = Helper.directions[Helper.rng.nextInt(Helper.directions.length)];
-                launcherBuildLoc = rc.getLocation().add(dir);
-                carrierBuildLoc = rc.getLocation().add(dir);
                 if (totalAnchorCount == 0 && rc.canBuildAnchor(Anchor.STANDARD)) {
                     rc.buildAnchor(Anchor.STANDARD);
                     anchorsProduced++;
                 } else if (robotsProduced < 25 * (anchorsProduced+1)) {
-                    if (rc.canBuildRobot(RobotType.LAUNCHER, launcherBuildLoc)) {
-                        rc.buildRobot(RobotType.LAUNCHER, launcherBuildLoc);
-                        robotsProduced++;
-                    } else if (rc.canBuildRobot(RobotType.CARRIER, launcherBuildLoc)) {
+                    if (rc.canBuildRobot(RobotType.CARRIER, launcherBuildLoc)) {
                         rc.buildRobot(RobotType.CARRIER, carrierBuildLoc);
                         robotsProduced++;
                     }
