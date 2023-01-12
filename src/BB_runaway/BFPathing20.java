@@ -1,9 +1,5 @@
 package BB_runaway;
-
-import battlecode.common.Direction;
-import battlecode.common.GameActionException;
-import battlecode.common.MapLocation;
-import battlecode.common.RobotController;
+import battlecode.common.*;
 public strictfp class BFPathing20 {
     static Direction dir9;
     static Direction dir10;

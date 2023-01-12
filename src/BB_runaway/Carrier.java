@@ -77,7 +77,7 @@ public strictfp class Carrier {
         }
     }
     static void explore(RobotController rc) throws GameActionException{
-        Direction dir = Helper.directions[Helper.rng.nextInt(Helper.directions.length)];
+        Direction dir = Pathfinder.pathToExplore(rc);
         if (rc.canMove(dir)) {
             rc.move(dir);
         }

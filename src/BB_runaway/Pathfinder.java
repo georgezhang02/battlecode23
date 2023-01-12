@@ -15,6 +15,7 @@ public strictfp class Pathfinder {
     static MapLocation lastLocation;
 
     static MapLocation lastTarget;
+    static boolean exploring;
 
     public static Direction pathBF(RobotController rc, MapLocation target) throws GameActionException {
 
@@ -46,17 +47,19 @@ public strictfp class Pathfinder {
 
     }
 
-
-    public static Direction pathGreedy(RobotController rc, MapLocation target)throws GameActionException {
-        if (directBug){
-            return pathBug(rc, target);
-        } else{
-            return pathGreedyDepth(rc,  target, 2);
+    public static Direction pathToExplore(RobotController rc) throws GameActionException {
+        if(!exploring || rc.getLocation().distanceSquaredTo(Explorer.target) <= 4){
+            int width = rc.getMapWidth();
+            int height =rc.getMapHeight();
+            Explorer.getExploreTargetRandom(rc.getMapWidth(), rc.getMapHeight());
         }
-
+        Direction dir = pathBF(rc, Explorer.target);
+        exploring = true;
+        return dir;
     }
 
     public static Direction pathAwayFrom(RobotController rc, MapLocation target) throws GameActionException{
+        exploring = false;
         MapLocation curLoc = rc.getLocation();
         int distXToTarget = target.x - curLoc.x;
         int distYToTarget = target.y - curLoc.y;
@@ -66,7 +69,18 @@ public strictfp class Pathfinder {
 
     }
 
+    public static Direction pathGreedy(RobotController rc, MapLocation target)throws GameActionException {
+        exploring = false;
+        if (directBug){
+            return pathBug(rc, target);
+        } else{
+            return pathGreedyDepth(rc,  target, 2);
+        }
+
+    }
+
     public static Direction pathGreedyDepth(RobotController rc, MapLocation target, int depth)throws GameActionException {
+        exploring = false;
         if (directBug){
             return pathBug(rc, target);
         }
@@ -75,7 +89,7 @@ public strictfp class Pathfinder {
     }
 
     public static Direction pathBug(RobotController rc, MapLocation target)throws GameActionException {
-
+        exploring = false;
         boolean found = false;
         currentDist = Math.sqrt(rc.getLocation().distanceSquaredTo(target));
 
