@@ -17,32 +17,22 @@ public strictfp class Carrier {
     static MapLocation WELL_LOCATION = null;
     static MapLocation HQ_LOCATION = null;
 
+    static RobotInfo[]allies;
+
     static RobotInfo[] enemies;
 
+    static boolean initialized  = false;
+
     static void run(RobotController rc) throws GameActionException {
+
         sense(rc);
 
-        boolean enemiesFound = false;
-        if(enemies.length > 0){
-            int i = 0;
-            while(i< enemies.length &&
-                    (enemies[i].getType() == RobotType.HEADQUARTERS || enemies[i].getType() ==RobotType.CARRIER)){
-                i++;
-            }
-            if(i != enemies.length){
-                enemiesFound = true;
-            }
+        if(!initialized){
+            onUnitInit(rc); // first time starting the bot, do some setup
+            initialized = true;
+        }
+        selectState(rc);
 
-        }
-        if(enemiesFound){
-            state = CarrierState.Runaway;
-        }
-        else if(state == CarrierState.Runaway && rc.getAnchor() == null){
-            state = CarrierState.Returning;
-        }
-        else if(state == CarrierState.Runaway && rc.getAnchor() != null){
-            state = CarrierState.Anchoring;
-        }
 
         rc.setIndicatorString(state.name());
         switch (state) {
@@ -70,17 +60,49 @@ public strictfp class Carrier {
         }
     }
 
+    static void onUnitInit(RobotController rc) {
+
+        for(int i = 0; i < allies.length; i++){
+            if(allies[i].getType() == RobotType.HEADQUARTERS){
+                HQ_LOCATION = allies[i].getLocation();
+            }
+        }
+    }
+
+    static void selectState(RobotController rc)
+    {
+        boolean enemiesFound = false;
+        if(enemies.length > 0){
+            int i = 0;
+            while(i< enemies.length &&
+                    (enemies[i].getType() == RobotType.HEADQUARTERS || enemies[i].getType() ==RobotType.CARRIER)){
+                i++;
+            }
+            if(i != enemies.length){
+                enemiesFound = true;
+            }
+
+        }
+        if(enemiesFound){
+            state = CarrierState.Runaway;
+        }
+        else if(state == CarrierState.Runaway && rc.getAnchor() == null){
+            state = CarrierState.Returning;
+        }
+        else if(state == CarrierState.Runaway && rc.getAnchor() != null){
+            state = CarrierState.Anchoring;
+        }
+    }
+
     static void assign(RobotController rc) throws GameActionException{
-        RobotInfo nearbyRobots[] = rc.senseNearbyRobots();
-        for(int i = 0; i < nearbyRobots.length; i++){
-            if(nearbyRobots[i].getType() == RobotType.HEADQUARTERS){
-                HQ_LOCATION = nearbyRobots[i].getLocation();
+
+        for(int i = 0; i < allies.length; i++){
+            if(allies[i].getType() == RobotType.HEADQUARTERS){
+                HQ_LOCATION = allies[i].getLocation();
                 //If it can take an anchor then get the anchor
-                if(rc.canTakeAnchor(nearbyRobots[i].getLocation(), Anchor.STANDARD) && rc.getAnchor() == null){
-                    rc.takeAnchor(nearbyRobots[i].getLocation(), Anchor.STANDARD);
+                if(rc.canTakeAnchor(allies[i].getLocation(), Anchor.STANDARD) && rc.getAnchor() == null){
+                    rc.takeAnchor(allies[i].getLocation(), Anchor.STANDARD);
                     state = CarrierState.Anchoring;
-
-
                 }
                 else{
                     state = CarrierState.Exploring;
@@ -235,5 +257,6 @@ public strictfp class Carrier {
 
     static void sense(RobotController rc) throws GameActionException{
         enemies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam().opponent());
+        allies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam());
     }
 }
