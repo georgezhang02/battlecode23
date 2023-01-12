@@ -1,4 +1,4 @@
-package DB_base;
+package DB_base_runaway;
 
 public class Booster {
 }

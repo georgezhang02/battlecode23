@@ -1,4 +1,4 @@
-package DB_base;
+package BB_runaway;
 
 import battlecode.common.*;
 
@@ -11,15 +11,28 @@ public strictfp class Carrier {
     static CarrierState state = CarrierState.None;
 
     private static enum CarrierState {
-        None, Exploring, Returning, Anchoring, Gathering, ReturningAnchor;
+        None, Exploring, Returning, Anchoring, Gathering, ReturningAnchor, Runaway;
     }
 
     static MapLocation WELL_LOCATION = null;
     static MapLocation HQ_LOCATION = null;
 
+    static RobotInfo[] enemies;
+
     static void run(RobotController rc) throws GameActionException {
 
-       // rc.setIndicatorString(state.name());
+        sense(rc);
+        if(enemies.length >= 1){
+            state = CarrierState.Runaway;
+        }
+        else if(state == CarrierState.Runaway && rc.getAnchor() == null){
+            state = CarrierState.Returning;
+        }
+        else if(state == CarrierState.Runaway && rc.getAnchor() != null){
+            state = CarrierState.Anchoring;
+        }
+
+        rc.setIndicatorString(state.name());
         switch (state) {
             case None:
                 assign(rc);
@@ -38,6 +51,9 @@ public strictfp class Carrier {
                 break;
             case Gathering:
                 gather(rc);
+                break;
+            case Runaway:
+                runaway(rc);
                 break;
         }
     }
@@ -189,5 +205,23 @@ public strictfp class Carrier {
                 rc.move(moveDir);
             }
         }
+    }
+
+    static void runaway(RobotController rc) throws GameActionException{
+        RobotInfo[] enemies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam().opponent());
+        if(rc.getHealth() < RobotType.CARRIER.getMaxHealth()/2 && rc.canAttack(enemies[0].getLocation())){
+            rc.attack(enemies[0].getLocation());
+        }
+        if(rc.isMovementReady()) {
+            Direction moveDir = Pathfinder.pathAwayFrom(rc, enemies[0].getLocation());
+
+            if(moveDir != null && rc.canMove(moveDir)){
+                rc.move(moveDir);
+            }
+        }
+    }
+
+    static void sense(RobotController rc) throws GameActionException{
+        enemies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam().opponent());
     }
 }
