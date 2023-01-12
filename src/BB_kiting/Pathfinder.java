@@ -1,9 +1,6 @@
 package BB_kiting;
 
-import battlecode.common.Direction;
-import battlecode.common.GameActionException;
-import battlecode.common.MapLocation;
-import battlecode.common.RobotController;
+import battlecode.common.*;
 public strictfp class Pathfinder {
 
     static boolean directBug;
