@@ -22,7 +22,19 @@ public strictfp class Carrier {
     static void run(RobotController rc) throws GameActionException {
 
         sense(rc);
-        if(enemies.length >= 1){
+        boolean enemiesFound = false;
+        if(enemies.length > 0){
+            int i = 0;
+            while(i< enemies.length &&
+                    (enemies[i].getType() == RobotType.HEADQUARTERS || enemies[i].getType() ==RobotType.CARRIER)){
+                i++;
+            }
+            if(i != enemies.length){
+                enemiesFound = true;
+            }
+
+        }
+        if(enemiesFound){
             state = CarrierState.Runaway;
         }
         else if(state == CarrierState.Runaway && rc.getAnchor() == null){
@@ -31,6 +43,7 @@ public strictfp class Carrier {
         else if(state == CarrierState.Runaway && rc.getAnchor() != null){
             state = CarrierState.Anchoring;
         }
+
 
         rc.setIndicatorString(state.name());
         switch (state) {
