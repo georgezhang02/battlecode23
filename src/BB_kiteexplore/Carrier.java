@@ -1,4 +1,4 @@
-package BB_explorebetter;
+package BB_kiteexplore;
 
 import battlecode.common.*;
 
@@ -137,7 +137,7 @@ public strictfp class Carrier {
     static void returnToHQAnchor(RobotController rc) throws GameActionException{
         //Returning Carrier just gets reassigned
         if(HQ_LOCATION.distanceSquaredTo(rc.getLocation()) <=2){
-            state = state.None;
+                state = state.None;
         }
 
         //move back to HQ

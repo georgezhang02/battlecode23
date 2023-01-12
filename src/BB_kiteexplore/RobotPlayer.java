@@ -1,4 +1,4 @@
-package BB_runaway;
+package BB_kiteexplore;
 
 import battlecode.common.Clock;
 import battlecode.common.GameActionException;
@@ -27,9 +27,7 @@ public strictfp class RobotPlayer {
      **/
     @SuppressWarnings("unused")
     public static void run(RobotController rc) throws GameActionException {
-
-        // Hello world! Standard output is very useful for debugging.
-
+        
 
         while (true) {
             // This code runs during the entire lifespan of the robot, which is why it is in an infinite
