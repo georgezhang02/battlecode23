@@ -69,7 +69,7 @@ public strictfp class Carrier {
         }
     }
 
-    static void selectState(RobotController rc)
+    static void selectState(RobotController rc) throws GameActionException
     {
         boolean enemiesFound = false;
         if(enemies.length > 0){

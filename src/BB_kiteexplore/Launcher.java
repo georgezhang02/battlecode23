@@ -56,7 +56,6 @@ public strictfp class Launcher {
 
         selectState(rc);
 
-        rc.setIndicatorString(state.name());
 
 
 
@@ -114,7 +113,9 @@ public strictfp class Launcher {
             }
         }
 
-        if(numAllyMil >=2){
+        rc.setIndicatorString(numAllyMil+"");
+
+        if(numAllyMil >=2 || numEnemyMil >= 1){
             canExplore = true;
         }
     }
