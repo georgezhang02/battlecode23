@@ -12,6 +12,9 @@ public class Comms {
     private static final int COUNT_OFFSET = 0;
     private static final int TEAM_HQ_OFFSET = 1;
     private static final int WELL_COMMAND_OFFSET = 9;
+    private static final int WELL_OFFSET = 13;
+    private static final int MAX_WELLS = 12;
+    private static final int WELL_REPORT_OFFSET = WELL_OFFSET + MAX_WELLS;
 
     /**
      * Sets the team HQ location in the next available location
@@ -27,10 +30,20 @@ public class Comms {
      * @return the index corresponding to the HQ
      */
     public static int setTeamHQLocation(RobotController rc, MapLocation HQLocation, int id) throws GameActionException {
-        int count = decode(rc.readSharedArray(COUNT_OFFSET), 0);
+        int count = getNumHQs(rc);
         rc.writeSharedArray(count + TEAM_HQ_OFFSET, encode(HQLocation.x, HQLocation.y, id));
         rc.writeSharedArray(COUNT_OFFSET, encode(count + 1));
         return count;
+    }
+
+    public static int getHQIndexByID(RobotController rc, int HQID) throws GameActionException {
+        for (int i = 0; i < Comms.getNumHQs(rc); i++) {
+            int id = decode(rc.readSharedArray(i + TEAM_HQ_OFFSET), 2);
+            if (HQID == id) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     /**
@@ -66,6 +79,36 @@ public class Comms {
         return closest;
     }
 
+    public static int getNumWells(RobotController rc) throws GameActionException {
+        return decode(rc.readSharedArray(COUNT_OFFSET), 1);
+    }
+
+    public static void addWellLocation(RobotController rc, MapLocation well) throws GameActionException {
+        int count = getNumWells(rc);
+        if (count < MAX_WELLS) {
+            for (int i = 0; i < count; i++) {
+                int value = rc.readSharedArray(i + WELL_OFFSET);
+                int wellXAtIndex = decode(value, 0);
+                int wellYAtIndex = decode(value, 1);
+                if (wellXAtIndex == well.x && wellYAtIndex == well.y) {
+                    return;
+                }
+            }
+            rc.writeSharedArray(count + WELL_OFFSET, encode(well.x, well.y));
+            int HQCount = decode(rc.readSharedArray(COUNT_OFFSET), 0);
+            rc.writeSharedArray(COUNT_OFFSET, encode(HQCount, count + 1));
+        }
+    }
+
+    public static int[] getAllWellValues(RobotController rc) throws GameActionException {
+        int count = getNumWells(rc);
+        int[] allWells = new int[count];
+        for (int i = 0; i < count; i++) {
+            allWells[i] = rc.readSharedArray(i + WELL_OFFSET);
+        }
+        return allWells;
+    }
+
     public static MapLocation getWellCommand(RobotController rc, int HQIndex) throws GameActionException {
         int value = rc.readSharedArray(WELL_COMMAND_OFFSET + HQIndex);
         int x = decode(value, 0);
@@ -80,25 +123,27 @@ public class Comms {
         rc.writeSharedArray(HQIndex + WELL_COMMAND_OFFSET, encode(well.x, well.y, 1));
     }
 
-    public static void clearWellCommand(RobotController rc, int HQID) throws GameActionException {
-        int index = getHQIndexByID(rc, HQID);
+    public static void clearWellCommand(RobotController rc, int index) throws GameActionException {
         rc.writeSharedArray(index + WELL_COMMAND_OFFSET, encode(0, 0, 0));
     }
 
-    private static int getHQIndexByID(RobotController rc, int HQID) throws GameActionException {
-        for (int i = 0; i < Comms.getNumHQs(rc); i++) {
-            int id = decode(rc.readSharedArray(i + TEAM_HQ_OFFSET), 2);
-            if (HQID == id) {
-                return i;
-            }
+    public static boolean reportWellLocation(RobotController rc, int index, MapLocation well) throws GameActionException {
+        int value = rc.readSharedArray(index + WELL_REPORT_OFFSET);
+        if (decode(value, 2) == 0) {
+            rc.writeSharedArray(index + WELL_REPORT_OFFSET, encode(well.x, well.y, 1));
+            return true;
         }
-        return -1;
+        return false;
+    }
+
+    public static void clearWellReport(RobotController rc, int index) throws GameActionException {
+        rc.writeSharedArray(index + WELL_REPORT_OFFSET, encode(0, 0, 0));
     }
 
     /**
      * Decodes one array value at an index 0, 1, or 2
      */
-    private static int decode(int value, int index) {
+    static int decode(int value, int index) {
         // index 0: number % 64 / 1, index 1: number % 64^2 / 64, index 3: number % 64^3 / 64^2
         return (value % (int) Math.pow(64, index + 1) / (int) Math.pow(64, index));
     }
@@ -106,7 +151,7 @@ public class Comms {
     /**
      * Encodes a variable number of values into a single array value ready to be written
      */
-    private static int encode(int... fields) {
+    static int encode(int... fields) {
         int result = 0;
         for (int i = 0; i < fields.length; i++) {
             result += fields[i] * Math.pow(64, i);

@@ -58,19 +58,19 @@ public strictfp class HQ {
         WellInfo[] wells = rc.senseNearbyWells();
         for (WellInfo well: wells) {
             if (well.getResourceType() == ResourceType.ADAMANTIUM) {
-                wellsDiscoveredNearby[wellsDiscoveredCount] = well.getMapLocation();
+                MapLocation loc = well.getMapLocation();
+                Comms.addWellLocation(rc, loc);
+                wellsDiscoveredNearby[wellsDiscoveredCount] = loc;
                 wellsDiscoveredType[wellsDiscoveredCount] = 0;
                 wellsDiscoveredCount++;
             }
         }
         for (WellInfo well : wells) {
             if (well.getResourceType() == ResourceType.MANA) {
-                wellsDiscoveredNearby[wellsDiscoveredCount] = well.getMapLocation();
+                MapLocation loc = well.getMapLocation();
+                Comms.addWellLocation(rc, loc);
+                wellsDiscoveredNearby[wellsDiscoveredCount] = loc;
                 wellsDiscoveredType[wellsDiscoveredCount] = 1;
-                wellsDiscoveredCount++;
-            } else if (well.getResourceType() == ResourceType.ELIXIR){
-                wellsDiscoveredNearby[wellsDiscoveredCount] = well.getMapLocation();
-                wellsDiscoveredType[wellsDiscoveredCount] = 2;
                 wellsDiscoveredCount++;
             }
         }
