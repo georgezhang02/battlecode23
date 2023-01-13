@@ -100,7 +100,7 @@ public strictfp class HQ {
             if (wellsAssignedCount < wellsDiscoveredCount) {
                 Comms.writeWellCommand(rc, HQIndex, wellsDiscoveredNearby[wellsAssignedCount]);
                 wellsAssigned[wellsAssignedCount]++;
-                carrierBuildLoc = buildTowards(rc, wellsDiscoveredNearby[wellsAssignedCount]);
+                carrierBuildTarget = wellsDiscoveredNearby[wellsAssignedCount];
                 indicatorString = "Assigning towards: " + wellsDiscoveredNearby[wellsAssignedCount].x + ", " + wellsDiscoveredNearby[wellsAssignedCount].y;
                 assigning = true;
                 // If finished assigning, increment wellsAssignedCount
@@ -108,7 +108,7 @@ public strictfp class HQ {
                     wellsAssignedCount++;
                 }
             } else {
-                carrierBuildLoc = buildTowards(rc, center);
+                carrierBuildTarget = center;
             }
         }
     }
@@ -119,6 +119,7 @@ public strictfp class HQ {
             rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);
             robotsProduced++;
         } else if (robotsProduced < 25 * (anchorsProduced+1)) {
+            MapLocation carrierBuildLoc = buildTowards(rc, carrierBuildTarget);
             if (rc.canBuildRobot(RobotType.CARRIER, carrierBuildLoc)) {
                 rc.buildRobot(RobotType.CARRIER, carrierBuildLoc);
                 robotsProduced++;
