@@ -31,7 +31,7 @@ public strictfp class HQ {
             initialized = true;
         }
 
-        initTurn(rc); // cleanup for when the turn starts
+        initTurn(); // cleanup for when the turn starts
 
         // sense part
         sense(rc);
@@ -76,7 +76,7 @@ public strictfp class HQ {
         }
     }
 
-    static void initTurn(RobotController rc) {
+    static void initTurn() {
         //indicatorString = "";
     }
 

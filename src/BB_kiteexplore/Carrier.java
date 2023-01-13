@@ -2,7 +2,6 @@ package BB_kiteexplore;
 
 import battlecode.common.*;
 
-import java.security.cert.CRLReason;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -12,7 +11,7 @@ public strictfp class Carrier {
     static boolean initialized  = false;
 
     private enum CarrierState {
-        None, Exploring, Returning, Anchoring, Gathering, ReturningAnchor, Runaway;
+        None, Exploring, Returning, Anchoring, Gathering, Runaway
     }
     static CarrierState state = CarrierState.None;
     static CarrierState priorState = CarrierState.None;
