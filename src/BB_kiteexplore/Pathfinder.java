@@ -52,9 +52,27 @@ public strictfp class Pathfinder {
         if(!exploring || rc.getLocation().distanceSquaredTo(Explorer.target) <= 16){
             Explorer.getExploreTarget(rc, 10, rc.getMapWidth(), rc.getMapHeight());
         }
+        Direction dir = pathBF(rc, Explorer.target);
+        exploring = true;
+        return dir;
+    }
 
+    public static Direction pathToExplore(RobotController rc, RobotInfo[]allies) throws GameActionException {
+        int lowestID = rc.getID();
+        RobotInfo pathToAlly = null;
+        for(RobotInfo ally: allies){
+            if((ally.getType()== RobotType.LAUNCHER ||ally.getType()== RobotType.DESTABILIZER )
+                    && ally.getID() <lowestID ){
+                pathToAlly = ally;
+            }
+        }
+        if(pathToAlly != null){
+            return pathBug(rc, pathToAlly.getLocation());
+        }
 
-
+        if(!exploring || rc.getLocation().distanceSquaredTo(Explorer.target) <= 4){
+            Explorer.getExploreTarget(rc, 10, rc.getMapWidth(), rc.getMapHeight());
+        }
         Direction dir = pathBF(rc, Explorer.target);
         exploring = true;
         return dir;

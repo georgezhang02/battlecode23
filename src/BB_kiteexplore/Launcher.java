@@ -25,6 +25,8 @@ public strictfp class Launcher {
     static int numEnemyMil;
     static int numAllyMil;
 
+    static boolean canExplore = false;
+
     static final Direction[] directions = {
             Direction.NORTH,
             Direction.NORTHEAST,
@@ -111,6 +113,10 @@ public strictfp class Launcher {
                 numAllyMil++;
             }
         }
+
+        if(numAllyMil >=2){
+            canExplore = true;
+        }
     }
 
     static void selectState(RobotController rc) throws GameActionException{
@@ -194,7 +200,7 @@ public strictfp class Launcher {
                 } else {
                     // attack not in radius
                     // only move forward to hit if the enemy is killable or you have significant man advantage
-                    if(attackRobot.getHealth() <= 6 || numAllyMil > numEnemyMil){
+                    if(attackRobot.getHealth() <= 6 || (numAllyMil >=numEnemyMil +2)){
                         rc.setIndicatorString("move and hit to kill");
                         moveFirst = true;
                         return Pathfinder.pathBug(rc, attackLoc);
@@ -244,6 +250,9 @@ public strictfp class Launcher {
                 //if you can kill the unit, add 10 value
                 if(enemy.getHealth() - 6 <= 0){
                     attackValue+=10;
+                } else{
+                    // focus low health targets
+                    attackValue+= (enemy.getType().getMaxHealth() - enemy.getHealth())/2;
                 }
 
 
@@ -301,9 +310,18 @@ public strictfp class Launcher {
     }
 
     static void explore(RobotController rc) throws GameActionException{
-        Direction dir = Pathfinder.pathToExplore(rc);
-        if (rc.canMove(dir)) {
-            rc.move(dir);
+
+        if (canExplore) {
+            Direction dir;
+            if(numAllyMil >=4){
+                dir = Pathfinder.pathToExplore(rc);
+            } else{
+                dir = Pathfinder.pathToExplore(rc, allies);
+            }
+            if(dir != null && rc.canMove(dir)){
+                rc.move(dir);
+            }
+
         }
 
     }
