@@ -106,6 +106,9 @@ public strictfp class HQ {
 
     static void build(RobotController rc) throws GameActionException{
         Direction dir = Helper.directions[Helper.rng.nextInt(Helper.directions.length)];
+        while(rc.senseMapInfo(rc.getLocation().add(dir)).hasCloud()){
+            dir = Helper.directions[Helper.rng.nextInt(Helper.directions.length)];
+        }
         MapLocation launcherBuildLoc = rc.getLocation().add(dir);
         MapLocation carrierBuildLoc = rc.getLocation().add(dir);
         if (rc.canBuildRobot(RobotType.LAUNCHER, launcherBuildLoc)) {
