@@ -48,11 +48,13 @@ public strictfp class Pathfinder {
     }
 
     public static Direction pathToExplore(RobotController rc) throws GameActionException {
-        if(!exploring || rc.getLocation().distanceSquaredTo(Explorer.target) <= rc.getType().visionRadiusSquared){
+
+        if(!exploring || rc.getLocation().distanceSquaredTo(Explorer.target) <= 16){
             Explorer.getExploreTarget(rc, 10, rc.getMapWidth(), rc.getMapHeight());
         }
-        rc.setIndicatorString(Explorer.target.toString());
-        rc.setIndicatorLine(rc.getLocation(), Explorer.target, 255, 0, 0);
+
+
+
         Direction dir = pathBF(rc, Explorer.target);
         exploring = true;
         return dir;
