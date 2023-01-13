@@ -53,15 +53,10 @@ public strictfp class RobotPlayer {
             } catch (GameActionException e) {
                 // Oh no! It looks like we did something illegal in the Battlecode world. You should
                 // handle GameActionExceptions judiciously, in case unexpected events occur in the game
-                // world. Remember, uncaught exceptions cause your robot to explode!
-                System.out.println(rc.getType() + " Exception");
-                e.printStackTrace();
+
 
             } catch (Exception e) {
                 // Oh no! It looks like our code tried to do something bad. This isn't a
-                // GameActionException, so it's more likely to be a bug in our code.
-                System.out.println(rc.getType() + " Exception");
-                e.printStackTrace();
 
             } finally {
                 // Signify we've done everything we want to do, thereby ending our turn.

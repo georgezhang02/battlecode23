@@ -4,23 +4,54 @@ import battlecode.common.*;
 
 public class Explorer {
 
+    static boolean HQInit = false;
+
+    static MapLocation HQLoc1;
+    static MapLocation HQLoc2;
+    static MapLocation HQLoc3;
+    static MapLocation HQLoc4;
+
+    static int numHQs = 0;
+
     static MapLocation target;
 
     // Choose random unvisited location through visited array, if can't find in tries moves
     //chooses random on radius
-    public static void getExploreTarget(RobotController rc, int tries, int mapWidth, int mapHeight){
+    public static void getExploreTarget(RobotController rc, int tries, int mapWidth, int mapHeight) throws GameActionException {
+        if(!HQInit){
+            HQLoc1 = Comms.getTeamHQLocation(rc, 0);
+            HQLoc2 = Comms.getTeamHQLocation(rc, 1);
+            HQLoc3 = Comms.getTeamHQLocation(rc, 2);
+            HQLoc4 = Comms.getTeamHQLocation(rc, 3);
+
+            numHQs = Comms.getNumHQs(rc);
+            HQInit = true;
+        }
+
         int count = 0;
         boolean found = false;
         while(!found && count < tries){
             getExploreTargetRandom(rc, mapWidth, mapHeight);
             if(rc.getLocation().distanceSquaredTo(target) > rc.getType().visionRadiusSquared){
-                found = true;
+                if(targetNotHQ(HQLoc1) &&
+                        (numHQs>=2 || targetNotHQ(HQLoc2)) &&
+                        (numHQs>=3 || targetNotHQ(HQLoc3)) &&
+                        (numHQs>=4 || targetNotHQ(HQLoc4))
+                ) {
+                    found = true;
+                }
+
+
             }
             count++;
         }
 
 
 
+    }
+
+    public static boolean targetNotHQ(MapLocation HQLoc){
+        return target.distanceSquaredTo(HQLoc) > RobotType.HEADQUARTERS.visionRadiusSquared;
     }
 
     // returns random target towards the edges a larger distance away

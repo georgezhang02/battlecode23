@@ -51,8 +51,6 @@ public strictfp class Pathfinder {
         if(!exploring || rc.getLocation().distanceSquaredTo(Explorer.target) <= 4){
             Explorer.getExploreTarget(rc, 10, rc.getMapWidth(), rc.getMapHeight());
         }
-        rc.setIndicatorString(Explorer.target.toString());
-        rc.setIndicatorLine(rc.getLocation(), Explorer.target, 255, 0, 0);
         Direction dir = pathBF(rc, Explorer.target);
         exploring = true;
         return dir;

@@ -10,6 +10,9 @@ public strictfp class Launcher {
 
     static RobotInfo[] enemies;
 
+    static RobotInfo nearestEnemyMil;
+    static RobotInfo[] allies;
+
     static WellInfo[]wells;
     static boolean initialized = false;
 
@@ -17,7 +20,12 @@ public strictfp class Launcher {
 
     static MapLocation pursuitLocation;
 
-    static boolean inRange = false;
+    static boolean moveFirst = false;
+
+    static int numEnemyMil;
+    static int numAllyMil;
+
+    static boolean canExplore = false;
 
     static final Direction[] directions = {
             Direction.NORTH,
@@ -33,8 +41,6 @@ public strictfp class Launcher {
     static LauncherState state;
 
     static void run(RobotController rc) throws GameActionException {
-        // sense part
-        sense(rc);
         if(!initialized){
             onUnitInit(rc); // first time starting the bot, do some setup
             initialized = true;
@@ -45,9 +51,13 @@ public strictfp class Launcher {
         // interpret overall macro state
         readComms(rc);
 
-
+        // sense part
+        sense(rc);
 
         selectState(rc);
+
+
+
 
         //select action based on state
         switch (state){
@@ -78,8 +88,36 @@ public strictfp class Launcher {
     }
 
     static void sense(RobotController rc) throws GameActionException{
+        int minRange = RobotType.LAUNCHER.actionRadiusSquared;
         enemies = rc.senseNearbyRobots(RobotType.LAUNCHER.visionRadiusSquared, rc.getTeam().opponent());
         wells = rc.senseNearbyWells();
+        allies = rc.senseNearbyRobots(RobotType.LAUNCHER.visionRadiusSquared, rc.getTeam());
+
+        numEnemyMil = 0;
+        nearestEnemyMil = null;
+        for(RobotInfo enemy: enemies){
+            if(enemy.getType() == RobotType.LAUNCHER || enemy.getType() == RobotType.DESTABILIZER){
+                numEnemyMil++;
+
+                int range = rc.getLocation().distanceSquaredTo(enemy.getLocation());
+                if(range < minRange){
+                    nearestEnemyMil = enemy;
+                }
+            }
+        }
+
+        numAllyMil = 0;
+        for(RobotInfo ally: allies){
+            if(ally.getType() == RobotType.LAUNCHER || ally.getType() == RobotType.DESTABILIZER){
+                numAllyMil++;
+            }
+        }
+
+        rc.setIndicatorString(numAllyMil+"");
+
+        if(numAllyMil >=2 || numEnemyMil >= 1 || rc.getRoundNum() > 100){
+            canExplore = true;
+        }
     }
 
     static void selectState(RobotController rc) throws GameActionException{
@@ -102,7 +140,7 @@ public strictfp class Launcher {
             combatCD =5;
             state = LauncherState.Combat;
         } else if( combatCD >0 && pursuitLocation!=null &&
-                rc.getLocation().distanceSquaredTo(pursuitLocation)>rc.getType().actionRadiusSquared ){
+                rc.getLocation().distanceSquaredTo(pursuitLocation) > 5 ){
             state = LauncherState.Pursuing;
         }else{
             combatCD = 0;
@@ -116,59 +154,78 @@ public strictfp class Launcher {
 
     static void combat(RobotController rc) throws GameActionException{
         RobotInfo attackRobot = findAttack(rc);
-        if(rc.isActionReady()){
-            if(attackRobot!=null){
-                MapLocation attackLoc = attackRobot.getLocation();
-                if(rc.canAttack(attackLoc)){
-                    // attack inside radius
-                    rc.attack(attackLoc);
-                    if(rc.isMovementReady() &&
-                            (rc.getType() != RobotType.AMPLIFIER) ){
-                        Direction moveDir = Pathfinder.pathAwayFrom(rc, attackLoc);
-                        if(moveDir!= null && rc.canMove(moveDir)){
-                            rc.move(moveDir);
+        Direction moveDir = findMovementCombat(rc, attackRobot);
+        if(attackRobot!=null){
 
-                            if(rc.getLocation().distanceSquaredTo(attackLoc) > 13){
-                                // if there is potential for them to step outside of your range
-                                pursuitLocation = attackLoc;
-                            }
-                        }
-                    }
-                } else if(rc.isMovementReady() && rc.canAttack(attackLoc)){
-                    // attack outside radius
-                    Direction moveDir = Pathfinder.pathBug(rc, attackLoc);
-                    if(moveDir!= null && rc.canMove(moveDir)){
-                        rc.move(moveDir);
-                    }
-                    rc.attack(attackLoc);
-
+            if(moveFirst){
+                if(moveDir!= null && rc.canMove(moveDir)){
+                    rc.move(moveDir);
                 }
-
-            } else if ( rc.isMovementReady() && pursuitLocation != null){
-                // can't attack any target
-                pursue(rc);
             }
-       } else{
-            // if action not ready, run away
-            RobotInfo closestEnemy = getClosestEnemy(rc);
-            if ( rc.isMovementReady() && closestEnemy!= null){
-                Direction moveDir = Pathfinder.pathAwayFrom(rc, closestEnemy.getLocation());
-                if(moveDir != null){
+
+            if(rc.canAttack(attackRobot.getLocation())){
+                rc.attack(attackRobot.getLocation());
+            }
+
+            if(!moveFirst){
+                if(moveDir!= null && rc.canMove(moveDir)){
                     rc.move(moveDir);
                 }
             }
         }
+    }
+    static Direction findMovementCombat(RobotController rc, RobotInfo attackRobot) throws GameActionException {
+
+        if(!rc.isActionReady()){
+            // no action available, run from enemies
+            if(nearestEnemyMil != null){
+                rc.setIndicatorString("no actions, run");
+                return Pathfinder.pathAwayFrom(rc, nearestEnemyMil.getLocation());
+            }  else if(attackRobot!= null){
+                rc.setIndicatorString("pursue");
+                pursuitLocation = attackRobot.getLocation();
+                pursue(rc);
+            }
+        } else{
+            // action ready
+            if(attackRobot!= null){
+                MapLocation attackLoc = attackRobot.getLocation();
+                if(rc.canAttack(attackLoc)){
+                    // if attack already in radius, attack and kite
+                    rc.setIndicatorString("attack and kite");
+                    rc.attack(attackLoc);
+                    moveFirst = false;
+                    if(nearestEnemyMil != null){
+                        return Pathfinder.pathAwayFrom(rc, nearestEnemyMil.getLocation());
+                    }
+                } else {
+                    // attack not in radius
+                    // only move forward to hit if the enemy is killable or you have significant man advantage
+                    if(attackRobot.getHealth() <= attackRobot.getType().getMaxHealth()){
+                        rc.setIndicatorString("move and hit to kill");
+                        moveFirst = true;
+                        return Pathfinder.pathBug(rc, attackLoc);
+                    }
+
+                }
+            }
 
 
-
+        }
+        return null;
 
 
     }
 
+
+
+
+
     static RobotInfo findAttack(RobotController rc) throws GameActionException{
         int maxValue = 0;
         int minRange = 0;
-        inRange = false;
+        boolean inRange = false;
+        boolean canAttack = false;
 
         RobotInfo enemyToAttack = null;
         for(RobotInfo enemy : enemies){
@@ -194,37 +251,46 @@ public strictfp class Launcher {
                 //if you can kill the unit, add 10 value
                 if(enemy.getHealth() - 6 <= 0){
                     attackValue+=10;
+                } else{
+                    // focus low health targets
+                    attackValue+= (enemy.getType().getMaxHealth() - enemy.getHealth())/2;
                 }
 
 
-                if (range < rc.getType().actionRadiusSquared){
+                if (rc.canAttack(enemy.getLocation())){
                     // prefer targets already in action radius, and targets that are closer
-                     inRange = true;
 
-                    if(attackValue> maxValue){
+
+                    if(attackValue> maxValue || !inRange){
                         maxValue = attackValue;
                         enemyToAttack = enemy;
-                    } else if(attackValue == maxValue && range < minRange){
+                    } else if(attackValue == maxValue && range < minRange ){
                         minRange = range;
                         enemyToAttack = enemy;
                     }
+                    inRange = true;
+                    canAttack = true;
                 } else if(!inRange && rc.isMovementReady()
                         && rc.canMove(rc.getLocation().directionTo(enemy.getLocation())) ){
                     // if your movement is ready, you can attack targets out of radius
 
-                    if(attackValue> maxValue){
+                    if(!canAttack || attackValue> maxValue){
                         maxValue = attackValue;
                         enemyToAttack = enemy;
                     } else if(attackValue == maxValue && range < minRange){
                         minRange = range;
                         enemyToAttack = enemy;
                     }
+                    canAttack = true;
 
-                } else{
+                } else if (!inRange && !canAttack){
                     // if you cant reach the opponent, set pursuitlocation
-                    if(attackValue> maxValue){
+                    if(attackValue> maxValue && (enemy.getType()
+                            == RobotType.AMPLIFIER) || (enemy.getType()==RobotType.CARRIER)){
                         maxValue = attackValue;
-                        pursuitLocation = enemy.getLocation();
+                        pursuitLocation =  enemy.getLocation();
+                        enemyToAttack = enemy;
+
                     }
 
                 }
@@ -234,25 +300,10 @@ public strictfp class Launcher {
         return enemyToAttack;
     }
 
-    static RobotInfo getClosestEnemy(RobotController rc) throws GameActionException{
-        int lowestRange = 21;
-        RobotInfo nearestEnemy = null;
-        for(RobotInfo enemy : enemies){
-            int range = enemy.getLocation().distanceSquaredTo(rc.getLocation());
-            if(enemy.getType() != RobotType.HEADQUARTERS){
-                if(range < lowestRange){
-                    nearestEnemy = enemy;
-                    lowestRange = range;
-                }
-            }
-        }
-        return  nearestEnemy;
-
-    }
-
     static void pursue(RobotController rc) throws GameActionException{
-        Direction moveDir = Pathfinder.pathBug(rc, pursuitLocation);
+
         if(rc.isMovementReady()){
+            Direction moveDir = Pathfinder.pathBug(rc, pursuitLocation);
             if(moveDir!= null && rc.canMove(moveDir)){
                 rc.move(moveDir);
             }
@@ -261,9 +312,17 @@ public strictfp class Launcher {
 
     static void explore(RobotController rc) throws GameActionException{
 
-        Direction dir = Pathfinder.pathToExplore(rc);
-        if (rc.canMove(dir)) {
-            rc.move(dir);
+        if (canExplore) {
+            Direction dir;
+            if(numAllyMil >=4){
+                dir = Pathfinder.pathToExplore(rc);
+            } else{
+                dir = Pathfinder.pathToExplore(rc, allies);
+            }
+            if(dir != null && rc.canMove(dir)){
+                rc.move(dir);
+            }
+
         }
 
     }
