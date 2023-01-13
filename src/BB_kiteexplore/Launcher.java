@@ -115,7 +115,7 @@ public strictfp class Launcher {
 
         rc.setIndicatorString(numAllyMil+"");
 
-        if(numAllyMil >=2 || numEnemyMil >= 1){
+        if(numAllyMil >=2 || numEnemyMil >= 1 || rc.getRoundNum() > 100){
             canExplore = true;
         }
     }
@@ -201,7 +201,7 @@ public strictfp class Launcher {
                 } else {
                     // attack not in radius
                     // only move forward to hit if the enemy is killable or you have significant man advantage
-                    if(attackRobot.getHealth() <= 6 || (numAllyMil >=numEnemyMil +2)){
+                    if(attackRobot.getHealth() <= attackRobot.getType().getMaxHealth()){
                         rc.setIndicatorString("move and hit to kill");
                         moveFirst = true;
                         return Pathfinder.pathBug(rc, attackLoc);

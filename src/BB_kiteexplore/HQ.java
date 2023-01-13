@@ -57,7 +57,7 @@ public strictfp class HQ {
     static void onUnitInit(RobotController rc) throws GameActionException {
         state = HQState.STARTERAD;
         location = rc.getLocation();
-        HQIndex = BB_kiting.Comms.setTeamHQLocation(rc, location);
+        HQIndex = Comms.setTeamHQLocation(rc, location);
         id = rc.getID();
         for (WellInfo well : rc.senseNearbyWells()) {
             if (well.getResourceType() == ResourceType.ADAMANTIUM) {
@@ -65,7 +65,7 @@ public strictfp class HQ {
             } else if (well.getResourceType() == ResourceType.MANA) {
                 starterMNWell[starterMNWellCount++] = well.getMapLocation();
             }
-            int wellIndex = BB_kiting.Comms.addWellLocation(rc, well.getMapLocation());
+            int wellIndex = Comms.addWellLocation(rc, well.getMapLocation());
             Comms.setWellStatus(rc, wellIndex, 5);
         }
     }
@@ -106,7 +106,8 @@ public strictfp class HQ {
 
     static void build(RobotController rc) throws GameActionException{
         Direction dir = Helper.directions[Helper.rng.nextInt(Helper.directions.length)];
-        while(rc.senseMapInfo(rc.getLocation().add(dir)).hasCloud()){
+        while(rc.senseMapInfo(rc.getLocation().add(dir)).hasCloud() ||
+                rc.senseMapInfo(rc.getLocation().add(dir)).getCurrentDirection()!= Direction.CENTER){
             dir = Helper.directions[Helper.rng.nextInt(Helper.directions.length)];
         }
         MapLocation launcherBuildLoc = rc.getLocation().add(dir);
