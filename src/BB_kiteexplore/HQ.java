@@ -23,6 +23,7 @@ public strictfp class HQ {
         STARTERAD, STARTERMN, EXPLORER
     }
     static HQState state;
+    static int id;
 
     static RobotType buildType;
     static int totalAnchorCount = 0;
@@ -30,8 +31,6 @@ public strictfp class HQ {
     static int robotsProduced = 0;
 
     public static void run(RobotController rc) throws GameActionException {
-        // sense part
-        sense(rc);
 
         if(!initialized){
             onUnitInit(rc); // first time starting the bot, do some setup
@@ -40,7 +39,8 @@ public strictfp class HQ {
 
         initTurn(rc); // cleanup for when the turn starts
 
-
+        // sense part
+        sense(rc);
 
         // interpret overall macro state
         readComms();
@@ -57,14 +57,15 @@ public strictfp class HQ {
     static void onUnitInit(RobotController rc) throws GameActionException {
         state = HQState.STARTERAD;
         location = rc.getLocation();
-        HQIndex = Comms.setTeamHQLocation(rc, location);
+        HQIndex = BB_kiting.Comms.setTeamHQLocation(rc, location);
+        id = rc.getID();
         for (WellInfo well : rc.senseNearbyWells()) {
             if (well.getResourceType() == ResourceType.ADAMANTIUM) {
                 starterADWell[starterADWellCount++] = well.getMapLocation();
             } else if (well.getResourceType() == ResourceType.MANA) {
                 starterMNWell[starterMNWellCount++] = well.getMapLocation();
             }
-            int wellIndex = Comms.addWellLocation(rc, well.getMapLocation());
+            int wellIndex = BB_kiting.Comms.addWellLocation(rc, well.getMapLocation());
             Comms.setWellStatus(rc, wellIndex, 5);
         }
     }
@@ -74,7 +75,7 @@ public strictfp class HQ {
     }
 
     static void sense(RobotController rc) throws GameActionException {
-        totalAnchorCount = rc.senseRobot(rc.getID()).getTotalAnchors();
+        totalAnchorCount = rc.senseRobot(id).getTotalAnchors();
     }
 
     static void readComms(){

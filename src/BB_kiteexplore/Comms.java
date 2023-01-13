@@ -11,6 +11,15 @@ public class Comms {
     private static final int WELL_OFFSET = 9;
     private static final int MAX_WELLS = 8;
 
+    /**
+     * Sets the team HQ location in the next available location
+     * @return the index corresponding to the HQ
+     */
+    public static int getNumHQs(RobotController rc) throws GameActionException {
+        return decode(rc.readSharedArray(COUNT_OFFSET), 0);
+    }
+
+
 
     // HQ
     /**
@@ -22,6 +31,21 @@ public class Comms {
         rc.writeSharedArray(count + TEAM_HQ_OFFSET, encode(HQLocation.x, HQLocation.y));
         rc.writeSharedArray(COUNT_OFFSET, encode(count + 1));
         return count;
+    }
+
+    /**
+     * Returns the location of the closest team HQ location
+     */
+    public static MapLocation getTeamHQLocation(RobotController rc, int index) throws GameActionException {
+        int value = rc.readSharedArray(index + TEAM_HQ_OFFSET);
+        if(index == 0){
+            rc.setIndicatorString(decode(value, 2)+"" );
+        }
+
+        int x = decode(value, 0);
+        int y = decode(value, 1);
+        return new MapLocation(x, y);
+
     }
 
     /**
