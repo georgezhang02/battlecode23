@@ -4,28 +4,22 @@ import battlecode.common.*;
 
 public strictfp class HQ {
 
-    static final int PERWELL = 3;
-
+    static final int[] PERWELL = {3, 5, 5}; // {AD, MN, EX}
     static boolean initialized = false;
     static MapLocation location;
     static int HQIndex;
-
-    static MapLocation[] starterADWell = new MapLocation[144];
-    static int starterADWellCount = 0;
-    static int starterADWellAssigned = 0;
-    static MapLocation[] starterMNWell = new MapLocation[144];
-    static int starterMNWellCount = 0;
-    static int starterMNWellAssigned = 0;
-
-    static String indicatorString;
-
-    static enum HQState{
-        STARTERAD, STARTERMN, EXPLORER
-    }
-    static HQState state;
     static int id;
+    static MapLocation center;
+    static String indicatorString = "";
 
-    static RobotType buildType;
+    static MapLocation[] wellsDiscoveredNearby = new MapLocation[288];
+    static int wellsDiscoveredCount = 0;
+    static int[] wellsDiscoveredType = new int[288]; // 0 = AD, 1 = MN, 2 = EX
+    static int[] wellsAssigned = new int[288];
+    static int wellsAssignedCount = 0;
+    static boolean assigning = false;
+    static MapLocation carrierBuildLoc;
+
     static int totalAnchorCount = 0;
     static int anchorsProduced = 0;
     static int robotsProduced = 0;
@@ -55,23 +49,35 @@ public strictfp class HQ {
     }
 
     static void onUnitInit(RobotController rc) throws GameActionException {
-        state = HQState.STARTERAD;
         location = rc.getLocation();
-        HQIndex = BB_kiting.Comms.setTeamHQLocation(rc, location);
         id = rc.getID();
-        for (WellInfo well : rc.senseNearbyWells()) {
+        HQIndex = Comms.setTeamHQLocation(rc, location, id);
+        center = new MapLocation(rc.getMapWidth() / 2, rc.getMapHeight() / 2);  // Get map center
+
+        // Initialize all the wells within vision range
+        WellInfo[] wells = rc.senseNearbyWells();
+        for (WellInfo well: wells) {
             if (well.getResourceType() == ResourceType.ADAMANTIUM) {
-                starterADWell[starterADWellCount++] = well.getMapLocation();
-            } else if (well.getResourceType() == ResourceType.MANA) {
-                starterMNWell[starterMNWellCount++] = well.getMapLocation();
+                wellsDiscoveredNearby[wellsDiscoveredCount] = well.getMapLocation();
+                wellsDiscoveredType[wellsDiscoveredCount] = 0;
+                wellsDiscoveredCount++;
             }
-            int wellIndex = BB_kiting.Comms.addWellLocation(rc, well.getMapLocation());
-            Comms.setWellStatus(rc, wellIndex, 5);
+        }
+        for (WellInfo well : wells) {
+            if (well.getResourceType() == ResourceType.MANA) {
+                wellsDiscoveredNearby[wellsDiscoveredCount] = well.getMapLocation();
+                wellsDiscoveredType[wellsDiscoveredCount] = 1;
+                wellsDiscoveredCount++;
+            } else if (well.getResourceType() == ResourceType.ELIXIR){
+                wellsDiscoveredNearby[wellsDiscoveredCount] = well.getMapLocation();
+                wellsDiscoveredType[wellsDiscoveredCount] = 2;
+                wellsDiscoveredCount++;
+            }
         }
     }
 
-    static void initTurn(RobotController rc) throws GameActionException {
-        indicatorString = "";
+    static void initTurn(RobotController rc) {
+        //indicatorString = "";
     }
 
     static void sense(RobotController rc) throws GameActionException {
@@ -82,65 +88,44 @@ public strictfp class HQ {
 
     }
 
-    static void think(RobotController rc) {
-        if (state == HQState.STARTERAD) {
-            if (starterADWellCount == 0 || starterADWellAssigned >= PERWELL * starterADWellCount) {
-                state = HQState.STARTERMN;
+    static void think(RobotController rc) throws GameActionException {
+
+        // If currently has an assignment command out, and it's been taken, go back to assigning
+        if (assigning && Comms.getWellCommand(rc, HQIndex) == null) {
+            assigning = false;
+        }
+
+        // If not currently assigning and there are wells available to be assigned, assign
+        if (!assigning) {
+            if (wellsAssignedCount < wellsDiscoveredCount) {
+                Comms.writeWellCommand(rc, HQIndex, wellsDiscoveredNearby[wellsAssignedCount]);
+                wellsAssigned[wellsAssignedCount]++;
+                carrierBuildLoc = buildTowards(rc, wellsDiscoveredNearby[wellsAssignedCount]);
+                indicatorString = "Assigning towards: " + wellsDiscoveredNearby[wellsAssignedCount].x + ", " + wellsDiscoveredNearby[wellsAssignedCount].y;
+                assigning = true;
+                // If finished assigning, increment wellsAssignedCount
+                if (wellsAssigned[wellsAssignedCount] >= PERWELL[wellsDiscoveredType[wellsAssignedCount]]) {
+                    wellsAssignedCount++;
+                }
             } else {
-                MapLocation selectedWell = starterADWell[starterADWellAssigned / PERWELL];
-                //Comms.setCommand(rc, HQIndex, selectedWell);
-                buildType = RobotType.CARRIER;
+                carrierBuildLoc = buildTowards(rc, center);
             }
         }
-        if (state == HQState.STARTERMN) {
-            if (starterMNWellCount == 0 || starterMNWellAssigned >= PERWELL * starterMNWellCount) {
-                state = HQState.EXPLORER;
-            } else {
-                MapLocation selectedWell = starterMNWell[starterMNWellAssigned / PERWELL];
-                //Comms.setCommand(rc, HQIndex, selectedWell);
-                buildType = RobotType.CARRIER;
-            }
-        }
-        indicatorString = state.toString();
     }
 
     static void build(RobotController rc) throws GameActionException{
-        Direction dir = Helper.directions[Helper.rng.nextInt(Helper.directions.length)];
-        MapLocation launcherBuildLoc = rc.getLocation().add(dir);
-        MapLocation carrierBuildLoc = rc.getLocation().add(dir);
-        if (rc.canBuildRobot(RobotType.LAUNCHER, launcherBuildLoc)) {
-            rc.buildRobot(RobotType.LAUNCHER, launcherBuildLoc);
+        MapLocation centerBuildLoc = buildTowards(rc, center);
+        if (rc.canBuildRobot(RobotType.LAUNCHER, centerBuildLoc)) {
+            rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);
             robotsProduced++;
-            return;
-        }
-        switch(state) {
-            case STARTERAD:
-                carrierBuildLoc = buildTowards(rc, starterADWell[starterADWellAssigned / PERWELL]);
-                if (rc.canBuildRobot(RobotType.CARRIER, carrierBuildLoc)) {
-                    rc.buildRobot(RobotType.CARRIER, carrierBuildLoc);
-                    starterADWellAssigned++;
-                    robotsProduced++;
-                }
-                break;
-            case STARTERMN:
-                carrierBuildLoc = buildTowards(rc, starterMNWell[starterMNWellAssigned / PERWELL]);
-                if (rc.canBuildRobot(RobotType.CARRIER, carrierBuildLoc)) {
-                    rc.buildRobot(RobotType.CARRIER, carrierBuildLoc);
-                    starterMNWellAssigned++;
-                    robotsProduced++;
-                }
-                break;
-            case EXPLORER:
-                if (totalAnchorCount == 0 && rc.canBuildAnchor(Anchor.STANDARD)) {
-                    rc.buildAnchor(Anchor.STANDARD);
-                    anchorsProduced++;
-                } else if (robotsProduced < 25 * (anchorsProduced+1)) {
-                    if (rc.canBuildRobot(RobotType.CARRIER, launcherBuildLoc)) {
-                        rc.buildRobot(RobotType.CARRIER, carrierBuildLoc);
-                        robotsProduced++;
-                    }
-                }
-                break;
+        } else if (robotsProduced < 25 * (anchorsProduced+1)) {
+            if (rc.canBuildRobot(RobotType.CARRIER, carrierBuildLoc)) {
+                rc.buildRobot(RobotType.CARRIER, carrierBuildLoc);
+                robotsProduced++;
+            }
+        } else if (totalAnchorCount == 0 && rc.canBuildAnchor(Anchor.STANDARD)) {
+            rc.buildAnchor(Anchor.STANDARD);
+            anchorsProduced++;
         }
     }
 
@@ -148,15 +133,13 @@ public strictfp class HQ {
         rc.setIndicatorString(indicatorString);
     }
 
-
-
     private static MapLocation buildTowards(RobotController rc, MapLocation target) throws GameActionException {
         int lowestDist = 10000;
         MapLocation buildSquare = null;
         MapLocation[] locs = rc.getAllLocationsWithinRadiusSquared(location, 9);
         for (MapLocation loc : locs) {
             int distance = Helper.distanceTo(loc.x, loc.y, target.x, target.y);
-            if (distance < lowestDist && rc.sensePassability(loc)) {
+            if (distance < lowestDist && rc.senseRobotAtLocation(loc) == null && rc.sensePassability(loc)) {
                 lowestDist = distance;
                 buildSquare = new MapLocation(loc.x, loc.y);
             }

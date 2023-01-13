@@ -8,31 +8,31 @@ import java.util.Set;
 
 public strictfp class Carrier {
 
-    static CarrierState state = CarrierState.None;
-
-    private static enum CarrierState {
+    private enum CarrierState {
         None, Exploring, Returning, Anchoring, Gathering, ReturningAnchor, Runaway;
     }
+    static CarrierState state = CarrierState.None;
 
     static MapLocation WELL_LOCATION = null;
     static MapLocation HQ_LOCATION = null;
 
-    static RobotInfo[]allies;
-
+    static RobotInfo[] allies;
     static RobotInfo[] enemies;
 
     static boolean initialized  = false;
 
+    static MapLocation assignedWell = null;
+
     static void run(RobotController rc) throws GameActionException {
+
+        if(!initialized){
+            onUnitInit(); // first time starting the bot, do some setup
+            initialized = true;
+        }
 
         sense(rc);
 
-        if(!initialized){
-            onUnitInit(rc); // first time starting the bot, do some setup
-            initialized = true;
-        }
         selectState(rc);
-
 
         rc.setIndicatorString(state.name());
         switch (state) {
@@ -60,28 +60,27 @@ public strictfp class Carrier {
         }
     }
 
-    static void onUnitInit(RobotController rc) {
-
-        for(int i = 0; i < allies.length; i++){
-            if(allies[i].getType() == RobotType.HEADQUARTERS){
-                HQ_LOCATION = allies[i].getLocation();
+    static void onUnitInit() {
+        for (RobotInfo ally : allies) {
+            if (ally.getType() == RobotType.HEADQUARTERS) {
+                HQ_LOCATION = ally.getLocation();
             }
         }
+    }
+
+    static void sense(RobotController rc) throws GameActionException{
+        enemies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam().opponent());
+        allies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam());
     }
 
     static void selectState(RobotController rc)
     {
         boolean enemiesFound = false;
-        if(enemies.length > 0){
-            int i = 0;
-            while(i< enemies.length &&
-                    (enemies[i].getType() == RobotType.HEADQUARTERS || enemies[i].getType() ==RobotType.CARRIER)){
-                i++;
-            }
-            if(i != enemies.length){
+        for (RobotInfo enemy : enemies) {
+            if (!(enemy.getType() == RobotType.HEADQUARTERS || enemy.getType() == RobotType.CARRIER)) {
                 enemiesFound = true;
+                break;
             }
-
         }
         if(enemiesFound){
             state = CarrierState.Runaway;
@@ -253,10 +252,5 @@ public strictfp class Carrier {
                 rc.move(moveDir);
             }
         }
-    }
-
-    static void sense(RobotController rc) throws GameActionException{
-        enemies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam().opponent());
-        allies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam());
     }
 }
