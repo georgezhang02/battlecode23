@@ -63,7 +63,7 @@ public strictfp class Carrier {
                 HQ_LOCATION = ally.getLocation();
                 HQIndex = Comms.getHQIndexByID(rc, ally.getID());
                 assignedWell = Comms.getWellCommand(rc, HQIndex);
-                Comms.clearWellCommand(rc, ally.getID());
+                Comms.clearWellCommand(rc, HQIndex);
                 knownWells = Comms.getAllWellValues(rc);
                 selectState();
             }

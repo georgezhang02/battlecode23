@@ -18,7 +18,7 @@ public strictfp class HQ {
     static int[] wellsAssigned = new int[288];
     static int wellsAssignedCount = 0;
     static boolean assigning = false;
-    static MapLocation carrierBuildLoc;
+    static MapLocation carrierBuildTarget;
 
     static int totalAnchorCount = 0;
     static int anchorsProduced = 0;
@@ -35,9 +35,6 @@ public strictfp class HQ {
 
         // sense part
         sense(rc);
-
-        // interpret overall macro state
-        readComms();
 
         think(rc);
 
@@ -84,24 +81,19 @@ public strictfp class HQ {
         totalAnchorCount = rc.senseRobot(id).getTotalAnchors();
     }
 
-    static void readComms(){
-
-    }
-
     static void think(RobotController rc) throws GameActionException {
-
         // If currently has an assignment command out, and it's been taken, go back to assigning
         if (assigning && Comms.getWellCommand(rc, HQIndex) == null) {
             assigning = false;
         }
-
         // If not currently assigning and there are wells available to be assigned, assign
         if (!assigning) {
             if (wellsAssignedCount < wellsDiscoveredCount) {
                 Comms.writeWellCommand(rc, HQIndex, wellsDiscoveredNearby[wellsAssignedCount]);
                 wellsAssigned[wellsAssignedCount]++;
                 carrierBuildTarget = wellsDiscoveredNearby[wellsAssignedCount];
-                indicatorString = "Assigning towards: " + wellsDiscoveredNearby[wellsAssignedCount].x + ", " + wellsDiscoveredNearby[wellsAssignedCount].y;
+                indicatorString = "Assigning towards: " + wellsDiscoveredNearby[wellsAssignedCount].x + ", " + wellsDiscoveredNearby[wellsAssignedCount].y
+                        + ", assigned: " + wellsAssigned[wellsAssignedCount];
                 assigning = true;
                 // If finished assigning, increment wellsAssignedCount
                 if (wellsAssigned[wellsAssignedCount] >= PERWELL[wellsDiscoveredType[wellsAssignedCount]]) {
