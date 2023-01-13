@@ -26,6 +26,9 @@ public strictfp class HQ {
     static int anchorsProduced = 0;
     static int robotsProduced = 0;
 
+    static RobotInfo[] enemies;
+    static boolean enemiesFound;
+
     public static void run(RobotController rc) throws GameActionException {
 
         if(!initialized){
@@ -37,6 +40,8 @@ public strictfp class HQ {
 
         // sense part
         sense(rc);
+
+        checkEnemies();
 
         think(rc);
 
@@ -81,6 +86,17 @@ public strictfp class HQ {
 
     static void sense(RobotController rc) throws GameActionException {
         totalAnchorCount = rc.senseRobot(id).getTotalAnchors();
+        enemies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam().opponent());
+    }
+
+    static void checkEnemies() {
+        enemiesFound = false;
+        for (RobotInfo enemy : enemies) {
+            if (!(enemy.getType() == RobotType.HEADQUARTERS || enemy.getType() == RobotType.CARRIER)) {
+                enemiesFound = true;
+                break;
+            }
+        }
     }
 
     static void think(RobotController rc) throws GameActionException {
@@ -123,18 +139,20 @@ public strictfp class HQ {
 
     static void build(RobotController rc) throws GameActionException{
         MapLocation centerBuildLoc = buildTowards(rc, center);
-        if (rc.canBuildRobot(RobotType.LAUNCHER, centerBuildLoc)) {
+        if (totalAnchorCount == 0 && robotsProduced >= 20 * (anchorsProduced + 1) && !enemiesFound) {
+            if (rc.canBuildAnchor(Anchor.STANDARD)) {
+                rc.buildAnchor(Anchor.STANDARD);
+                anchorsProduced++;
+            }
+        } else if (rc.canBuildRobot(RobotType.LAUNCHER, centerBuildLoc)) {
             rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);
             robotsProduced++;
-        } else if (robotsProduced < 25 * (anchorsProduced+1)) {
+        } else {
             MapLocation carrierBuildLoc = buildTowards(rc, carrierBuildTarget);
             if (rc.canBuildRobot(RobotType.CARRIER, carrierBuildLoc)) {
                 rc.buildRobot(RobotType.CARRIER, carrierBuildLoc);
                 robotsProduced++;
             }
-        } else if (totalAnchorCount == 0 && rc.canBuildAnchor(Anchor.STANDARD)) {
-            rc.buildAnchor(Anchor.STANDARD);
-            anchorsProduced++;
         }
     }
 
@@ -144,7 +162,7 @@ public strictfp class HQ {
 
     private static MapLocation buildTowards(RobotController rc, MapLocation target) throws GameActionException {
         int lowestDist = 10000;
-        MapLocation buildSquare = null;
+        MapLocation buildSquare = location;
         MapLocation[] locs = rc.getAllLocationsWithinRadiusSquared(location, 9);
         for (MapLocation loc : locs) {
             int distance = Helper.distanceTo(loc.x, loc.y, target.x, target.y);

@@ -186,7 +186,7 @@ public strictfp class Carrier {
         int manaAmount = rc.getResourceAmount(ResourceType.MANA);
         int elixirAmount = rc.getResourceAmount(ResourceType.ELIXIR);
         // If within comms range and can report well, report well.
-        if(discoveredWell != null && HQ_LOCATION.distanceSquaredTo(location) <= 9) {
+        if(discoveredWell != null && rc.canWriteSharedArray(0, 0)) {
             if (Comms.reportWellLocation(rc, HQIndex, discoveredWell)) {
                 discoveredWell = null;
                 if (adAmount == 0 && manaAmount == 0 && elixirAmount == 0) {
