@@ -475,46 +475,46 @@ public strictfp class BFPathing20 {
         ml68 = ml67.add(Direction.SOUTH);
         if(rc.canSenseLocation(ml1) && rc.sensePassability(ml1)){
             if(!rc.isLocationOccupied(ml1)){
-                dist1 = rc.senseMapInfo(ml1).getCooldownMuliplier(rc.getTeam());
+                dist1 = rc.senseMapInfo(ml1).getCooldownMultiplier(rc.getTeam());
             }
         }
         if(rc.canSenseLocation(ml2) && rc.sensePassability(ml2)){
             if(!rc.isLocationOccupied(ml2)){
-                dist2 = rc.senseMapInfo(ml2).getCooldownMuliplier(rc.getTeam());
+                dist2 = rc.senseMapInfo(ml2).getCooldownMultiplier(rc.getTeam());
             }
         }
         if(rc.canSenseLocation(ml3) && rc.sensePassability(ml3)){
             if(!rc.isLocationOccupied(ml3)){
-                dist3 = rc.senseMapInfo(ml3).getCooldownMuliplier(rc.getTeam());
+                dist3 = rc.senseMapInfo(ml3).getCooldownMultiplier(rc.getTeam());
             }
         }
         if(rc.canSenseLocation(ml4) && rc.sensePassability(ml4)){
             if(!rc.isLocationOccupied(ml4)){
-                dist4 = rc.senseMapInfo(ml4).getCooldownMuliplier(rc.getTeam());
+                dist4 = rc.senseMapInfo(ml4).getCooldownMultiplier(rc.getTeam());
             }
         }
         if(rc.canSenseLocation(ml5) && rc.sensePassability(ml5)){
             if(!rc.isLocationOccupied(ml5)){
-                dist5 = rc.senseMapInfo(ml5).getCooldownMuliplier(rc.getTeam());
+                dist5 = rc.senseMapInfo(ml5).getCooldownMultiplier(rc.getTeam());
             }
         }
         if(rc.canSenseLocation(ml6) && rc.sensePassability(ml6)){
             if(!rc.isLocationOccupied(ml6)){
-                dist6 = rc.senseMapInfo(ml6).getCooldownMuliplier(rc.getTeam());
+                dist6 = rc.senseMapInfo(ml6).getCooldownMultiplier(rc.getTeam());
             }
         }
         if(rc.canSenseLocation(ml7) && rc.sensePassability(ml7)){
             if(!rc.isLocationOccupied(ml7)){
-                dist7 = rc.senseMapInfo(ml7).getCooldownMuliplier(rc.getTeam());
+                dist7 = rc.senseMapInfo(ml7).getCooldownMultiplier(rc.getTeam());
             }
         }
         if(rc.canSenseLocation(ml8) && rc.sensePassability(ml8)){
             if(!rc.isLocationOccupied(ml8)){
-                dist8 = rc.senseMapInfo(ml8).getCooldownMuliplier(rc.getTeam());
+                dist8 = rc.senseMapInfo(ml8).getCooldownMultiplier(rc.getTeam());
             }
         }
         if(rc.canSenseLocation(ml9) && rc.sensePassability(ml9)){
-            cost9 = rc.senseMapInfo(ml9).getCooldownMuliplier(rc.getTeam());
+            cost9 = rc.senseMapInfo(ml9).getCooldownMultiplier(rc.getTeam());
             if(cost9 + dist8 < dist9){
                 dist9 = cost9 + dist8;
                 dir9 = dir8;
@@ -526,7 +526,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml10) && rc.sensePassability(ml10)){
-            cost10 = rc.senseMapInfo(ml10).getCooldownMuliplier(rc.getTeam());
+            cost10 = rc.senseMapInfo(ml10).getCooldownMultiplier(rc.getTeam());
             if(cost10 + dist8 < dist10){
                 dist10 = cost10 + dist8;
                 dir10 = dir8;
@@ -542,7 +542,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml11) && rc.sensePassability(ml11)){
-            cost11 = rc.senseMapInfo(ml11).getCooldownMuliplier(rc.getTeam());
+            cost11 = rc.senseMapInfo(ml11).getCooldownMultiplier(rc.getTeam());
             if(cost11 + dist1 < dist11){
                 dist11 = cost11 + dist1;
                 dir11 = dir1;
@@ -558,7 +558,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml12) && rc.sensePassability(ml12)){
-            cost12 = rc.senseMapInfo(ml12).getCooldownMuliplier(rc.getTeam());
+            cost12 = rc.senseMapInfo(ml12).getCooldownMultiplier(rc.getTeam());
             if(cost12 + dist2 < dist12){
                 dist12 = cost12 + dist2;
                 dir12 = dir2;
@@ -570,7 +570,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml13) && rc.sensePassability(ml13)){
-            cost13 = rc.senseMapInfo(ml13).getCooldownMuliplier(rc.getTeam());
+            cost13 = rc.senseMapInfo(ml13).getCooldownMultiplier(rc.getTeam());
             if(cost13 + dist3 < dist13){
                 dist13 = cost13 + dist3;
                 dir13 = dir3;
@@ -586,7 +586,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml14) && rc.sensePassability(ml14)){
-            cost14 = rc.senseMapInfo(ml14).getCooldownMuliplier(rc.getTeam());
+            cost14 = rc.senseMapInfo(ml14).getCooldownMultiplier(rc.getTeam());
             if(cost14 + dist4 < dist14){
                 dist14 = cost14 + dist4;
                 dir14 = dir4;
@@ -602,7 +602,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml15) && rc.sensePassability(ml15)){
-            cost15 = rc.senseMapInfo(ml15).getCooldownMuliplier(rc.getTeam());
+            cost15 = rc.senseMapInfo(ml15).getCooldownMultiplier(rc.getTeam());
             if(cost15 + dist4 < dist15){
                 dist15 = cost15 + dist4;
                 dir15 = dir4;
@@ -618,7 +618,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml16) && rc.sensePassability(ml16)){
-            cost16 = rc.senseMapInfo(ml16).getCooldownMuliplier(rc.getTeam());
+            cost16 = rc.senseMapInfo(ml16).getCooldownMultiplier(rc.getTeam());
             if(cost16 + dist4 < dist16){
                 dist16 = cost16 + dist4;
                 dir16 = dir4;
@@ -630,7 +630,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml17) && rc.sensePassability(ml17)){
-            cost17 = rc.senseMapInfo(ml17).getCooldownMuliplier(rc.getTeam());
+            cost17 = rc.senseMapInfo(ml17).getCooldownMultiplier(rc.getTeam());
             if(cost17 + dist5 < dist17){
                 dist17 = cost17 + dist5;
                 dir17 = dir5;
@@ -646,7 +646,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml18) && rc.sensePassability(ml18)){
-            cost18 = rc.senseMapInfo(ml18).getCooldownMuliplier(rc.getTeam());
+            cost18 = rc.senseMapInfo(ml18).getCooldownMultiplier(rc.getTeam());
             if(cost18 + dist6 < dist18){
                 dist18 = cost18 + dist6;
                 dir18 = dir6;
@@ -662,7 +662,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml19) && rc.sensePassability(ml19)){
-            cost19 = rc.senseMapInfo(ml19).getCooldownMuliplier(rc.getTeam());
+            cost19 = rc.senseMapInfo(ml19).getCooldownMultiplier(rc.getTeam());
             if(cost19 + dist18 < dist19){
                 dist19 = cost19 + dist18;
                 dir19 = dir18;
@@ -678,7 +678,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml20) && rc.sensePassability(ml20)){
-            cost20 = rc.senseMapInfo(ml20).getCooldownMuliplier(rc.getTeam());
+            cost20 = rc.senseMapInfo(ml20).getCooldownMultiplier(rc.getTeam());
             if(cost20 + dist19 < dist20){
                 dist20 = cost20 + dist19;
                 dir20 = dir19;
@@ -690,7 +690,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml21) && rc.sensePassability(ml21)){
-            cost21 = rc.senseMapInfo(ml21).getCooldownMuliplier(rc.getTeam());
+            cost21 = rc.senseMapInfo(ml21).getCooldownMultiplier(rc.getTeam());
             if(cost21 + dist19 < dist21){
                 dist21 = cost21 + dist19;
                 dir21 = dir19;
@@ -706,7 +706,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml22) && rc.sensePassability(ml22)){
-            cost22 = rc.senseMapInfo(ml22).getCooldownMuliplier(rc.getTeam());
+            cost22 = rc.senseMapInfo(ml22).getCooldownMultiplier(rc.getTeam());
             if(cost22 + dist6 < dist22){
                 dist22 = cost22 + dist6;
                 dir22 = dir6;
@@ -722,7 +722,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml23) && rc.sensePassability(ml23)){
-            cost23 = rc.senseMapInfo(ml23).getCooldownMuliplier(rc.getTeam());
+            cost23 = rc.senseMapInfo(ml23).getCooldownMultiplier(rc.getTeam());
             if(cost23 + dist22 < dist23){
                 dist23 = cost23 + dist22;
                 dir23 = dir22;
@@ -742,7 +742,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml24) && rc.sensePassability(ml24)){
-            cost24 = rc.senseMapInfo(ml24).getCooldownMuliplier(rc.getTeam());
+            cost24 = rc.senseMapInfo(ml24).getCooldownMultiplier(rc.getTeam());
             if(cost24 + dist23 < dist24){
                 dist24 = cost24 + dist23;
                 dir24 = dir23;
@@ -832,7 +832,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml25) && rc.sensePassability(ml25)){
-            cost25 = rc.senseMapInfo(ml25).getCooldownMuliplier(rc.getTeam());
+            cost25 = rc.senseMapInfo(ml25).getCooldownMultiplier(rc.getTeam());
             if(cost25 + dist24 < dist25){
                 dist25 = cost25 + dist24;
                 dir25 = dir24;
@@ -844,7 +844,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml26) && rc.sensePassability(ml26)){
-            cost26 = rc.senseMapInfo(ml26).getCooldownMuliplier(rc.getTeam());
+            cost26 = rc.senseMapInfo(ml26).getCooldownMultiplier(rc.getTeam());
             if(cost26 + dist24 < dist26){
                 dist26 = cost26 + dist24;
                 dir26 = dir24;
@@ -860,7 +860,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml27) && rc.sensePassability(ml27)){
-            cost27 = rc.senseMapInfo(ml27).getCooldownMuliplier(rc.getTeam());
+            cost27 = rc.senseMapInfo(ml27).getCooldownMultiplier(rc.getTeam());
             if(cost27 + dist9 < dist27){
                 dist27 = cost27 + dist9;
                 dir27 = dir9;
@@ -876,7 +876,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml28) && rc.sensePassability(ml28)){
-            cost28 = rc.senseMapInfo(ml28).getCooldownMuliplier(rc.getTeam());
+            cost28 = rc.senseMapInfo(ml28).getCooldownMultiplier(rc.getTeam());
             if(cost28 + dist10 < dist28){
                 dist28 = cost28 + dist10;
                 dir28 = dir10;
@@ -896,7 +896,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml29) && rc.sensePassability(ml29)){
-            cost29 = rc.senseMapInfo(ml29).getCooldownMuliplier(rc.getTeam());
+            cost29 = rc.senseMapInfo(ml29).getCooldownMultiplier(rc.getTeam());
             if(cost29 + dist11 < dist29){
                 dist29 = cost29 + dist11;
                 dir29 = dir11;
@@ -912,7 +912,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml30) && rc.sensePassability(ml30)){
-            cost30 = rc.senseMapInfo(ml30).getCooldownMuliplier(rc.getTeam());
+            cost30 = rc.senseMapInfo(ml30).getCooldownMultiplier(rc.getTeam());
             if(cost30 + dist13 < dist30){
                 dist30 = cost30 + dist13;
                 dir30 = dir13;
@@ -928,7 +928,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml31) && rc.sensePassability(ml31)){
-            cost31 = rc.senseMapInfo(ml31).getCooldownMuliplier(rc.getTeam());
+            cost31 = rc.senseMapInfo(ml31).getCooldownMultiplier(rc.getTeam());
             if(cost31 + dist14 < dist31){
                 dist31 = cost31 + dist14;
                 dir31 = dir14;
@@ -944,7 +944,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml32) && rc.sensePassability(ml32)){
-            cost32 = rc.senseMapInfo(ml32).getCooldownMuliplier(rc.getTeam());
+            cost32 = rc.senseMapInfo(ml32).getCooldownMultiplier(rc.getTeam());
             if(cost32 + dist15 < dist32){
                 dist32 = cost32 + dist15;
                 dir32 = dir15;
@@ -960,7 +960,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml33) && rc.sensePassability(ml33)){
-            cost33 = rc.senseMapInfo(ml33).getCooldownMuliplier(rc.getTeam());
+            cost33 = rc.senseMapInfo(ml33).getCooldownMultiplier(rc.getTeam());
             if(cost33 + dist16 < dist33){
                 dist33 = cost33 + dist16;
                 dir33 = dir16;
@@ -980,7 +980,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml34) && rc.sensePassability(ml34)){
-            cost34 = rc.senseMapInfo(ml34).getCooldownMuliplier(rc.getTeam());
+            cost34 = rc.senseMapInfo(ml34).getCooldownMultiplier(rc.getTeam());
             if(cost34 + dist16 < dist34){
                 dist34 = cost34 + dist16;
                 dir34 = dir16;
@@ -996,7 +996,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml35) && rc.sensePassability(ml35)){
-            cost35 = rc.senseMapInfo(ml35).getCooldownMuliplier(rc.getTeam());
+            cost35 = rc.senseMapInfo(ml35).getCooldownMultiplier(rc.getTeam());
             if(cost35 + dist17 < dist35){
                 dist35 = cost35 + dist17;
                 dir35 = dir17;
@@ -1012,7 +1012,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml36) && rc.sensePassability(ml36)){
-            cost36 = rc.senseMapInfo(ml36).getCooldownMuliplier(rc.getTeam());
+            cost36 = rc.senseMapInfo(ml36).getCooldownMultiplier(rc.getTeam());
             if(cost36 + dist18 < dist36){
                 dist36 = cost36 + dist18;
                 dir36 = dir18;
@@ -1028,7 +1028,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml37) && rc.sensePassability(ml37)){
-            cost37 = rc.senseMapInfo(ml37).getCooldownMuliplier(rc.getTeam());
+            cost37 = rc.senseMapInfo(ml37).getCooldownMultiplier(rc.getTeam());
             if(cost37 + dist19 < dist37){
                 dist37 = cost37 + dist19;
                 dir37 = dir19;
@@ -1044,7 +1044,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml38) && rc.sensePassability(ml38)){
-            cost38 = rc.senseMapInfo(ml38).getCooldownMuliplier(rc.getTeam());
+            cost38 = rc.senseMapInfo(ml38).getCooldownMultiplier(rc.getTeam());
             if(cost38 + dist37 < dist38){
                 dist38 = cost38 + dist37;
                 dir38 = dir37;
@@ -1064,7 +1064,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml39) && rc.sensePassability(ml39)){
-            cost39 = rc.senseMapInfo(ml39).getCooldownMuliplier(rc.getTeam());
+            cost39 = rc.senseMapInfo(ml39).getCooldownMultiplier(rc.getTeam());
             if(cost39 + dist38 < dist39){
                 dist39 = cost39 + dist38;
                 dir39 = dir38;
@@ -1080,7 +1080,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml40) && rc.sensePassability(ml40)){
-            cost40 = rc.senseMapInfo(ml40).getCooldownMuliplier(rc.getTeam());
+            cost40 = rc.senseMapInfo(ml40).getCooldownMultiplier(rc.getTeam());
             if(cost40 + dist39 < dist40){
                 dist40 = cost40 + dist39;
                 dir40 = dir39;
@@ -1096,7 +1096,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml41) && rc.sensePassability(ml41)){
-            cost41 = rc.senseMapInfo(ml41).getCooldownMuliplier(rc.getTeam());
+            cost41 = rc.senseMapInfo(ml41).getCooldownMultiplier(rc.getTeam());
             if(cost41 + dist20 < dist41){
                 dist41 = cost41 + dist20;
                 dir41 = dir20;
@@ -1112,7 +1112,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml42) && rc.sensePassability(ml42)){
-            cost42 = rc.senseMapInfo(ml42).getCooldownMuliplier(rc.getTeam());
+            cost42 = rc.senseMapInfo(ml42).getCooldownMultiplier(rc.getTeam());
             if(cost42 + dist21 < dist42){
                 dist42 = cost42 + dist21;
                 dir42 = dir21;
@@ -1128,7 +1128,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml43) && rc.sensePassability(ml43)){
-            cost43 = rc.senseMapInfo(ml43).getCooldownMuliplier(rc.getTeam());
+            cost43 = rc.senseMapInfo(ml43).getCooldownMultiplier(rc.getTeam());
             if(cost43 + dist42 < dist43){
                 dist43 = cost43 + dist42;
                 dir43 = dir42;
@@ -1148,7 +1148,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml44) && rc.sensePassability(ml44)){
-            cost44 = rc.senseMapInfo(ml44).getCooldownMuliplier(rc.getTeam());
+            cost44 = rc.senseMapInfo(ml44).getCooldownMultiplier(rc.getTeam());
             if(cost44 + dist43 < dist44){
                 dist44 = cost44 + dist43;
                 dir44 = dir43;
@@ -1249,7 +1249,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml45) && rc.sensePassability(ml45)){
-            cost45 = rc.senseMapInfo(ml45).getCooldownMuliplier(rc.getTeam());
+            cost45 = rc.senseMapInfo(ml45).getCooldownMultiplier(rc.getTeam());
             if(cost45 + dist44 < dist45){
                 dist45 = cost45 + dist44;
                 dir45 = dir44;
@@ -1265,7 +1265,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml46) && rc.sensePassability(ml46)){
-            cost46 = rc.senseMapInfo(ml46).getCooldownMuliplier(rc.getTeam());
+            cost46 = rc.senseMapInfo(ml46).getCooldownMultiplier(rc.getTeam());
             if(cost46 + dist45 < dist46){
                 dist46 = cost46 + dist45;
                 dir46 = dir45;
@@ -1281,7 +1281,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml47) && rc.sensePassability(ml47)){
-            cost47 = rc.senseMapInfo(ml47).getCooldownMuliplier(rc.getTeam());
+            cost47 = rc.senseMapInfo(ml47).getCooldownMultiplier(rc.getTeam());
             if(cost47 + dist25 < dist47){
                 dist47 = cost47 + dist25;
                 dir47 = dir25;
@@ -1297,7 +1297,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml48) && rc.sensePassability(ml48)){
-            cost48 = rc.senseMapInfo(ml48).getCooldownMuliplier(rc.getTeam());
+            cost48 = rc.senseMapInfo(ml48).getCooldownMultiplier(rc.getTeam());
             if(cost48 + dist26 < dist48){
                 dist48 = cost48 + dist26;
                 dir48 = dir26;
@@ -1313,7 +1313,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml49) && rc.sensePassability(ml49)){
-            cost49 = rc.senseMapInfo(ml49).getCooldownMuliplier(rc.getTeam());
+            cost49 = rc.senseMapInfo(ml49).getCooldownMultiplier(rc.getTeam());
             if(cost49 + dist27 < dist49){
                 dist49 = cost49 + dist27;
                 dir49 = dir27;
@@ -1333,7 +1333,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml50) && rc.sensePassability(ml50)){
-            cost50 = rc.senseMapInfo(ml50).getCooldownMuliplier(rc.getTeam());
+            cost50 = rc.senseMapInfo(ml50).getCooldownMultiplier(rc.getTeam());
             if(cost50 + dist28 < dist50){
                 dist50 = cost50 + dist28;
                 dir50 = dir28;
@@ -1349,7 +1349,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml51) && rc.sensePassability(ml51)){
-            cost51 = rc.senseMapInfo(ml51).getCooldownMuliplier(rc.getTeam());
+            cost51 = rc.senseMapInfo(ml51).getCooldownMultiplier(rc.getTeam());
             if(cost51 + dist12 < dist51){
                 dist51 = cost51 + dist12;
                 dir51 = dir12;
@@ -1369,7 +1369,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml52) && rc.sensePassability(ml52)){
-            cost52 = rc.senseMapInfo(ml52).getCooldownMuliplier(rc.getTeam());
+            cost52 = rc.senseMapInfo(ml52).getCooldownMultiplier(rc.getTeam());
             if(cost52 + dist31 < dist52){
                 dist52 = cost52 + dist31;
                 dir52 = dir31;
@@ -1385,7 +1385,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml53) && rc.sensePassability(ml53)){
-            cost53 = rc.senseMapInfo(ml53).getCooldownMuliplier(rc.getTeam());
+            cost53 = rc.senseMapInfo(ml53).getCooldownMultiplier(rc.getTeam());
             if(cost53 + dist32 < dist53){
                 dist53 = cost53 + dist32;
                 dir53 = dir32;
@@ -1401,7 +1401,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml54) && rc.sensePassability(ml54)){
-            cost54 = rc.senseMapInfo(ml54).getCooldownMuliplier(rc.getTeam());
+            cost54 = rc.senseMapInfo(ml54).getCooldownMultiplier(rc.getTeam());
             if(cost54 + dist33 < dist54){
                 dist54 = cost54 + dist33;
                 dir54 = dir33;
@@ -1417,7 +1417,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml55) && rc.sensePassability(ml55)){
-            cost55 = rc.senseMapInfo(ml55).getCooldownMuliplier(rc.getTeam());
+            cost55 = rc.senseMapInfo(ml55).getCooldownMultiplier(rc.getTeam());
             if(cost55 + dist34 < dist55){
                 dist55 = cost55 + dist34;
                 dir55 = dir34;
@@ -1437,7 +1437,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml56) && rc.sensePassability(ml56)){
-            cost56 = rc.senseMapInfo(ml56).getCooldownMuliplier(rc.getTeam());
+            cost56 = rc.senseMapInfo(ml56).getCooldownMultiplier(rc.getTeam());
             if(cost56 + dist34 < dist56){
                 dist56 = cost56 + dist34;
                 dir56 = dir34;
@@ -1453,7 +1453,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml57) && rc.sensePassability(ml57)){
-            cost57 = rc.senseMapInfo(ml57).getCooldownMuliplier(rc.getTeam());
+            cost57 = rc.senseMapInfo(ml57).getCooldownMultiplier(rc.getTeam());
             if(cost57 + dist35 < dist57){
                 dist57 = cost57 + dist35;
                 dir57 = dir35;
@@ -1473,7 +1473,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml58) && rc.sensePassability(ml58)){
-            cost58 = rc.senseMapInfo(ml58).getCooldownMuliplier(rc.getTeam());
+            cost58 = rc.senseMapInfo(ml58).getCooldownMultiplier(rc.getTeam());
             if(cost58 + dist36 < dist58){
                 dist58 = cost58 + dist36;
                 dir58 = dir36;
@@ -1489,7 +1489,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml59) && rc.sensePassability(ml59)){
-            cost59 = rc.senseMapInfo(ml59).getCooldownMuliplier(rc.getTeam());
+            cost59 = rc.senseMapInfo(ml59).getCooldownMultiplier(rc.getTeam());
             if(cost59 + dist37 < dist59){
                 dist59 = cost59 + dist37;
                 dir59 = dir37;
@@ -1505,7 +1505,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml60) && rc.sensePassability(ml60)){
-            cost60 = rc.senseMapInfo(ml60).getCooldownMuliplier(rc.getTeam());
+            cost60 = rc.senseMapInfo(ml60).getCooldownMultiplier(rc.getTeam());
             if(cost60 + dist38 < dist60){
                 dist60 = cost60 + dist38;
                 dir60 = dir38;
@@ -1521,7 +1521,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml61) && rc.sensePassability(ml61)){
-            cost61 = rc.senseMapInfo(ml61).getCooldownMuliplier(rc.getTeam());
+            cost61 = rc.senseMapInfo(ml61).getCooldownMultiplier(rc.getTeam());
             if(cost61 + dist60 < dist61){
                 dist61 = cost61 + dist60;
                 dir61 = dir60;
@@ -1541,7 +1541,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml62) && rc.sensePassability(ml62)){
-            cost62 = rc.senseMapInfo(ml62).getCooldownMuliplier(rc.getTeam());
+            cost62 = rc.senseMapInfo(ml62).getCooldownMultiplier(rc.getTeam());
             if(cost62 + dist61 < dist62){
                 dist62 = cost62 + dist61;
                 dir62 = dir61;
@@ -1557,7 +1557,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml63) && rc.sensePassability(ml63)){
-            cost63 = rc.senseMapInfo(ml63).getCooldownMuliplier(rc.getTeam());
+            cost63 = rc.senseMapInfo(ml63).getCooldownMultiplier(rc.getTeam());
             if(cost63 + dist62 < dist63){
                 dist63 = cost63 + dist62;
                 dir63 = dir62;
@@ -1577,7 +1577,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml64) && rc.sensePassability(ml64)){
-            cost64 = rc.senseMapInfo(ml64).getCooldownMuliplier(rc.getTeam());
+            cost64 = rc.senseMapInfo(ml64).getCooldownMultiplier(rc.getTeam());
             if(cost64 + dist63 < dist64){
                 dist64 = cost64 + dist63;
                 dir64 = dir63;
@@ -1593,7 +1593,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml65) && rc.sensePassability(ml65)){
-            cost65 = rc.senseMapInfo(ml65).getCooldownMuliplier(rc.getTeam());
+            cost65 = rc.senseMapInfo(ml65).getCooldownMultiplier(rc.getTeam());
             if(cost65 + dist40 < dist65){
                 dist65 = cost65 + dist40;
                 dir65 = dir40;
@@ -1609,7 +1609,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml66) && rc.sensePassability(ml66)){
-            cost66 = rc.senseMapInfo(ml66).getCooldownMuliplier(rc.getTeam());
+            cost66 = rc.senseMapInfo(ml66).getCooldownMultiplier(rc.getTeam());
             if(cost66 + dist41 < dist66){
                 dist66 = cost66 + dist41;
                 dir66 = dir41;
@@ -1625,7 +1625,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml67) && rc.sensePassability(ml67)){
-            cost67 = rc.senseMapInfo(ml67).getCooldownMuliplier(rc.getTeam());
+            cost67 = rc.senseMapInfo(ml67).getCooldownMultiplier(rc.getTeam());
             if(cost67 + dist66 < dist67){
                 dist67 = cost67 + dist66;
                 dir67 = dir66;
@@ -1645,7 +1645,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml68) && rc.sensePassability(ml68)){
-            cost68 = rc.senseMapInfo(ml68).getCooldownMuliplier(rc.getTeam());
+            cost68 = rc.senseMapInfo(ml68).getCooldownMultiplier(rc.getTeam());
             if(cost68 + dist67 < dist68){
                 dist68 = cost68 + dist67;
                 dir68 = dir67;
@@ -1773,6 +1773,7 @@ public strictfp class BFPathing20 {
             }
 
         }
+
 
 
 
