@@ -172,8 +172,10 @@ public strictfp class Launcher {
         if(!rc.isActionReady()){
             // no action available, run from enemies
             if(nearestEnemyMil != null){
+                rc.setIndicatorString("no actions, run");
                 return Pathfinder.pathAwayFrom(rc, nearestEnemyMil.getLocation());
             }  else if(attackRobot!= null){
+                rc.setIndicatorString("pursue");
                 pursuitLocation = attackRobot.getLocation();
                 pursue(rc);
             }
@@ -183,6 +185,7 @@ public strictfp class Launcher {
                 MapLocation attackLoc = attackRobot.getLocation();
                 if(rc.canAttack(attackLoc)){
                     // if attack already in radius, attack and kite
+                    rc.setIndicatorString("attack and kite");
                     rc.attack(attackLoc);
                     moveFirst = false;
                     if(nearestEnemyMil != null){
@@ -192,7 +195,8 @@ public strictfp class Launcher {
                     // attack not in radius
                     // only move forward to hit if the enemy is killable or you have significant man advantage
                     if(attackRobot.getHealth() <= 6 || numAllyMil > numEnemyMil){
-                        moveFirst = false;
+                        rc.setIndicatorString("move and hit to kill");
+                        moveFirst = true;
                         return Pathfinder.pathBug(rc, attackLoc);
                     }
 
@@ -271,8 +275,8 @@ public strictfp class Launcher {
 
                 } else if (!inRange && !canAttack){
                     // if you cant reach the opponent, set pursuitlocation
-                    if(attackValue> maxValue && (enemyToAttack.getType()
-                            == RobotType.AMPLIFIER) || (enemyToAttack.getType()==RobotType.CARRIER)){
+                    if(attackValue> maxValue && (enemy.getType()
+                            == RobotType.AMPLIFIER) || (enemy.getType()==RobotType.CARRIER)){
                         maxValue = attackValue;
                         pursuitLocation =  enemy.getLocation();
                         enemyToAttack = enemy;
