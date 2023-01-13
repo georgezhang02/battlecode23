@@ -24,7 +24,7 @@ public strictfp class Carrier {
     static int HQIndex;
     static MapLocation assignedWell = null;
     static int[] knownWells;
-    static MapLocation discoveredWell = null;
+    static WellInfo discoveredWell = null;
 
     static void run(RobotController rc) throws GameActionException {
 
@@ -62,10 +62,14 @@ public strictfp class Carrier {
             if (ally.getType() == RobotType.HEADQUARTERS) {
                 HQ_LOCATION = ally.getLocation();
                 HQIndex = Comms.getHQIndexByID(rc, ally.getID());
-                assignedWell = Comms.getWellCommand(rc, HQIndex);
-                Comms.clearWellCommand(rc, HQIndex);
                 knownWells = Comms.getAllWellValues(rc);
-                selectState();
+                if (location.distanceSquaredTo(HQ_LOCATION) <= 9) {
+                    assignedWell = Comms.getWellCommand(rc, HQIndex);
+                    Comms.clearWellCommand(rc, HQIndex);
+                    selectState();
+                } else {
+                    updateState(CarrierState.Returning);
+                }
             }
         }
     }
@@ -115,7 +119,8 @@ public strictfp class Carrier {
                         " EX: " + rc.getResourceAmount(ResourceType.ELIXIR));
                  */
             }
-        } else if(rc.isMovementReady()) {
+        }
+        if(rc.isMovementReady()) {
             Direction moveDir = Pathfinder.pathBF(rc, assignedWell);
             if(moveDir != null && rc.canMove(moveDir)){
                 rc.move(moveDir);
@@ -155,12 +160,17 @@ public strictfp class Carrier {
         for (WellInfo well : wells) {
             MapLocation loc = well.getMapLocation();
             int newValue = Comms.encode(loc.x, loc.y);
+            boolean alreadyKnew = false;
             for (int knownValue: knownWells) {
-                if (newValue != knownValue) {
-                    discoveredWell = loc;
-                    state = CarrierState.Returning;
-                    return;
+                if (newValue == knownValue) {
+                    alreadyKnew = true;
+                    break;
                 }
+            }
+            if (!alreadyKnew) {
+                discoveredWell = well;
+                state = CarrierState.Returning;
+                break;
             }
         }
         //rc.setIndicatorString(String.valueOf(Clock.getBytecodesLeft()));
@@ -169,12 +179,12 @@ public strictfp class Carrier {
     static void returnToHQ(RobotController rc) throws GameActionException{
         //move back to HQ
         Direction moveDir = Pathfinder.pathBF(rc, HQ_LOCATION);
-        int adAmount = rc.getResourceAmount(ResourceType.ADAMANTIUM);
-        int manaAmount = rc.getResourceAmount(ResourceType.MANA);
-        int elixirAmount = rc.getResourceAmount(ResourceType.ELIXIR);
         if(moveDir != null && rc.canMove(moveDir)){
             rc.move(moveDir);
         }
+        int adAmount = rc.getResourceAmount(ResourceType.ADAMANTIUM);
+        int manaAmount = rc.getResourceAmount(ResourceType.MANA);
+        int elixirAmount = rc.getResourceAmount(ResourceType.ELIXIR);
         // If within comms range and can report well, report well.
         if(discoveredWell != null && HQ_LOCATION.distanceSquaredTo(location) <= 9) {
             if (Comms.reportWellLocation(rc, HQIndex, discoveredWell)) {
@@ -212,7 +222,7 @@ public strictfp class Carrier {
                     int newValue = Comms.encode(loc.x, loc.y);
                     for (int knownValue: knownWells) {
                         if (newValue != knownValue) {
-                            discoveredWell = loc;
+                            discoveredWell = well;
                             break;
                         }
                     }

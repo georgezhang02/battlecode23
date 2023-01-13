@@ -1,12 +1,7 @@
 package BB_kiteexplore;
 
-import battlecode.common.GameActionException;
-import battlecode.common.GameConstants;
-import battlecode.common.MapLocation;
-import battlecode.common.RobotController;
-
-import java.awt.*;
-import java.util.Map;
+import battlecode.common.*;
+import battlecode.world.Inventory;
 
 public class Comms {
     private static final int COUNT_OFFSET = 0;
@@ -31,8 +26,9 @@ public class Comms {
      */
     public static int setTeamHQLocation(RobotController rc, MapLocation HQLocation, int id) throws GameActionException {
         int count = getNumHQs(rc);
+        int wellCount = getNumWells(rc);
         rc.writeSharedArray(count + TEAM_HQ_OFFSET, encode(HQLocation.x, HQLocation.y, id));
-        rc.writeSharedArray(COUNT_OFFSET, encode(count + 1));
+        rc.writeSharedArray(COUNT_OFFSET, encode(count + 1, wellCount));
         return count;
     }
 
@@ -127,13 +123,39 @@ public class Comms {
         rc.writeSharedArray(index + WELL_COMMAND_OFFSET, encode(0, 0, 0));
     }
 
-    public static boolean reportWellLocation(RobotController rc, int index, MapLocation well) throws GameActionException {
+    public static boolean reportWellLocation(RobotController rc, int index, WellInfo well) throws GameActionException {
         int value = rc.readSharedArray(index + WELL_REPORT_OFFSET);
         if (decode(value, 2) == 0) {
-            rc.writeSharedArray(index + WELL_REPORT_OFFSET, encode(well.x, well.y, 1));
+            MapLocation loc = well.getMapLocation();
+            int wellType = 0;
+            switch (well.getResourceType()) {
+                case ADAMANTIUM:
+                    wellType = 1;
+                    break;
+                case MANA:
+                    wellType = 2;
+                    break;
+                case ELIXIR:
+                    wellType = 3;
+                    break;
+            }
+            rc.writeSharedArray(index + WELL_REPORT_OFFSET, encode(loc.x, loc.y, wellType));
             return true;
         }
         return false;
+    }
+
+    public static int[] readWellReport(RobotController rc, int index) throws GameActionException {
+        int value = rc.readSharedArray(index + WELL_REPORT_OFFSET);
+        int[] report = new int[3];
+        report[0] = decode(value, 0);
+        report[1] = decode(value, 1);
+        int type = decode(value, 2);
+        if (type == 0) {
+            return null;
+        }
+        report[2] = type;
+        return report;
     }
 
     public static void clearWellReport(RobotController rc, int index) throws GameActionException {

@@ -2,6 +2,8 @@ package BB_kiteexplore;
 
 import battlecode.common.*;
 
+import java.util.Arrays;
+
 public strictfp class HQ {
 
     static final int[] PERWELL = {3, 5, 5}; // {AD, MN, EX}
@@ -82,6 +84,16 @@ public strictfp class HQ {
     }
 
     static void think(RobotController rc) throws GameActionException {
+        // Take in report if available
+        int[] report = Comms.readWellReport(rc, HQIndex);
+        if (report != null) {
+            MapLocation loc = new MapLocation(report[0], report[1]);
+            Comms.addWellLocation(rc, loc);
+            wellsDiscoveredNearby[wellsDiscoveredCount] = loc;
+            wellsDiscoveredType[wellsDiscoveredCount] = report[2] - 1;
+            wellsDiscoveredCount++;
+            Comms.clearWellReport(rc, HQIndex);
+        }
         // If currently has an assignment command out, and it's been taken, go back to assigning
         if (assigning && Comms.getWellCommand(rc, HQIndex) == null) {
             assigning = false;
@@ -91,13 +103,17 @@ public strictfp class HQ {
             if (wellsAssignedCount < wellsDiscoveredCount) {
                 Comms.writeWellCommand(rc, HQIndex, wellsDiscoveredNearby[wellsAssignedCount]);
                 wellsAssigned[wellsAssignedCount]++;
-                carrierBuildTarget = wellsDiscoveredNearby[wellsAssignedCount];
                 indicatorString = "Assigning towards: " + wellsDiscoveredNearby[wellsAssignedCount].x + ", " + wellsDiscoveredNearby[wellsAssignedCount].y
                         + ", assigned: " + wellsAssigned[wellsAssignedCount];
                 assigning = true;
                 // If finished assigning, increment wellsAssignedCount
                 if (wellsAssigned[wellsAssignedCount] >= PERWELL[wellsDiscoveredType[wellsAssignedCount]]) {
                     wellsAssignedCount++;
+                }
+                if (wellsAssignedCount < wellsDiscoveredCount) {
+                    carrierBuildTarget = wellsDiscoveredNearby[wellsAssignedCount];
+                } else {
+                    carrierBuildTarget = center;
                 }
             } else {
                 carrierBuildTarget = center;
