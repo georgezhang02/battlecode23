@@ -57,17 +57,24 @@ public strictfp class Pathfinder {
         return dir;
     }
 
-    public static Direction pathToExplore(RobotController rc, RobotInfo[]allies, int numAllyMil) throws GameActionException {
+    public static Direction pathToExplore(RobotController rc, RobotInfo[]allies) throws GameActionException {
         int lowestID = rc.getID();
+        int lowestHealth = rc.getHealth();
         RobotInfo pathToAlly = null;
         for(RobotInfo ally: allies){
-            if((ally.getType()== RobotType.LAUNCHER ||ally.getType()== RobotType.DESTABILIZER )
-                    && ally.getID() <lowestID ){
-                pathToAlly = ally;
+            if((ally.getType()== RobotType.LAUNCHER ||ally.getType()== RobotType.DESTABILIZER )){
+                if(ally.getHealth()< lowestHealth){
+                    pathToAlly = ally;
+                    lowestHealth = ally.health;
+                } else if(ally.getHealth() == lowestHealth && ally.getID() < lowestID){
+                    pathToAlly = ally;
+                    lowestID = ally.getID();
+                }
+
             }
         }
         if(pathToAlly != null){
-            if(numAllyMil <= 1){
+            if(pathToAlly.getLocation().distanceSquaredTo(rc.getLocation()) <=1){
                 return Direction.CENTER;
             }
             return pathBug(rc, pathToAlly.getLocation());

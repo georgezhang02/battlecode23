@@ -88,7 +88,7 @@ public strictfp class Launcher {
     }
 
     static void sense(RobotController rc) throws GameActionException{
-        int minRange = RobotType.LAUNCHER.actionRadiusSquared;
+        int minRange = RobotType.LAUNCHER.visionRadiusSquared+1;
         enemies = rc.senseNearbyRobots(RobotType.LAUNCHER.visionRadiusSquared, rc.getTeam().opponent());
         wells = rc.senseNearbyWells();
         allies = rc.senseNearbyRobots(RobotType.LAUNCHER.visionRadiusSquared, rc.getTeam());
@@ -113,9 +113,9 @@ public strictfp class Launcher {
             }
         }
 
-        rc.setIndicatorString(numAllyMil+"");
 
-        if(numAllyMil >=2 || numEnemyMil >= 1 || rc.getRoundNum() > 100){
+
+        if(numAllyMil >=2 || numEnemyMil >= 1 || rc.getRoundNum() >20){
             canExplore = true;
         }
     }
@@ -123,6 +123,7 @@ public strictfp class Launcher {
     static void selectState(RobotController rc) throws GameActionException{
         // select combat state if you see an enemy robot that is not HQ
         // combatCD will be necessary in the future for avoiding high-cd multiplier squares
+
         boolean enemiesFound = false;
         if(enemies.length > 0){
             int i = 0;
@@ -154,20 +155,13 @@ public strictfp class Launcher {
 
     static void combat(RobotController rc) throws GameActionException{
         RobotInfo attackRobot = findAttack(rc);
-        Direction moveDir = null;
-        if(rc.isMovementReady()){
-             moveDir = findMovementCombat(rc, attackRobot);
-        }
+        Direction moveDir = findMovementCombat(rc, attackRobot);
 
         if(attackRobot!=null){
 
             if(moveFirst){
-                if(moveDir!= null && rc.canMove(moveDir)){
+                if(canMove(rc, moveDir)){
                     rc.move(moveDir);
-                    sense(rc);
-                    if(rc.isActionReady() && numEnemyMil > 0){
-                        attackRobot = findAttack(rc);
-                    }
                 }
             }
 
@@ -176,7 +170,7 @@ public strictfp class Launcher {
             }
 
             if(!moveFirst){
-                if(moveDir!= null && rc.canMove(moveDir)){
+                if(canMove(rc, moveDir)){
                     rc.move(moveDir);
                 }
             }
@@ -196,20 +190,37 @@ public strictfp class Launcher {
             }
         } else{
             // action ready
+            //rc.setIndicatorString(attackRobot+"");
             if(attackRobot!= null){
+
                 MapLocation attackLoc = attackRobot.getLocation();
+
                 if(rc.canAttack(attackLoc)){
                     // if attack already in radius, attack and kite
                     rc.setIndicatorString("attack and kite");
                     rc.attack(attackLoc);
+                    rc.setIndicatorString(rc.isMovementReady()+"");
                     moveFirst = false;
                     if(nearestEnemyMil != null){
+                        pursuitLocation = nearestEnemyMil.getLocation();
                         return Pathfinder.pathAwayFrom(rc, nearestEnemyMil.getLocation());
                     }
                 } else {
                     // attack not in radius
                     // only move forward to hit if the enemy is killable or you have significant man advantage
-                    if(attackRobot.getHealth() <= attackRobot.getType().getMaxHealth()){
+                    boolean moveToAttack = false;
+                    if(numEnemyMil >0){
+                        for(RobotInfo ally: allies){
+                            if(ally.getLocation().distanceSquaredTo(attackLoc) <= attackRobot.getType().actionRadiusSquared){
+                                moveToAttack = true;
+                            }
+                        }
+                    } else if (!rc.canAttack(attackLoc)){
+                        moveToAttack = true;
+                    }
+
+
+                    if(moveToAttack){
                         rc.setIndicatorString("move and hit to kill");
                         moveFirst = true;
                         return Pathfinder.pathBug(rc, attackLoc);
@@ -231,7 +242,7 @@ public strictfp class Launcher {
 
     static RobotInfo findAttack(RobotController rc) throws GameActionException{
         int maxValue = 0;
-        int minRange = 0;
+        int minRange = 100;
         boolean inRange = false;
         boolean canAttack = false;
 
@@ -265,10 +276,10 @@ public strictfp class Launcher {
                 }
 
 
+
+
                 if (rc.canAttack(enemy.getLocation())){
                     // prefer targets already in action radius, and targets that are closer
-
-
                     if(attackValue> maxValue || !inRange){
                         maxValue = attackValue;
                         enemyToAttack = enemy;
@@ -278,8 +289,7 @@ public strictfp class Launcher {
                     }
                     inRange = true;
                     canAttack = true;
-                } else if(!inRange && rc.isMovementReady()
-                        && rc.canMove(rc.getLocation().directionTo(enemy.getLocation())) ){
+                } else if(!inRange && rc.isMovementReady()){
                     // if your movement is ready, you can attack targets out of radius
 
                     if(!canAttack || attackValue> maxValue){
@@ -312,12 +322,8 @@ public strictfp class Launcher {
 
         if(rc.isMovementReady()){
             Direction moveDir = Pathfinder.pathBug(rc, pursuitLocation);
-            if(moveDir!= null && rc.canMove(moveDir)){
+            if(canMove(rc, moveDir)){
                 rc.move(moveDir);
-                sense(rc);
-                if(rc.isActionReady() && numEnemyMil > 0){
-                    combat(rc);
-                }
             }
         }
     }
@@ -329,20 +335,23 @@ public strictfp class Launcher {
             if(numAllyMil >=4){
                 dir = Pathfinder.pathToExplore(rc);
             } else{
-                dir = Pathfinder.pathToExplore(rc, allies, numAllyMil);
+                dir = Pathfinder.pathToExplore(rc, allies);
             }
-            if(dir != null && rc.canMove(dir)){
+            if(canMove(rc, dir)){
                 rc.move(dir);
-                sense(rc);
-                if(rc.isActionReady() && numEnemyMil > 0){
-                    combat(rc);
-                }
             }
 
         }
 
     }
 
+
+    static boolean canMove(RobotController rc, Direction dir) throws GameActionException{
+        return dir != null && rc.canMove(dir) &&
+                (rc.getRoundNum()%2 ==0 || rc.senseMapInfo(rc.getLocation()).getCooldownMultiplier(rc.getTeam()) != 1);
+
+
+    }
 
 
 

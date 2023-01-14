@@ -119,13 +119,15 @@ public strictfp class Carrier {
                         " EX: " + rc.getResourceAmount(ResourceType.ELIXIR));
                  */
             }
-        }
-        if(rc.isMovementReady()) {
-            Direction moveDir = Pathfinder.pathBF(rc, assignedWell);
-            if(moveDir != null && rc.canMove(moveDir)){
-                rc.move(moveDir);
+        } else{
+            if(rc.isMovementReady()) {
+                Direction moveDir = Pathfinder.pathBF(rc, assignedWell);
+                if(moveDir != null && rc.canMove(moveDir)){
+                    rc.move(moveDir);
+                }
             }
         }
+
     }
 
     static void explore(RobotController rc) throws GameActionException{
