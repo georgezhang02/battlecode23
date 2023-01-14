@@ -162,9 +162,13 @@ public strictfp class Launcher {
             if(moveFirst){
                 if(canMove(rc, moveDir)){
                     rc.move(moveDir);
+                    sense(rc);
+                    if(enemies.length > 0){
+                        RobotInfo enemy = findAttack(rc);
+                        attackRobot = enemy;
+                    }
                 }
             }
-
             if(rc.canAttack(attackRobot.getLocation())){
                 rc.attack(attackRobot.getLocation());
             }
@@ -324,6 +328,13 @@ public strictfp class Launcher {
             Direction moveDir = Pathfinder.pathBug(rc, pursuitLocation);
             if(canMove(rc, moveDir)){
                 rc.move(moveDir);
+                sense(rc);
+                if(enemies.length > 0){
+                    RobotInfo enemy = findAttack(rc);
+                    if(rc.canAttack(enemy.getLocation())){
+                        rc.attack(enemy.getLocation());
+                    }
+                }
             }
         }
     }
@@ -339,6 +350,13 @@ public strictfp class Launcher {
             }
             if(canMove(rc, dir)){
                 rc.move(dir);
+                sense(rc);
+                if(enemies.length > 0){
+                    RobotInfo enemy = findAttack(rc);
+                    if(rc.canAttack(enemy.getLocation())){
+                        rc.attack(enemy.getLocation());
+                    }
+                }
             }
 
         }

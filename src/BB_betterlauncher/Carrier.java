@@ -119,9 +119,16 @@ public strictfp class Carrier {
                         " EX: " + rc.getResourceAmount(ResourceType.ELIXIR));
                  */
             }
+<<<<<<< Updated upstream
         } else{
             if(rc.isMovementReady()) {
                 Direction moveDir = Pathfinder.pathBF(rc, assignedWell);
+=======
+        }
+        else{
+            if(rc.isMovementReady()) {
+                Direction moveDir = BB_kiteexplore.Pathfinder.pathBF(rc, assignedWell);
+>>>>>>> Stashed changes
                 if(moveDir != null && rc.canMove(moveDir)){
                     rc.move(moveDir);
                 }

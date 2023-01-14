@@ -120,10 +120,12 @@ public strictfp class Carrier {
                  */
             }
         }
-        if(rc.isMovementReady()) {
-            Direction moveDir = Pathfinder.pathBF(rc, assignedWell);
-            if(moveDir != null && rc.canMove(moveDir)){
-                rc.move(moveDir);
+        else{
+            if(rc.isMovementReady()) {
+                Direction moveDir = Pathfinder.pathBF(rc, assignedWell);
+                if(moveDir != null && rc.canMove(moveDir)){
+                    rc.move(moveDir);
+                }
             }
         }
     }
