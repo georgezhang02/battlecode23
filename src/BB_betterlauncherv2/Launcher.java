@@ -1,4 +1,4 @@
-package BB_betterlauncher;
+package BB_betterlauncherv2;
 
 import battlecode.common.*;
 
@@ -25,7 +25,12 @@ public strictfp class Launcher {
     static int numEnemyMil;
     static int numAllyMil;
 
-    static boolean canExplore = false;
+    static boolean canExplore;
+    static boolean leader = true;
+
+    static RobotInfo furthestAllyMil;
+
+    static RobotInfo nearestAllyMil;
 
     static final Direction[] directions = {
             Direction.NORTH,
@@ -41,10 +46,7 @@ public strictfp class Launcher {
     static LauncherState state;
 
     static void run(RobotController rc) throws GameActionException {
-        if(!initialized){
-            onUnitInit(rc); // first time starting the bot, do some setup
-            initialized = true;
-        }
+
 
         onTurnStart(rc); // cleanup for when the turn starts
 
@@ -54,8 +56,12 @@ public strictfp class Launcher {
         // sense part
         sense(rc);
 
-        selectState(rc);
+        if(!initialized){
+            onUnitInit(rc); // first time starting the bot, do some setup
+            initialized = true;
+        }
 
+        selectState(rc);
 
 
 
@@ -73,10 +79,17 @@ public strictfp class Launcher {
         }
 
 
+
     }
 
     static void onUnitInit(RobotController rc) throws GameActionException{
         state = LauncherState.Exploring;
+
+        if(numAllyMil > 1){
+            leader = false;
+        }
+
+
     }
 
     static void onTurnStart(RobotController rc) throws GameActionException{
@@ -107,9 +120,22 @@ public strictfp class Launcher {
         }
 
         numAllyMil = 0;
+        furthestAllyMil = null;
+        nearestAllyMil = null;
+        int maxDist = 0;
+        int minDist = 10000;
         for(RobotInfo ally: allies){
             if(ally.getType() == RobotType.LAUNCHER || ally.getType() == RobotType.DESTABILIZER){
                 numAllyMil++;
+                int distToAlly = rc.getLocation().distanceSquaredTo(ally.getLocation());
+                if(furthestAllyMil == null || distToAlly > maxDist){
+                    furthestAllyMil = ally;
+                    maxDist = rc.getLocation().distanceSquaredTo(furthestAllyMil.getLocation());
+                }
+                if(nearestAllyMil == null || distToAlly < minDist){
+                    nearestAllyMil = ally;
+                    minDist = rc.getLocation().distanceSquaredTo(furthestAllyMil.getLocation());
+                }
             }
         }
 
@@ -141,7 +167,8 @@ public strictfp class Launcher {
             combatCD =5;
             state = LauncherState.Combat;
         } else if( combatCD >0 && pursuitLocation!=null &&
-                rc.getLocation().distanceSquaredTo(pursuitLocation) > 5 ){
+                rc.getLocation().distanceSquaredTo(pursuitLocation) > 5
+                && (nearestAllyMil== null || nearestAllyMil.getLocation().distanceSquaredTo(rc.getLocation()) <= 2)){
             state = LauncherState.Pursuing;
         }else{
             combatCD = 0;
@@ -273,7 +300,7 @@ public strictfp class Launcher {
                 //if you can kill the unit, add 10 value
                 if(enemy.getHealth() - 6 <= 0){
                     attackValue+=10;
-                } else{
+                }  else{
                     // focus low health targets
                     attackValue+= (enemy.getType().getMaxHealth() - enemy.getHealth())/2;
                 }
@@ -325,7 +352,7 @@ public strictfp class Launcher {
 
         if(rc.isMovementReady()){
             Direction moveDir = Pathfinder.pathBug(rc, pursuitLocation);
-            if(canMove(rc, moveDir)){
+            if(canMoveToExplore(rc, moveDir)){
                 rc.move(moveDir);
                 sense(rc);
                 if(enemies.length > 0){
@@ -342,10 +369,12 @@ public strictfp class Launcher {
 
         if (canExplore) {
             Direction dir;
-            if(numAllyMil >=4){
+            if(numAllyMil >=4 || leader || numAllyMil == 0){
                 dir = Pathfinder.pathToExplore(rc);
-            } else{
-                dir = Pathfinder.pathToExplore(rc, allies);
+            } else if(numAllyMil == 1 && rc.getID() < furthestAllyMil.getID()){
+                dir = Pathfinder.pathToExplore(rc);
+            }else{
+                dir = Pathfinder.pathBug(rc, furthestAllyMil.getLocation());
             }
             if(canMoveToExplore(rc, dir)){
                 rc.move(dir);
