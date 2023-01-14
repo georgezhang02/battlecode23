@@ -169,7 +169,7 @@ public strictfp class Launcher {
                     }
                 }
             }
-            if(rc.canAttack(attackRobot.getLocation())){
+            if(attackRobot!= null &&  rc.canAttack(attackRobot.getLocation())){
                 rc.attack(attackRobot.getLocation());
             }
 
@@ -203,7 +203,6 @@ public strictfp class Launcher {
                     // if attack already in radius, attack and kite
                     rc.setIndicatorString("attack and kite");
                     rc.attack(attackLoc);
-                    rc.setIndicatorString(rc.isMovementReady()+"");
                     moveFirst = false;
                     if(nearestEnemyMil != null){
                         pursuitLocation = nearestEnemyMil.getLocation();
@@ -331,7 +330,7 @@ public strictfp class Launcher {
                 sense(rc);
                 if(enemies.length > 0){
                     RobotInfo enemy = findAttack(rc);
-                    if(rc.canAttack(enemy.getLocation())){
+                    if(enemy!= null && rc.canAttack(enemy.getLocation())){
                         rc.attack(enemy.getLocation());
                     }
                 }
@@ -348,12 +347,12 @@ public strictfp class Launcher {
             } else{
                 dir = Pathfinder.pathToExplore(rc, allies);
             }
-            if(canMove(rc, dir)){
+            if(canMoveToExplore(rc, dir)){
                 rc.move(dir);
                 sense(rc);
                 if(enemies.length > 0){
                     RobotInfo enemy = findAttack(rc);
-                    if(rc.canAttack(enemy.getLocation())){
+                    if(enemy!= null && rc.canAttack(enemy.getLocation())){
                         rc.attack(enemy.getLocation());
                     }
                 }
@@ -365,6 +364,12 @@ public strictfp class Launcher {
 
 
     static boolean canMove(RobotController rc, Direction dir) throws GameActionException{
+        return dir != null && rc.canMove(dir);
+
+
+    }
+
+    static boolean canMoveToExplore(RobotController rc, Direction dir) throws GameActionException{
         return dir != null && rc.canMove(dir) &&
                 (rc.getRoundNum()%2 ==0 || rc.senseMapInfo(rc.getLocation()).getCooldownMultiplier(rc.getTeam()) != 1);
 

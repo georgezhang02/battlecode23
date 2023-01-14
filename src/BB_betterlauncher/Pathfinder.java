@@ -63,16 +63,14 @@ public strictfp class Pathfinder {
         RobotInfo pathToAlly = null;
         for(RobotInfo ally: allies){
             if((ally.getType()== RobotType.LAUNCHER ||ally.getType()== RobotType.DESTABILIZER )){
-                if(ally.getHealth()< lowestHealth){
-                    pathToAlly = ally;
-                    lowestHealth = ally.health;
-                } else if(ally.getHealth() == lowestHealth && ally.getID() < lowestID){
+                if(ally.getID() < lowestID){
                     pathToAlly = ally;
                     lowestID = ally.getID();
                 }
 
             }
         }
+        rc.setIndicatorString(pathToAlly+" ");
         if(pathToAlly != null){
             if(pathToAlly.getLocation().distanceSquaredTo(rc.getLocation()) <=1){
                 return Direction.CENTER;
