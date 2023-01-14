@@ -17,6 +17,8 @@ public strictfp class Pathfinder {
     static MapLocation lastTarget;
     static boolean exploring;
 
+
+
     public static Direction pathBF(RobotController rc, MapLocation target) throws GameActionException {
 
         if(!target.equals(lastTarget)){

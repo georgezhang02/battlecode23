@@ -70,8 +70,8 @@ public class Explorer {
 
         x += xGrid * 5;
         y+= yGrid * 5;
-        x = Math.min(mapWidth-1, x);
-        y = Math.min(mapHeight-1, y);
+        x = Math.max(Math.min(mapWidth-4, x), 3);
+        y = Math.max(Math.min(mapHeight-4, y), 3);
 
         target = new MapLocation(x, y);
 
