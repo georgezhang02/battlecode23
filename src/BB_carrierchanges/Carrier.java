@@ -19,13 +19,15 @@ public strictfp class Carrier {
     static MapLocation location;
     static RobotInfo[] allies;
     static RobotInfo[] enemies;
+    static int adAmount;
+    static int manaAmount;
+    static int elixirAmount;
 
     static MapLocation HQ_LOCATION = null;
     static int HQIndex;
     static MapLocation assignedWell = null;
     static int[] knownWells;
     static WellInfo discoveredWell = null;
-    static boolean waitTurn = false;
 
     static void run(RobotController rc) throws GameActionException {
         sense(rc);
@@ -35,13 +37,16 @@ public strictfp class Carrier {
         }
         updateState(rc);
         runState(rc);
-        rc.setIndicatorString(state.name());
+        rc.setIndicatorString(String.valueOf(state));
     }
 
     static void sense(RobotController rc) throws GameActionException{
         location = rc.getLocation();
         enemies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam().opponent());
         allies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam());
+        adAmount = rc.getResourceAmount(ResourceType.ADAMANTIUM);
+        manaAmount = rc.getResourceAmount(ResourceType.MANA);
+        elixirAmount = rc.getResourceAmount(ResourceType.ELIXIR);
     }
 
     static void onUnitInit(RobotController rc) throws GameActionException {
@@ -53,19 +58,15 @@ public strictfp class Carrier {
                 if (location.distanceSquaredTo(HQ_LOCATION) <= 9) {
                     assignedWell = Comms.getWellCommand(rc, HQIndex);
                     Comms.clearWellCommand(rc, HQIndex);
-                    selectState();
+                    if (assignedWell != null) {
+                        state = CarrierState.Gathering;
+                    } else {
+                        state = CarrierState.Exploring;
+                    }
                 } else {
                     state = CarrierState.Returning;
                 }
             }
-        }
-    }
-
-    static void selectState() {
-        if (assignedWell != null) {
-            state = CarrierState.Gathering;
-        } else {
-            state = CarrierState.Exploring;
         }
     }
 
@@ -84,7 +85,7 @@ public strictfp class Carrier {
             // Update states
             switch (state) {
                 case Gathering:
-                    gatherUpdate(rc);
+                    gatherUpdate();
                     break;
                 case Exploring:
                     exploreUpdate(rc);
@@ -98,7 +99,6 @@ public strictfp class Carrier {
             /* case Runaway:
                 runawayUpdate(rc);
                 break;
-
              */
             }
         }
@@ -125,39 +125,24 @@ public strictfp class Carrier {
         }
     }
 
-    static void gatherUpdate(RobotController rc) {
+    static void gatherUpdate() {
         //if a carrier cannot get anymore resources, return to base
-        if(rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA)
-                + rc.getResourceAmount(ResourceType.ELIXIR) == 40){
+        if(adAmount + manaAmount + elixirAmount == 40){
             state = CarrierState.Returning;
         }
     }
 
     static void gather(RobotController rc) throws GameActionException {
-        pathTowards(rc, assignedWell);
         if(assignedWell.distanceSquaredTo(location) <= 2){
             if (rc.canCollectResource(assignedWell, -1)) {
                 rc.collectResource(assignedWell, -1);
             }
+        } else {
+            pathTowards(rc, assignedWell);
         }
     }
 
-    static void exploreUpdate(RobotController rc) throws GameActionException {
-        // Get command or anchor if available
-        if (HQ_LOCATION.distanceSquaredTo(location) <= 9) {
-            // Update known wells
-            knownWells = Comms.getAllWellValues(rc);
-            MapLocation command = Comms.getWellCommand(rc, HQIndex);
-            if (command != null) {
-                assignedWell = command;
-                Comms.clearWellCommand(rc, HQIndex);
-                state = CarrierState.Gathering;
-            } else if (HQ_LOCATION.distanceSquaredTo(location) <= 2 && rc.canTakeAnchor(HQ_LOCATION, Anchor.STANDARD)) {
-                rc.takeAnchor(HQ_LOCATION, Anchor.STANDARD);
-                state = CarrierState.Anchoring;
-            }
-        }
-
+    static void exploreUpdate(RobotController rc) {
         //If there is a new well nearby, return to HQ to report
         WellInfo[] wells = rc.senseNearbyWells();
         for (WellInfo well : wells) {
@@ -183,43 +168,54 @@ public strictfp class Carrier {
     }
 
     static void returnUpdate(RobotController rc) throws GameActionException {
-        if (waitTurn) {
-            selectState();
-            waitTurn = false;
-        } else {
-            int adAmount = rc.getResourceAmount(ResourceType.ADAMANTIUM);
-            int manaAmount = rc.getResourceAmount(ResourceType.MANA);
-            int elixirAmount = rc.getResourceAmount(ResourceType.ELIXIR);
-            // If within comms range and can report well, report well.
-            if(discoveredWell != null && rc.canWriteSharedArray(0, 0)) {
-                if (Comms.reportWellLocation(rc, HQIndex, discoveredWell)) {
-                    discoveredWell = null;
-                    if (adAmount == 0 && manaAmount == 0 && elixirAmount == 0) {
-                        waitTurn = true;
-                    }
+        if (HQ_LOCATION.distanceSquaredTo(location) <= 2 && discoveredWell == null
+                && adAmount == 0 && manaAmount == 0 && elixirAmount == 0) {
+            // Get command or anchor if available
+            if (assignedWell == null) {
+                // Update known wells
+                knownWells = Comms.getAllWellValues(rc);
+                MapLocation command = Comms.getWellCommand(rc, HQIndex);
+                if (command != null) {
+                    assignedWell = command;
+                    Comms.clearWellCommand(rc, HQIndex);
+                    state = CarrierState.Gathering;
+                } else if (rc.canTakeAnchor(HQ_LOCATION, Anchor.STANDARD)) {
+                    rc.takeAnchor(HQ_LOCATION, Anchor.STANDARD);
+                    state = CarrierState.Anchoring;
+                } else {
+                    state = CarrierState.Exploring;
                 }
-            }
-            //If the hq location is in action range, deposit resources to HQ
-            else if(HQ_LOCATION.distanceSquaredTo(location) <= 2){
-                if(rc.canTransferResource(HQ_LOCATION, ResourceType.ELIXIR, elixirAmount) && elixirAmount != 0){
-                    rc.transferResource(HQ_LOCATION,ResourceType.ELIXIR, elixirAmount);
-                }
-                else if(rc.canTransferResource(HQ_LOCATION, ResourceType.MANA, manaAmount) && manaAmount != 0){
-                    rc.transferResource(HQ_LOCATION,ResourceType.MANA, manaAmount);
-                }
-                else if(rc.canTransferResource(HQ_LOCATION, ResourceType.ADAMANTIUM, adAmount) && adAmount != 0){
-                    rc.transferResource(HQ_LOCATION,ResourceType.ADAMANTIUM, adAmount);
-                }
-                else if (discoveredWell == null){
-                    waitTurn = true;
-                }
+            } else {
+                state = CarrierState.Gathering;
             }
         }
     }
 
     static void returnToHQ(RobotController rc) throws GameActionException{
         //move back to HQ
-        pathTowards(rc, HQ_LOCATION);
+        if(HQ_LOCATION.distanceSquaredTo(location) > 2){
+            pathTowards(rc, HQ_LOCATION);
+        }
+
+        //If the hq location is in action range, deposit resources to HQ
+        if (HQ_LOCATION.distanceSquaredTo(location) <= 2){
+            if(rc.canTransferResource(HQ_LOCATION, ResourceType.ELIXIR, elixirAmount) && elixirAmount != 0){
+                rc.transferResource(HQ_LOCATION,ResourceType.ELIXIR, elixirAmount);
+            }
+            else if(rc.canTransferResource(HQ_LOCATION, ResourceType.MANA, manaAmount) && manaAmount != 0){
+                rc.transferResource(HQ_LOCATION,ResourceType.MANA, manaAmount);
+            }
+            else if(rc.canTransferResource(HQ_LOCATION, ResourceType.ADAMANTIUM, adAmount) && adAmount != 0){
+                rc.transferResource(HQ_LOCATION,ResourceType.ADAMANTIUM, adAmount);
+            }
+        }
+
+        // If within comms range and has discovered well, report well.
+        if (discoveredWell != null && rc.canWriteSharedArray(0, 0)) {
+            if (Comms.reportWellLocation(rc, HQIndex, discoveredWell)) {
+                discoveredWell = null;
+            }
+        }
     }
 
     static void anchorUpdate(RobotController rc) throws GameActionException {
@@ -306,7 +302,7 @@ public strictfp class Carrier {
 
     static void pathTowards(RobotController rc, MapLocation target) throws GameActionException {
         if(rc.isMovementReady()) {
-            Direction moveDir = Pathfinder.pathBug(rc, target);
+            Direction moveDir = Pathfinder.pathBF(rc, target);
             if(moveDir != null && rc.canMove(moveDir)){
                 rc.move(moveDir);
             }

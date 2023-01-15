@@ -102,10 +102,19 @@ public strictfp class HQ {
         int[] report = Comms.readWellReport(rc, HQIndex);
         if (report != null) {
             MapLocation loc = new MapLocation(report[0], report[1]);
-            Comms.addWellLocation(rc, loc);
-            wellsDiscoveredNearby[wellsDiscoveredCount] = loc;
-            wellsDiscoveredType[wellsDiscoveredCount] = report[2] - 1;
-            wellsDiscoveredCount++;
+            boolean duplicate = false;
+            for (int i = 0; i < wellsDiscoveredCount; i++) {
+                if (loc.equals(wellsDiscoveredNearby[i])) {
+                    duplicate = true;
+                    break;
+                }
+            }
+            if (!duplicate) {
+                Comms.addWellLocation(rc, loc);
+                wellsDiscoveredNearby[wellsDiscoveredCount] = loc;
+                wellsDiscoveredType[wellsDiscoveredCount] = report[2] - 1;
+                wellsDiscoveredCount++;
+            }
             Comms.clearWellReport(rc, HQIndex);
         }
         // If currently has an assignment command out, and it's been taken, go back to assigning
