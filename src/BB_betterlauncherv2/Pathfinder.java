@@ -59,6 +59,16 @@ public strictfp class Pathfinder {
         return dir;
     }
 
+    public static Direction pathToExploreBug(RobotController rc) throws GameActionException {
+
+        if(!exploring || rc.getLocation().distanceSquaredTo(Explorer.target) <= 16){
+            Explorer.getExploreTarget(rc, 10, rc.getMapWidth(), rc.getMapHeight());
+        }
+        Direction dir = pathBug(rc, Explorer.target);
+        exploring = true;
+        return dir;
+    }
+
     public static Direction pathToExplore(RobotController rc, RobotInfo[]allies) throws GameActionException {
         int lowestID = rc.getID();
         int lowestHealth = rc.getHealth();
@@ -88,6 +98,8 @@ public strictfp class Pathfinder {
         return dir;
     }
 
+
+
     public static Direction pathAwayFrom(RobotController rc, MapLocation target) throws GameActionException{
         exploring = false;
         MapLocation curLoc = rc.getLocation();
@@ -98,7 +110,6 @@ public strictfp class Pathfinder {
         return pathBug(rc, runawayTarget);
 
     }
-
     public static Direction pathGreedy(RobotController rc, MapLocation target)throws GameActionException {
         exploring = false;
         if (directBug){
@@ -123,6 +134,10 @@ public strictfp class Pathfinder {
         boolean found = false;
         currentDist = Math.sqrt(rc.getLocation().distanceSquaredTo(target));
 
+        if(!target.equals(lastTarget)){
+            rotatingBug = false;
+        }
+        lastTarget=target;
 
         if(rotatingBug){
            /* rc.setIndicatorString("rotating "+target.toString() +
@@ -154,6 +169,7 @@ public strictfp class Pathfinder {
                 }
 
             } else{
+
                 if(canMoveThrough(rc, lastBugDir.rotateRight().rotateRight(), rc.getLocation())
                         || !rc.onTheMap(rc.getLocation().add(lastBugDir.rotateRight().rotateRight()))){
                     rotatingBug = false;
@@ -177,6 +193,7 @@ public strictfp class Pathfinder {
             return Direction.CENTER;
 
         } else{
+
             //rc.setIndicatorString("bug "+target.toString());
 
             Direction moveDir = rc.getLocation().directionTo(target);

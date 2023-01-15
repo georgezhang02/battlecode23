@@ -148,9 +148,6 @@ public strictfp class Launcher {
             pursuitLocation = null;
             state = LauncherState.Exploring;
         }
-
-
-
     }
 
     static void combat(RobotController rc) throws GameActionException{
@@ -277,9 +274,6 @@ public strictfp class Launcher {
                     // focus low health targets
                     attackValue+= (enemy.getType().getMaxHealth() - enemy.getHealth())/2;
                 }
-
-
-
 
                 if (rc.canAttack(enemy.getLocation())){
                     // prefer targets already in action radius, and targets that are closer

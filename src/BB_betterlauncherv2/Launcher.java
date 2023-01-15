@@ -2,6 +2,8 @@ package BB_betterlauncherv2;
 
 import battlecode.common.*;
 
+import java.awt.*;
+
 public strictfp class Launcher {
 
     public enum LauncherState {
@@ -25,7 +27,19 @@ public strictfp class Launcher {
     static int numEnemyMil;
     static int numAllyMil;
 
+    static int numNearbyAllyMil;
+
+    static RobotInfo[] nearbyAllyMil = new RobotInfo[8];
+
+    static RobotInfo nearestAllyMil;
+
+    static RobotInfo furthestAllyMil;
+
+    static RobotInfo nearestNonAdjacentAllyMil;
+
     static boolean canExplore = false;
+
+    static String allyString;
 
     static final Direction[] directions = {
             Direction.NORTH,
@@ -56,8 +70,7 @@ public strictfp class Launcher {
 
         selectState(rc);
 
-
-
+        rc.setIndicatorString(state.name());
 
         //select action based on state
         switch (state){
@@ -102,14 +115,46 @@ public strictfp class Launcher {
                 int range = rc.getLocation().distanceSquaredTo(enemy.getLocation());
                 if(range < minRange){
                     nearestEnemyMil = enemy;
+                    minRange = range;
                 }
             }
         }
-
+        minRange = RobotType.LAUNCHER.visionRadiusSquared+1;
+        int minRangeNonAdj = RobotType.LAUNCHER.visionRadiusSquared+1;;
+        int maxRange = 0;
         numAllyMil = 0;
+        numNearbyAllyMil = 0;
+        nearestAllyMil = null;
+        furthestAllyMil = null;
+        nearestNonAdjacentAllyMil = null;
+
+        String allyString="";
+
+
         for(RobotInfo ally: allies){
             if(ally.getType() == RobotType.LAUNCHER || ally.getType() == RobotType.DESTABILIZER){
+                int range = rc.getLocation().distanceSquaredTo(ally.getLocation());
+                if(range > maxRange){
+                    furthestAllyMil = ally;
+                    maxRange = range;
+                }
+
+                if(range < minRange){
+                    nearestAllyMil = ally;
+                    minRange = range;
+                }
+
+                if(range < minRangeNonAdj && range >2){
+                    minRangeNonAdj = range;
+                    nearestNonAdjacentAllyMil = ally;
+                }
+
+                if(range<=2){
+                    nearbyAllyMil[numNearbyAllyMil] = ally;
+                    numNearbyAllyMil++;
+                }
                 numAllyMil++;
+
             }
         }
 
@@ -212,16 +257,42 @@ public strictfp class Launcher {
                     // attack not in radius
                     // only move forward to hit if the enemy is killable or you have significant man advantage
                     boolean moveToAttack = false;
-                    if(attackRobot.getHealth() <=6 &&
-                            (attackRobot.getType() == RobotType.LAUNCHER || attackRobot.getType() == RobotType.DESTABILIZER)){
-                        moveToAttack = true;
-                    }
-                    else if(numEnemyMil >0){
-                        for(RobotInfo ally: allies){
-                            if(ally.getLocation().distanceSquaredTo(attackLoc) <= attackRobot.getType().actionRadiusSquared){
-                                moveToAttack = true;
+                    if(numEnemyMil >0){
+                        if(attackRobot.getHealth() <=6){
+                            moveToAttack = true;
+                        } else{
+                            for(RobotInfo ally: allies){
+                                if(ally.getLocation().distanceSquaredTo(attackLoc) <= attackRobot.getType().actionRadiusSquared){
+                                    moveToAttack = true;
+                                }
                             }
                         }
+
+
+
+                        if(!moveToAttack && rc.getHealth() == rc.getType().getMaxHealth()){
+                            int alliesCanSee = 0;
+                            for(RobotInfo ally: allies){
+
+                                if(ally.getType() == RobotType.LAUNCHER || ally.getType() == RobotType.DESTABILIZER){
+                                    int range = ally.getLocation().distanceSquaredTo(attackLoc);
+                                    if(range <= ally.getType().visionRadiusSquared ||
+                                            (rc.senseMapInfo(ally.getLocation()).getCooldownMultiplier(rc.getTeam()) >= 1 && range <= 4)){
+                                            alliesCanSee++;
+
+                                            // using cooldown here as heuristic for being in cloud
+                                    }
+                                }
+
+
+
+                            }
+                            if(alliesCanSee > numEnemyMil || alliesCanSee >=3){
+                                moveToAttack = true;
+                            }
+
+                        }
+
                     } else if (!rc.canAttack(attackLoc)){
                         moveToAttack = true;
                     }
@@ -282,9 +353,6 @@ public strictfp class Launcher {
                     attackValue+= (enemy.getType().getMaxHealth() - enemy.getHealth())/2;
                 }
 
-
-
-
                 if (rc.canAttack(enemy.getLocation())){
                     // prefer targets already in action radius, and targets that are closer
                     if(attackValue> maxValue || !inRange){
@@ -328,7 +396,9 @@ public strictfp class Launcher {
     static void pursue(RobotController rc) throws GameActionException{
 
         if(rc.isMovementReady()){
+            rc.setIndicatorString(pursuitLocation+"");
             Direction moveDir = Pathfinder.pathBug(rc, pursuitLocation);
+
             if(canMove(rc, moveDir)){
                 rc.move(moveDir);
                 sense(rc);
@@ -346,10 +416,40 @@ public strictfp class Launcher {
 
         if (canExplore) {
             Direction dir;
-            if(numAllyMil >=4){
-                dir = Pathfinder.pathToExplore(rc);
-            } else{
-                dir = Pathfinder.pathToExplore(rc, allies);
+            if(numNearbyAllyMil>=2){
+                // 2 adjacent allies
+                dir = Pathfinder.pathToExploreBug(rc);
+                rc.setIndicatorString("2 adj, path to explore");
+            } else if(numNearbyAllyMil == 1){
+                // only one adjacent ally
+
+                if(nearestNonAdjacentAllyMil != null
+                        ){
+                    dir = Pathfinder.pathBug(rc, nearestNonAdjacentAllyMil.getLocation());
+                    if(rc.getLocation().add(dir).distanceSquaredTo(nearestNonAdjacentAllyMil.getLocation()) <= 2){
+                        rc.setIndicatorString("one adjacent, path tonearest nonadj");
+                    } else{
+                        dir = Pathfinder.pathToExploreBug(rc);
+                        rc.setIndicatorString("1 adj, too far to nonadj, path to explore");
+                    }
+
+                } else if(numAllyMil <2){
+                    dir = Pathfinder.pathToExploreBug(rc);
+                    rc.setIndicatorString("1 adj, 0 else sensed, path to explore");
+                } else{
+                    dir = Pathfinder.pathToExploreBug(rc);
+                    rc.setIndicatorString("1 adj, others sensed, path to explore");
+                }
+            }else{
+                // no adjacent allies
+                if(numAllyMil == 0){
+                    dir = Pathfinder.pathToExploreBug(rc);
+                    rc.setIndicatorString("0 adj, path to explore");
+                } else{
+                    dir = Pathfinder.pathBug(rc, nearestAllyMil.getLocation());
+                    rc.setIndicatorString(numAllyMil + " 0 adj, path to nearest");
+                }
+
             }
             if(canMoveToExplore(rc, dir)){
                 rc.move(dir);
