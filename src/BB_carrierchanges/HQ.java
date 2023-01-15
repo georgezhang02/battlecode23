@@ -4,7 +4,7 @@ import battlecode.common.*;
 
 public strictfp class HQ {
 
-    static final int[] PERWELL = {3, 5, 5}; // {AD, MN, EX}
+    static final int[] PERWELL = {3, 3, 3}; // {AD, MN, EX}
     static final int ANCHOR_BUILD_THRESHOLD = 30;
 
     static boolean initialized = false;
@@ -58,21 +58,21 @@ public strictfp class HQ {
 
         // Initialize all the wells within vision range
         WellInfo[] wells = rc.senseNearbyWells();
-        for (WellInfo well: wells) {
-            if (well.getResourceType() == ResourceType.ADAMANTIUM) {
-                MapLocation loc = well.getMapLocation();
-                Comms.addWellLocation(rc, loc);
-                wellsDiscoveredNearby[wellsDiscoveredCount] = loc;
-                wellsDiscoveredType[wellsDiscoveredCount] = 0;
-                wellsDiscoveredCount++;
-            }
-        }
         for (WellInfo well : wells) {
             if (well.getResourceType() == ResourceType.MANA) {
                 MapLocation loc = well.getMapLocation();
                 Comms.addWellLocation(rc, loc);
                 wellsDiscoveredNearby[wellsDiscoveredCount] = loc;
                 wellsDiscoveredType[wellsDiscoveredCount] = 1;
+                wellsDiscoveredCount++;
+            }
+        }
+        for (WellInfo well: wells) {
+            if (well.getResourceType() == ResourceType.ADAMANTIUM) {
+                MapLocation loc = well.getMapLocation();
+                Comms.addWellLocation(rc, loc);
+                wellsDiscoveredNearby[wellsDiscoveredCount] = loc;
+                wellsDiscoveredType[wellsDiscoveredCount] = 0;
                 wellsDiscoveredCount++;
             }
         }
