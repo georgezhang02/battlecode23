@@ -49,6 +49,15 @@ public strictfp class Pathfinder {
 
     }
 
+    public static MapLocation locationToExplore(RobotController rc) throws GameActionException {
+
+        if(!exploring || rc.getLocation().distanceSquaredTo(Explorer.target) <= 16){
+            Explorer.getExploreTarget(rc, 10, rc.getMapWidth(), rc.getMapHeight());
+        }
+        exploring = true;
+        return Explorer.target;
+    }
+
     public static Direction pathToExplore(RobotController rc) throws GameActionException {
 
         if(!exploring || rc.getLocation().distanceSquaredTo(Explorer.target) <= 16){
