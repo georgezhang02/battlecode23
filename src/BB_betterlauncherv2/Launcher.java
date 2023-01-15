@@ -287,14 +287,12 @@ public strictfp class Launcher {
 
 
                             }
-                            if(alliesCanSee > numEnemyMil || alliesCanSee >=3){
+                            if(alliesCanSee >= numEnemyMil || alliesCanSee >=3){
                                 moveToAttack = true;
                             }
 
                         }
 
-                    } else if (!rc.canAttack(attackLoc)){
-                        moveToAttack = true;
                     }
 
 
