@@ -1,10 +1,9 @@
-package BB_betterlauncherv2ff;
+package BB_followfirst;
 
 import battlecode.common.*;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 public strictfp class Carrier {

@@ -1,4 +1,4 @@
-package BB_betterlauncherv2ff;
+package BB_followfirst;
 
 import battlecode.common.*;
 
@@ -188,7 +188,7 @@ public strictfp class Launcher {
         }
 
 
-        if((numAllyMil >=2 && cooldownTurn >=2) || numEnemyMil >= 1 || rc.getRoundNum() >20){
+        if((numAllyMil >=2 && cooldownTurn >=2) || numEnemyMil >= 1 || rc.getRoundNum() >30){
 
             canExplore = true;
         }
@@ -262,7 +262,8 @@ public strictfp class Launcher {
 
         if(!rc.isActionReady()){
             // no action available, run from enemies
-            if(nearestEnemyMil != null){
+            if(nearestEnemyMil != null &&
+                    (nearestEnemyMil.getLocation().distanceSquaredTo(rc.getLocation()) <= 16 && rc.getActionCooldownTurns()<=1)){
                 rc.setIndicatorString("no actions, run");
                 return Pathfinder.pathAwayFrom(rc, nearestEnemyMil.getLocation());
             }  else if(attackRobot!= null){
@@ -319,7 +320,7 @@ public strictfp class Launcher {
 
 
                             }
-                            if(alliesCanSee >= numEnemyMil || alliesCanSee >=3){
+                            if(alliesCanSee >= numEnemyMil || alliesCanSee >=2){
                                 moveToAttack = true;
                             }
 
@@ -471,10 +472,20 @@ public strictfp class Launcher {
     }
 
     static void explore(RobotController rc) throws GameActionException{
+        Direction dir;
+
+        if(RobotPlayer.turnCount < 2 && numAllyMil > 0 &&
+                nearestAllyMil.getLocation().distanceSquaredTo(rc.getLocation()) >=2){
+            canExplore = true;
+            dir = Pathfinder.pathBug(rc, nearestAllyMil.getLocation());
+            if(canMoveToExplore(rc, dir)) {
+                rc.move(dir);
+            }
+
+
+        }
 
         if (canExplore && (rc.getRoundNum()%2 ==0|| rc.senseMapInfo(rc.getLocation()).getCooldownMultiplier(rc.getTeam()) != 1)) {
-            Direction dir;
-
             if(movementChange){
                 detachCD =10;
             }

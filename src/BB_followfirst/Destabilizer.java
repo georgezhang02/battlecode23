@@ -1,9 +1,9 @@
-package BB_betterlauncherv2ff;
+package BB_followfirst;
 
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
 
-public strictfp class Amplifier {
+public strictfp class Destabilizer {
 
 
     static void run(RobotController rc) throws GameActionException {

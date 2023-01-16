@@ -1,4 +1,4 @@
-package BB_betterlauncherv2ff;
+package BB_followfirst;
 
 import battlecode.common.*;
 
