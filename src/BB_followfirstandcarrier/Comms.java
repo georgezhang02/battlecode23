@@ -5,10 +5,13 @@ import battlecode.common.*;
 public class Comms {
     private static final int COUNT_OFFSET = 0;
     private static final int TEAM_HQ_OFFSET = 1;
+    private static final int ENEMY_HQ_OFFSET = 5;
     private static final int WELL_COMMAND_OFFSET = 9;
     private static final int WELL_OFFSET = 13;
     private static final int MAX_WELLS = 12;
     private static final int WELL_REPORT_OFFSET = WELL_OFFSET + MAX_WELLS;
+    private static final int EXPLORATION_OFFSET = 29;
+    private static final int EXPLORATION_COUNT_OFFSET = 63;
 
     /**
      * Sets the team HQ location in the next available location
@@ -26,8 +29,9 @@ public class Comms {
     public static int setTeamHQLocation(RobotController rc, MapLocation HQLocation, int id) throws GameActionException {
         int count = getNumHQs(rc);
         int wellCount = getNumWells(rc);
+        int enemyCount = getNumEnemyHQs(rc);
         rc.writeSharedArray(count + TEAM_HQ_OFFSET, encode(HQLocation.x, HQLocation.y, id));
-        rc.writeSharedArray(COUNT_OFFSET, encode(count + 1, wellCount));
+        rc.writeSharedArray(COUNT_OFFSET, encode(count + 1, wellCount, enemyCount));
         return count;
     }
 
@@ -41,14 +45,59 @@ public class Comms {
         return -1;
     }
 
-    /**
-     * Returns the location of the closest team HQ location
-     */
     public static MapLocation getTeamHQLocation(RobotController rc, int index) throws GameActionException {
         int value = rc.readSharedArray(index + TEAM_HQ_OFFSET);
         int x = decode(value, 0);
         int y = decode(value, 1);
         return new MapLocation(x, y);
+    }
+
+    public static MapLocation[] getAllHQs(RobotController rc) throws GameActionException {
+        int count = getNumHQs(rc);
+        MapLocation[] allHQs = new MapLocation[count];
+        for (int i = 0; i < count; i ++) {
+            allHQs[i] = getTeamHQLocation(rc, i);
+        }
+        return allHQs;
+    }
+
+    public static int getNumEnemyHQs(RobotController rc) throws GameActionException {
+        return decode(rc.readSharedArray(COUNT_OFFSET), 2);
+    }
+
+    public static void setEnemyHQLocation(RobotController rc, MapLocation HQLocation, int id) throws GameActionException {
+        int HQCount = getNumWells(rc);
+        int wellCount = getNumWells(rc);
+        int count = getNumEnemyHQs(rc);
+        rc.writeSharedArray(count + ENEMY_HQ_OFFSET, encode(HQLocation.x, HQLocation.y, id));
+        rc.writeSharedArray(COUNT_OFFSET, encode(HQCount, wellCount, count + 1));
+    }
+
+    public static MapLocation getEnemyHQLocation(RobotController rc, int index) throws GameActionException {
+        int value = rc.readSharedArray(index + ENEMY_HQ_OFFSET);
+        int x = decode(value, 0);
+        int y = decode(value, 1);
+        return new MapLocation(x, y);
+    }
+
+    public static MapLocation[] getAllEnemyHQs(RobotController rc) throws GameActionException {
+        int count = getNumEnemyHQs(rc);
+        MapLocation[] allEnemyHQs = new MapLocation[count];
+        for (int i = 0; i < count; i ++) {
+            allEnemyHQs[i] = getEnemyHQLocation(rc, i);
+        }
+        return allEnemyHQs;
+    }
+
+    public static int getNumExploration(RobotController rc) throws GameActionException {
+        return decode(rc.readSharedArray(EXPLORATION_COUNT_OFFSET), 0);
+    }
+
+    public static int writeExplorationTarget(RobotController rc, MapLocation location) throws GameActionException {
+        int count = getNumExploration(rc);
+        rc.writeSharedArray(count + EXPLORATION_OFFSET, encode(location.x, location.y));
+        rc.writeSharedArray(EXPLORATION_COUNT_OFFSET, encode(count + 1));
+        return count;
     }
 
     /**

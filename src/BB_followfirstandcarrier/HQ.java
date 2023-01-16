@@ -2,6 +2,8 @@ package BB_followfirstandcarrier;
 
 import battlecode.common.*;
 
+import java.util.Map;
+
 public strictfp class HQ {
 
     static final int ANCHOR_BUILD_THRESHOLD = 30;
@@ -10,6 +12,8 @@ public strictfp class HQ {
     static MapLocation location;
     static int HQIndex;
     static int id;
+    static int width;
+    static int height;
     static MapLocation center;
     static String indicatorString = "";
 
@@ -26,17 +30,23 @@ public strictfp class HQ {
     static RobotInfo[] enemies;
     static boolean enemiesFound;
 
+    static MapLocation[] explorationTargets = new MapLocation[12];
+    static int targetCount = 0;
+
     public static void run(RobotController rc) throws GameActionException {
+
+        // sense part
+        sense(rc);
 
         if(!initialized){
             onUnitInit(rc); // first time starting the bot, do some setup
             initialized = true;
         }
 
-        initTurn(); // cleanup for when the turn starts
-
-        // sense part
-        sense(rc);
+        // If first HQ and 2nd round, check map symmetries for exploration targets
+        if (HQIndex == 0 && rc.getRoundNum() == 2) {
+            findExplorationTargets(rc);
+        }
 
         checkEnemies();
 
@@ -53,7 +63,16 @@ public strictfp class HQ {
         location = rc.getLocation();
         id = rc.getID();
         HQIndex = Comms.setTeamHQLocation(rc, location, id);
-        center = new MapLocation(rc.getMapWidth() / 2, rc.getMapHeight() / 2);  // Get map center
+        width = rc.getMapWidth();
+        height = rc.getMapHeight();
+        center = new MapLocation(width / 2, height / 2);  // Get map center
+
+        // Find any enemy HQs
+        for (RobotInfo enemy : enemies) {
+            if (enemy.getType() == RobotType.HEADQUARTERS) {
+                Comms.setEnemyHQLocation(rc, enemy.getLocation(), enemy.getID());
+            }
+        }
 
         // Initialize all the wells within vision range
         WellInfo[] wells = rc.senseNearbyWells();
@@ -77,8 +96,97 @@ public strictfp class HQ {
         }
     }
 
-    static void initTurn() {
-        //indicatorString = "";
+    static void findExplorationTargets(RobotController rc) throws GameActionException {
+        int HQCount = Comms.getNumHQs(rc);
+        int EnemyCount = Comms.getNumEnemyHQs(rc);
+        // If only 1 HQ
+        if (HQCount == 1) {
+            // If we see an enemy, set that as the exploration target
+            if (EnemyCount > 0) {
+                explorationTargets[targetCount++] = Comms.getEnemyHQLocation(rc, 0);
+            }
+            // Otherwise, assume rotational then reflectional symmetry
+            else {
+                explorationTargets[targetCount++] = rotate(location);
+                explorationTargets[targetCount++] = reflectAcrossVertical(location);
+                explorationTargets[targetCount++] = reflectAcrossHorizontal(location);
+            }
+        }
+        // If multiple HQs
+        else {
+            MapLocation[] allHQs = Comms.getAllHQs(rc);
+            MapLocation[] enemyHQs = Comms.getAllEnemyHQs(rc);
+            // If we see an enemy, find the symmetry
+            if (EnemyCount > 0) {
+                for (MapLocation HQ : allHQs) {
+                    if (HQ.equals(rotate(enemyHQs[0]))) {
+                        for (MapLocation loc: allHQs) {
+                            explorationTargets[targetCount++] = rotate(loc);
+                        }
+                        break;
+                    } else if (HQ.equals(reflectAcrossVertical(enemyHQs[0]))) {
+                        for (MapLocation loc: allHQs) {
+                            explorationTargets[targetCount++] = reflectAcrossVertical(loc);
+                        }
+                        break;
+                    } else if (HQ.equals(reflectAcrossHorizontal(enemyHQs[0]))) {
+                        for (MapLocation loc: allHQs) {
+                            explorationTargets[targetCount++] = reflectAcrossHorizontal(loc);
+                        }
+                        break;
+                    }
+                }
+            }
+            // Otherwise, if we're on the same side, assume rotational then reflectional symmetry
+            else {
+                boolean xLeft = false;
+                boolean xRight = false;
+                boolean yTop = false;
+                boolean yBottom = false;
+                for (MapLocation HQ : allHQs) {
+                    if (HQ.x < width / 2) {
+                        xLeft = true;
+                    } else {
+                        xRight = true;
+                    }
+                    if (HQ.y < height / 2) {
+                        yBottom = true;
+                    } else {
+                        yTop = true;
+                    }
+                }
+                boolean entireWidth = xLeft && xRight;
+                boolean entireHeight = yBottom && yTop;
+                if (entireWidth && !entireHeight) {
+                    for (MapLocation loc: allHQs) {
+                        explorationTargets[targetCount++] = rotate(loc);
+                        explorationTargets[targetCount++] = reflectAcrossHorizontal(loc);
+                        explorationTargets[targetCount++] = reflectAcrossVertical(loc);
+                    }
+                } else if (entireHeight && !entireWidth) {
+                    for (MapLocation loc: allHQs) {
+                        explorationTargets[targetCount++] = rotate(loc);
+                        explorationTargets[targetCount++] = reflectAcrossVertical(loc);
+                        explorationTargets[targetCount++] = reflectAcrossHorizontal(loc);
+                    }
+                } else if (entireWidth && entireHeight) {
+                    for (MapLocation loc: allHQs) {
+                        explorationTargets[targetCount++] = reflectAcrossVertical(loc);
+                        explorationTargets[targetCount++] = reflectAcrossHorizontal(loc);
+                        explorationTargets[targetCount++] = rotate(loc);
+                    }
+                } else {
+                    for (MapLocation loc: allHQs) {
+                        explorationTargets[targetCount++] = rotate(loc);
+                        explorationTargets[targetCount++] = reflectAcrossVertical(loc);
+                        explorationTargets[targetCount++] = reflectAcrossHorizontal(loc);
+                    }
+                }
+            }
+        }
+        for (int i = 0; i < targetCount; i++) {
+            Comms.writeExplorationTarget(rc, explorationTargets[i]);
+        }
     }
 
     static void sense(RobotController rc) throws GameActionException {
@@ -189,5 +297,19 @@ public strictfp class HQ {
             }
         }
         return -1;
+    }
+
+    private static MapLocation rotate(MapLocation loc) {
+        return new MapLocation(loc.y, loc.x);
+    }
+
+    private static MapLocation reflectAcrossVertical(MapLocation loc) {
+        int newX = width - loc.x - 1;
+        return new MapLocation(newX, loc.y);
+    }
+
+    private static MapLocation reflectAcrossHorizontal(MapLocation loc) {
+        int newY = height - loc.y - 1;
+        return new MapLocation(loc.x, newY);
     }
 }
