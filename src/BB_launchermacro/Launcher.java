@@ -1,4 +1,4 @@
-package BB_followfirst;
+package BB_launchermacro;
 
 import battlecode.common.*;
 
@@ -178,7 +178,7 @@ public strictfp class Launcher {
                     nearestNonAdjacentAllyMil = ally;
                 }
 
-                if(range<=5 && numNearbyAllyMil < 20){
+                if(range<=8 && numNearbyAllyMil < 20){
                     nearbyAllyMil[numNearbyAllyMil] = ally;
                     numNearbyAllyMil++;
                 }
@@ -274,6 +274,8 @@ public strictfp class Launcher {
         } else{
             // action ready
             //rc.setIndicatorString(attackRobot+"");
+
+
             if(attackRobot!= null){
 
                 MapLocation attackLoc = attackRobot.getLocation();
@@ -291,7 +293,11 @@ public strictfp class Launcher {
                     // attack not in radius
                     // only move forward to hit if the enemy is killable or you have significant man advantage
                     boolean moveToAttack = false;
+
+
+
                     if(numEnemyMil >0){
+
                         if(attackRobot.getHealth() <=6){
                             moveToAttack = true;
                         } else{
@@ -301,9 +307,6 @@ public strictfp class Launcher {
                                 }
                             }
                         }
-
-
-
                         if(!moveToAttack && rc.getHealth() == rc.getType().getMaxHealth()){
                             int alliesCanSee = 0;
                             for(RobotInfo ally: allies){
@@ -312,18 +315,28 @@ public strictfp class Launcher {
                                     int range = ally.getLocation().distanceSquaredTo(attackLoc);
                                     if(range <= ally.getType().visionRadiusSquared ||
                                             (rc.senseMapInfo(ally.getLocation()).getCooldownMultiplier(rc.getTeam()) >= 1 && range <= 4)){
-                                            alliesCanSee++;
-
+                                        alliesCanSee++;
                                     }
                                 }
-
-
-
                             }
                             if(alliesCanSee >= numEnemyMil || alliesCanSee >=2){
                                 moveToAttack = true;
                             }
+                        }
+                    } else if(!rc.canAttack(attackLoc)){
+                        int alliesCanSee = 0;
+                        for(RobotInfo ally: allies){
 
+                            if(ally.getType() == RobotType.LAUNCHER || ally.getType() == RobotType.DESTABILIZER){
+                                int range = ally.getLocation().distanceSquaredTo(attackLoc);
+                                if(range <= ally.getType().visionRadiusSquared ||
+                                        (rc.senseMapInfo(ally.getLocation()).getCooldownMultiplier(rc.getTeam()) >= 1 && range <= 4)){
+                                    alliesCanSee++;
+                                }
+                            }
+                        }
+                        if(alliesCanSee >=1){
+                            moveToAttack = true;
                         }
 
                     }
