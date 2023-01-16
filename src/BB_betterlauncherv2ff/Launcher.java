@@ -475,11 +475,11 @@ public strictfp class Launcher {
         if (canExplore && (rc.getRoundNum()%2 ==0|| rc.senseMapInfo(rc.getLocation()).getCooldownMultiplier(rc.getTeam()) != 1)) {
             Direction dir;
 
-
-            if(movementChange && rc.getLocation().distanceSquaredTo(followBot.getLocation())>2){
-
+            if(movementChange){
+                detachCD =10;
+            }
+            if((movementChange || detachCD > 0) && rc.getLocation().distanceSquaredTo(followBot.getLocation())>2){
                 dir = Pathfinder.pathBug(rc, followBot.getLocation());
-
                 //rc.setIndicatorString("following "+followBot.getLocation());
 
             } else{
