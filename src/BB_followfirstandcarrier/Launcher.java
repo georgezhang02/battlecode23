@@ -456,7 +456,6 @@ public strictfp class Launcher {
                     if(ID == alliesPrevious[j].getID()){
                         //If the previous ally location is different from before
                         checked = checked + ID+" "+alliesPrevious[j].getLocation();
-
                         if(loc != alliesPrevious[j].getLocation()){
                             movementChange = true;
                             dirChange = alliesPrevious[j].getLocation().directionTo(loc);
@@ -494,7 +493,8 @@ public strictfp class Launcher {
             if(movementChange){
                 detachCD =10;
             }
-            if((movementChange || detachCD > 0) && rc.getLocation().distanceSquaredTo(followBot.getLocation())>2){
+            if((movementChange || detachCD > 0) && rc.getLocation().distanceSquaredTo(followBot.getLocation())>2
+             && numNearbyAllyMil < 5){
                 dir = Pathfinder.pathBug(rc, followBot.getLocation());
                 //rc.setIndicatorString("following "+followBot.getLocation());
 
