@@ -112,8 +112,10 @@ public strictfp class HQ {
             // Otherwise, assume rotational then reflectional symmetry
             else {
                 explorationTargets[targetCount++] = rotate(location);
+                /*
                 explorationTargets[targetCount++] = reflectAcrossVertical(location);
                 explorationTargets[targetCount++] = reflectAcrossHorizontal(location);
+                 */
             }
         }
         // If multiple HQs
