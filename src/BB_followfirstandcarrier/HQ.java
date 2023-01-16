@@ -168,9 +168,11 @@ public strictfp class HQ {
                     for (MapLocation loc: allHQs) {
                         explorationTargets[targetCount++] = reflectAcrossHorizontal(loc);
                     }
+                    /*
                     for (MapLocation loc: allHQs) {
                         explorationTargets[targetCount++] = reflectAcrossVertical(loc);
                     }
+                    */
                 } else if (entireHeight && !entireWidth) {
                     for (MapLocation loc: allHQs) {
                         explorationTargets[targetCount++] = rotate(loc);
@@ -178,9 +180,10 @@ public strictfp class HQ {
                     for (MapLocation loc: allHQs) {
                         explorationTargets[targetCount++] = reflectAcrossVertical(loc);
                     }
+                    /*
                     for (MapLocation loc: allHQs) {
                         explorationTargets[targetCount++] = reflectAcrossHorizontal(loc);
-                    }
+                    }*/
                 } else if (entireWidth && entireHeight) {
                     for (MapLocation loc: allHQs) {
                         explorationTargets[targetCount++] = reflectAcrossVertical(loc);
@@ -188,19 +191,23 @@ public strictfp class HQ {
                     for (MapLocation loc: allHQs) {
                         explorationTargets[targetCount++] = reflectAcrossHorizontal(loc);
                     }
+                    /*
                     for (MapLocation loc: allHQs) {
                         explorationTargets[targetCount++] = rotate(loc);
                     }
+                    */
                 } else {
                     for (MapLocation loc: allHQs) {
                         explorationTargets[targetCount++] = rotate(loc);
                     }
+                    /*
                     for (MapLocation loc: allHQs) {
                         explorationTargets[targetCount++] = reflectAcrossVertical(loc);
                     }
                     for (MapLocation loc: allHQs) {
                         explorationTargets[targetCount++] = reflectAcrossHorizontal(loc);
                     }
+                     */
                 }
             }
         }
