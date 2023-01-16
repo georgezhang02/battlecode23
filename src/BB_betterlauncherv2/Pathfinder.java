@@ -49,6 +49,14 @@ public strictfp class Pathfinder {
 
     }
 
+    public static MapLocation locationToExplore(RobotController rc) throws GameActionException {
+
+        if(!exploring || rc.getLocation().distanceSquaredTo(Explorer.target) <= 16){
+            Explorer.getExploreTarget(rc, 10, rc.getMapWidth(), rc.getMapHeight());
+        }
+        exploring = true;
+        return Explorer.target;
+    }
     public static Direction pathToExplore(RobotController rc) throws GameActionException {
 
         if(!exploring || rc.getLocation().distanceSquaredTo(Explorer.target) <= 16){
@@ -60,13 +68,25 @@ public strictfp class Pathfinder {
     }
 
     public static Direction pathToExploreBug(RobotController rc) throws GameActionException {
+        MapLocation nearestHQ = Comms.getClosestTeamHQLocation(rc);
 
-        if(!exploring || rc.getLocation().distanceSquaredTo(Explorer.target) <= 16){
-            Explorer.getExploreTarget(rc, 10, rc.getMapWidth(), rc.getMapHeight());
+
+        if(rc.getLocation().distanceSquaredTo(nearestHQ) <= 20 &&
+                rc.getLocation().x > 5 && rc.getLocation().x < rc.getMapWidth()-5
+                    && rc.getLocation().y > 5 && rc.getLocation().x < rc.getMapHeight()-5
+                        && RobotPlayer.turnCount <= 10){
+            // while near HQ and not near wall
+            return pathAwayFrom(rc, nearestHQ);
+        } else{
+            if(!exploring || rc.getLocation().distanceSquaredTo(Explorer.target) <= 16){
+                Explorer.getExploreTarget(rc, 10, rc.getMapWidth(), rc.getMapHeight());
+            }
+            // if near wall or near HQ
+            exploring = true;
+             return pathBug(rc, Explorer.target);
         }
-        Direction dir = pathBug(rc, Explorer.target);
-        exploring = true;
-        return dir;
+
+
     }
 
     public static Direction pathToExplore(RobotController rc, RobotInfo[]allies) throws GameActionException {
@@ -82,7 +102,7 @@ public strictfp class Pathfinder {
 
             }
         }
-        rc.setIndicatorString(pathToAlly+" ");
+
         if(pathToAlly != null){
             if(pathToAlly.getLocation().distanceSquaredTo(rc.getLocation()) <=1){
                 return Direction.CENTER;

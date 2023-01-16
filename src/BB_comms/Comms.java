@@ -1,4 +1,4 @@
-package BB_betterlauncherv2;
+package BB_comms;
 
 import battlecode.common.*;
 
@@ -54,18 +54,22 @@ public class Comms {
     /**
      * Returns the location of the closest team HQ location
      */
-    public static MapLocation getClosestTeamHQLocation(RobotController rc) throws GameActionException {
-        int lowest_dist = 1000000;
+    public static MapLocation getClosestTeamHQLocation(RobotController rc, MapLocation current) throws GameActionException {
+        int lowest_dist = 100;
         MapLocation closest = null;
-        int numHQs = Comms.getNumHQs(rc);
-        for (int i = 0; i < numHQs; i++) {
-            MapLocation HQLoc = getTeamHQLocation(rc, i);
-            int distance = rc.getLocation().distanceSquaredTo(HQLoc);
-            if (distance < lowest_dist) {
-                lowest_dist = distance;
-                closest = HQLoc;
+        for (int i = 0; i < GameConstants.MAX_STARTING_HEADQUARTERS; i++) {
+            int value = rc.readSharedArray(i + TEAM_HQ_OFFSET);
+            if (decode(value, 2) != 0) {
+                int x = decode(value, 0);
+                int y = decode(value, 1);
+                int distance = Helper.distanceTo(current.x, current.y, x, y);
+                if (distance < lowest_dist) {
+                    lowest_dist = distance;
+                    closest = new MapLocation(x, y);
+                }
+            } else {
+                break;
             }
-
         }
         return closest;
     }

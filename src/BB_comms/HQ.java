@@ -1,4 +1,4 @@
-package BB_betterlauncherv2;
+package BB_comms;
 
 import battlecode.common.*;
 

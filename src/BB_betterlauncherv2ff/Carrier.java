@@ -4,6 +4,7 @@ import battlecode.common.*;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public strictfp class Carrier {
@@ -14,11 +15,13 @@ public strictfp class Carrier {
         None, Exploring, Returning, Anchoring, Gathering, Runaway
     }
     static CarrierState state = CarrierState.None;
-    static CarrierState priorState = CarrierState.None;
 
     static MapLocation location;
     static RobotInfo[] allies;
     static RobotInfo[] enemies;
+    static int adAmount;
+    static int manaAmount;
+    static int elixirAmount;
 
     static MapLocation HQ_LOCATION = null;
     static int HQIndex;
@@ -27,17 +30,81 @@ public strictfp class Carrier {
     static WellInfo discoveredWell = null;
 
     static void run(RobotController rc) throws GameActionException {
-
         sense(rc);
-
         if(!initialized){
             onUnitInit(rc); // first time starting the bot, do some setup
             initialized = true;
         }
+        updateState(rc);
+        runState(rc);
+        rc.setIndicatorString(String.valueOf(state));
+    }
 
-        checkEnemies();
+    static void sense(RobotController rc) throws GameActionException{
+        location = rc.getLocation();
+        enemies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam().opponent());
+        allies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam());
+        adAmount = rc.getResourceAmount(ResourceType.ADAMANTIUM);
+        manaAmount = rc.getResourceAmount(ResourceType.MANA);
+        elixirAmount = rc.getResourceAmount(ResourceType.ELIXIR);
+    }
 
-        rc.setIndicatorString(state.name());
+    static void onUnitInit(RobotController rc) throws GameActionException {
+        for (RobotInfo ally : allies) {
+            if (ally.getType() == RobotType.HEADQUARTERS) {
+                HQ_LOCATION = ally.getLocation();
+                HQIndex = Comms.getHQIndexByID(rc, ally.getID());
+                knownWells = Comms.getAllWellValues(rc);
+                if (location.distanceSquaredTo(HQ_LOCATION) <= 9) {
+                    assignedWell = Comms.getWellCommand(rc, HQIndex);
+                    Comms.clearWellCommand(rc, HQIndex);
+                    if (assignedWell != null) {
+                        state = CarrierState.Gathering;
+                    } else {
+                        state = CarrierState.Exploring;
+                    }
+                } else {
+                    state = CarrierState.Returning;
+                }
+            }
+        }
+    }
+
+    static void updateState(RobotController rc) throws GameActionException {
+        // Check enemies
+        boolean enemiesFound = false;
+        for (RobotInfo enemy : enemies) {
+            if (!(enemy.getType() == RobotType.HEADQUARTERS || enemy.getType() == RobotType.CARRIER)) {
+                enemiesFound = true;
+                break;
+            }
+        }
+        if(enemiesFound){
+            state = CarrierState.Returning;
+        } else {
+            // Update states
+            switch (state) {
+                case Gathering:
+                    gatherUpdate();
+                    break;
+                case Exploring:
+                    exploreUpdate(rc);
+                    break;
+                case Returning:
+                    returnUpdate(rc);
+                    break;
+                case Anchoring:
+                    anchorUpdate(rc);
+                    break;
+            /* case Runaway:
+                runawayUpdate(rc);
+                break;
+             */
+            }
+        }
+    }
+
+    static void runState(RobotController rc) throws GameActionException {
         switch (state) {
             case Gathering:
                 gather(rc);
@@ -51,112 +118,31 @@ public strictfp class Carrier {
             case Anchoring:
                 anchor(rc);
                 break;
-            case Runaway:
+            /* case Runaway:
                 runaway(rc);
                 break;
+             */
         }
     }
 
-    static void onUnitInit(RobotController rc) throws GameActionException {
-        for (RobotInfo ally : allies) {
-            if (ally.getType() == RobotType.HEADQUARTERS) {
-                HQ_LOCATION = ally.getLocation();
-                HQIndex = Comms.getHQIndexByID(rc, ally.getID());
-                knownWells = Comms.getAllWellValues(rc);
-                if (location.distanceSquaredTo(HQ_LOCATION) <= 9) {
-                    assignedWell = Comms.getWellCommand(rc, HQIndex);
-                    Comms.clearWellCommand(rc, HQIndex);
-                    selectState();
-                } else {
-                    updateState(CarrierState.Returning);
-                }
-            }
-        }
-    }
-
-    static void selectState() {
-        if (assignedWell != null) {
-            updateState(CarrierState.Gathering);
-        } else {
-            updateState(CarrierState.Exploring);
-        }
-    }
-
-    static void sense(RobotController rc) throws GameActionException{
-        location = rc.getLocation();
-        enemies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam().opponent());
-        allies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam());
-    }
-
-    static void checkEnemies() {
-        boolean enemiesFound = false;
-        for (RobotInfo enemy : enemies) {
-            if (!(enemy.getType() == RobotType.HEADQUARTERS || enemy.getType() == RobotType.CARRIER)) {
-                enemiesFound = true;
-                break;
-            }
-        }
-        if(enemiesFound){
-            state = CarrierState.Runaway;
-        }
-        else if (state == CarrierState.Runaway) {
-            state = priorState;
+    static void gatherUpdate() {
+        //if a carrier cannot get anymore resources, return to base
+        if(adAmount + manaAmount + elixirAmount == 40){
+            state = CarrierState.Returning;
         }
     }
 
     static void gather(RobotController rc) throws GameActionException {
-        //if a carrier cannot get anymore resources, return to base
-        if(rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA)
-                + rc.getResourceAmount(ResourceType.ELIXIR) == 40){
-            updateState(CarrierState.Returning);
-            returnToHQ(rc);
-        } else if(assignedWell.distanceSquaredTo(location) <= 2){
+        if(assignedWell.distanceSquaredTo(location) <= 2){
             if (rc.canCollectResource(assignedWell, -1)) {
                 rc.collectResource(assignedWell, -1);
-                /* rc.setIndicatorString("Collecting, now have, AD:" +
-                        rc.getResourceAmount(ResourceType.ADAMANTIUM) +
-                        " MN: " + rc.getResourceAmount(ResourceType.MANA) +
-                        " EX: " + rc.getResourceAmount(ResourceType.ELIXIR));
-                 */
             }
-        } else{
-            if(rc.isMovementReady()) {
-                Direction moveDir = Pathfinder.pathBF(rc, assignedWell);
-                if(moveDir != null && rc.canMove(moveDir)){
-                    rc.move(moveDir);
-                }
-            }
+        } else {
+            pathTowards(rc, assignedWell);
         }
-
     }
 
-    static void explore(RobotController rc) throws GameActionException{
-
-        if (HQ_LOCATION.distanceSquaredTo(location) <= 9) {
-            // Update known wells
-            knownWells = Comms.getAllWellValues(rc);
-
-            MapLocation command = Comms.getWellCommand(rc, HQIndex);
-            if (command != null) {
-                assignedWell = command;
-                Comms.clearWellCommand(rc, HQIndex);
-                updateState(CarrierState.Gathering);
-                gather(rc);
-                return;
-            }
-            if (HQ_LOCATION.distanceSquaredTo(location) <= 2 && rc.canTakeAnchor(HQ_LOCATION, Anchor.STANDARD)) {
-                rc.takeAnchor(HQ_LOCATION, Anchor.STANDARD);
-                updateState(CarrierState.Anchoring);
-                anchor(rc);
-                return;
-            }
-        }
-
-        Direction dir = Pathfinder.pathToExplore(rc);
-        if (rc.canMove(dir)) {
-            rc.move(dir);
-        }
-
+    static void exploreUpdate(RobotController rc) {
         //If there is a new well nearby, return to HQ to report
         WellInfo[] wells = rc.senseNearbyWells();
         for (WellInfo well : wells) {
@@ -175,29 +161,44 @@ public strictfp class Carrier {
                 break;
             }
         }
-        //rc.setIndicatorString(String.valueOf(Clock.getBytecodesLeft()));
+    }
+
+    static void explore(RobotController rc) throws GameActionException{
+        pathExplore(rc);
+    }
+
+    static void returnUpdate(RobotController rc) throws GameActionException {
+        if (HQ_LOCATION.distanceSquaredTo(location) <= 2 && discoveredWell == null
+                && adAmount == 0 && manaAmount == 0 && elixirAmount == 0) {
+            // Get command or anchor if available
+            if (assignedWell == null) {
+                // Update known wells
+                knownWells = Comms.getAllWellValues(rc);
+                MapLocation command = Comms.getWellCommand(rc, HQIndex);
+                if (command != null) {
+                    assignedWell = command;
+                    Comms.clearWellCommand(rc, HQIndex);
+                    state = CarrierState.Gathering;
+                } else if (rc.canTakeAnchor(HQ_LOCATION, Anchor.STANDARD)) {
+                    rc.takeAnchor(HQ_LOCATION, Anchor.STANDARD);
+                    state = CarrierState.Anchoring;
+                } else {
+                    state = CarrierState.Exploring;
+                }
+            } else {
+                state = CarrierState.Gathering;
+            }
+        }
     }
 
     static void returnToHQ(RobotController rc) throws GameActionException{
         //move back to HQ
-        Direction moveDir = Pathfinder.pathBF(rc, HQ_LOCATION);
-        if(moveDir != null && rc.canMove(moveDir)){
-            rc.move(moveDir);
+        if(HQ_LOCATION.distanceSquaredTo(location) > 2){
+            pathTowards(rc, HQ_LOCATION);
         }
-        int adAmount = rc.getResourceAmount(ResourceType.ADAMANTIUM);
-        int manaAmount = rc.getResourceAmount(ResourceType.MANA);
-        int elixirAmount = rc.getResourceAmount(ResourceType.ELIXIR);
-        // If within comms range and can report well, report well.
-        if(discoveredWell != null && rc.canWriteSharedArray(0, 0)) {
-            if (Comms.reportWellLocation(rc, HQIndex, discoveredWell)) {
-                discoveredWell = null;
-                if (adAmount == 0 && manaAmount == 0 && elixirAmount == 0) {
-                    selectState();
-                }
-            }
-        }
+
         //If the hq location is in action range, deposit resources to HQ
-        else if(HQ_LOCATION.distanceSquaredTo(location) <= 2){
+        if (HQ_LOCATION.distanceSquaredTo(location) <= 2){
             if(rc.canTransferResource(HQ_LOCATION, ResourceType.ELIXIR, elixirAmount) && elixirAmount != 0){
                 rc.transferResource(HQ_LOCATION,ResourceType.ELIXIR, elixirAmount);
             }
@@ -207,79 +208,80 @@ public strictfp class Carrier {
             else if(rc.canTransferResource(HQ_LOCATION, ResourceType.ADAMANTIUM, adAmount) && adAmount != 0){
                 rc.transferResource(HQ_LOCATION,ResourceType.ADAMANTIUM, adAmount);
             }
-            else if (discoveredWell == null){
-                selectState();
+        }
+
+        // If within comms range and has discovered well, report well.
+        if (discoveredWell != null && rc.canWriteSharedArray(0, 0)) {
+            if (Comms.reportWellLocation(rc, HQIndex, discoveredWell)) {
+                discoveredWell = null;
             }
+        }
+    }
+
+    static void anchorUpdate(RobotController rc) throws GameActionException {
+        //If there is a new well nearby, remember
+        if (discoveredWell == null) {
+            WellInfo[] wells = rc.senseNearbyWells();
+            for (WellInfo well : wells) {
+                MapLocation loc = well.getMapLocation();
+                int newValue = Comms.encode(loc.x, loc.y);
+                for (int knownValue: knownWells) {
+                    if (newValue != knownValue) {
+                        discoveredWell = well;
+                        break;
+                    }
+                }
+                if (discoveredWell != null) {
+                    break;
+                }
+            }
+        }
+        //If the robot no longer has an anchor (thrown), explore
+        if (rc.getAnchor() == null) {
+            state = CarrierState.Exploring;
         }
     }
 
     static void anchor(RobotController rc) throws GameActionException{
-        //If the robot has an anchor, move towards an island to place the anchor
-        if (rc.getAnchor() != null) {
-            //If there is a new well nearby, remember
-            if (discoveredWell == null) {
-                WellInfo[] wells = rc.senseNearbyWells();
-                for (WellInfo well : wells) {
-                    MapLocation loc = well.getMapLocation();
-                    int newValue = Comms.encode(loc.x, loc.y);
-                    for (int knownValue: knownWells) {
-                        if (newValue != knownValue) {
-                            discoveredWell = well;
-                            break;
-                        }
-                    }
-                    if (discoveredWell != null) {
-                        break;
-                    }
-                }
+
+        // If I have an anchor singularly focus on getting it to the first island I see
+        int[] islands = rc.senseNearbyIslands();
+        int inc = 0;
+        for (int id : islands) {
+            if(rc.senseTeamOccupyingIsland(id) == rc.getTeam()){
+                inc += 1;
             }
-            // If I have an anchor singularly focus on getting it to the first island I see
-            int[] islands = rc.senseNearbyIslands();
-            int inc = 0;
+        }
+        Set<MapLocation> islandLocs = new HashSet<>();
+        if (islands.length - inc > 0) {
             for (int id : islands) {
-                if(rc.senseTeamOccupyingIsland(id) == rc.getTeam()){
-                    inc += 1;
+                if(rc.senseTeamOccupyingIsland(id) != rc.getTeam()){
+                    MapLocation[] thisIslandLocs = rc.senseNearbyIslandLocations(id);
+                    islandLocs.addAll(Arrays.asList(thisIslandLocs));
                 }
             }
-            Set<MapLocation> islandLocs = new HashSet<>();
-            if (islands.length - inc > 0) {
-                for (int id : islands) {
-                    if(rc.senseTeamOccupyingIsland(id) != rc.getTeam()){
-                        MapLocation[] thisIslandLocs = rc.senseNearbyIslandLocations(id);
-                        islandLocs.addAll(Arrays.asList(thisIslandLocs));
-                    }
-                }
-                if (islandLocs.size() > 0) {
-                    MapLocation islandLocation = islandLocs.iterator().next();
-                    Direction moveDir = Pathfinder.pathBF(rc, islandLocation);
+            if (islandLocs.size() > 0) {
+                MapLocation islandLocation = islandLocs.iterator().next();
+                pathTowards(rc, islandLocation);
 
-                    if(moveDir != null && rc.canMove(moveDir)){
-                        rc.move(moveDir);
+                if (rc.canPlaceAnchor()) {
+                    rc.placeAnchor();
+                    if (discoveredWell != null) {
+                        state = CarrierState.Returning;
+                    } else {
+                        state = CarrierState.Exploring;
                     }
+                }
+            }
+        }
 
-                    if (rc.canPlaceAnchor()) {
-                        rc.placeAnchor();
-                        if (discoveredWell != null) {
-                            updateState(CarrierState.Returning);
-                        } else {
-                            updateState(CarrierState.Exploring);
-                        }
-                    }
-                }
-            }
-            //Explore until you find an island
-            else{
-                Direction dir = Pathfinder.pathToExplore(rc);
-                if (rc.canMove(dir)) {
-                    rc.move(dir);
-                }
-            }
-        } else {
-            updateState(CarrierState.Exploring);
-            explore(rc);
+        //Otherwise, Explore until you find an island
+        else{
+            pathExplore(rc);
         }
     }
 
+    /*
     static void runaway(RobotController rc) throws GameActionException{
         if(rc.getHealth() < RobotType.CARRIER.getMaxHealth()/2 && rc.canAttack(enemies[0].getLocation())){
             rc.attack(enemies[0].getLocation());
@@ -291,9 +293,25 @@ public strictfp class Carrier {
             }
         }
     }
+    */
 
-    private static void updateState(CarrierState newState) {
-        priorState = newState;
-        state = newState;
+    static void pathExplore(RobotController rc) throws GameActionException {
+        MapLocation target = Pathfinder.locationToExplore(rc);
+        pathTowards(rc, target);
+    }
+
+    static void pathTowards(RobotController rc, MapLocation target) throws GameActionException {
+        if(rc.isMovementReady()) {
+            Direction moveDir = Pathfinder.pathBF(rc, target);
+            if(moveDir != null && rc.canMove(moveDir)){
+                rc.move(moveDir);
+            }
+        }
+        if(rc.isMovementReady()) {
+            Direction moveDir = Pathfinder.pathBug(rc, target);
+            if(moveDir != null && rc.canMove(moveDir)){
+                rc.move(moveDir);
+            }
+        }
     }
 }

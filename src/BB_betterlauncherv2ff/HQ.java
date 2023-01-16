@@ -4,7 +4,9 @@ import battlecode.common.*;
 
 public strictfp class HQ {
 
-    static final int[] PERWELL = {3, 5, 5}; // {AD, MN, EX}
+    static final int[] PERWELL = {3, 3, 3}; // {AD, MN, EX}
+    static final int ANCHOR_BUILD_THRESHOLD = 30;
+
     static boolean initialized = false;
     static MapLocation location;
     static int HQIndex;
@@ -21,8 +23,6 @@ public strictfp class HQ {
     static MapLocation carrierBuildTarget;
 
     static int totalAnchorCount = 0;
-    static int anchorsProduced = 0;
-    static int robotsProduced = 0;
 
     static RobotInfo[] enemies;
     static boolean enemiesFound;
@@ -58,21 +58,21 @@ public strictfp class HQ {
 
         // Initialize all the wells within vision range
         WellInfo[] wells = rc.senseNearbyWells();
-        for (WellInfo well: wells) {
-            if (well.getResourceType() == ResourceType.ADAMANTIUM) {
-                MapLocation loc = well.getMapLocation();
-                Comms.addWellLocation(rc, loc);
-                wellsDiscoveredNearby[wellsDiscoveredCount] = loc;
-                wellsDiscoveredType[wellsDiscoveredCount] = 0;
-                wellsDiscoveredCount++;
-            }
-        }
         for (WellInfo well : wells) {
             if (well.getResourceType() == ResourceType.MANA) {
                 MapLocation loc = well.getMapLocation();
                 Comms.addWellLocation(rc, loc);
                 wellsDiscoveredNearby[wellsDiscoveredCount] = loc;
                 wellsDiscoveredType[wellsDiscoveredCount] = 1;
+                wellsDiscoveredCount++;
+            }
+        }
+        for (WellInfo well: wells) {
+            if (well.getResourceType() == ResourceType.ADAMANTIUM) {
+                MapLocation loc = well.getMapLocation();
+                Comms.addWellLocation(rc, loc);
+                wellsDiscoveredNearby[wellsDiscoveredCount] = loc;
+                wellsDiscoveredType[wellsDiscoveredCount] = 0;
                 wellsDiscoveredCount++;
             }
         }
@@ -102,10 +102,19 @@ public strictfp class HQ {
         int[] report = Comms.readWellReport(rc, HQIndex);
         if (report != null) {
             MapLocation loc = new MapLocation(report[0], report[1]);
-            Comms.addWellLocation(rc, loc);
-            wellsDiscoveredNearby[wellsDiscoveredCount] = loc;
-            wellsDiscoveredType[wellsDiscoveredCount] = report[2] - 1;
-            wellsDiscoveredCount++;
+            boolean duplicate = false;
+            for (int i = 0; i < wellsDiscoveredCount; i++) {
+                if (loc.equals(wellsDiscoveredNearby[i])) {
+                    duplicate = true;
+                    break;
+                }
+            }
+            if (!duplicate) {
+                Comms.addWellLocation(rc, loc);
+                wellsDiscoveredNearby[wellsDiscoveredCount] = loc;
+                wellsDiscoveredType[wellsDiscoveredCount] = report[2] - 1;
+                wellsDiscoveredCount++;
+            }
             Comms.clearWellReport(rc, HQIndex);
         }
         // If currently has an assignment command out, and it's been taken, go back to assigning
@@ -137,20 +146,19 @@ public strictfp class HQ {
 
     static void build(RobotController rc) throws GameActionException{
         MapLocation centerBuildLoc = buildTowards(rc, center);
-        if (totalAnchorCount == 0 && robotsProduced >= 20 * (anchorsProduced + 1) && !enemiesFound) {
-            if (rc.canBuildAnchor(Anchor.STANDARD)) {
-                rc.buildAnchor(Anchor.STANDARD);
-                anchorsProduced++;
+        MapLocation carrierBuildLoc = buildTowards(rc, carrierBuildTarget);
+        if (!enemiesFound) {
+            if (totalAnchorCount == 0 && rc.getRobotCount() >= ANCHOR_BUILD_THRESHOLD) {
+                if (rc.canBuildAnchor(Anchor.STANDARD)) {
+                    rc.buildAnchor(Anchor.STANDARD);
+                }
+            } else if (rc.canBuildRobot(RobotType.CARRIER, carrierBuildLoc) && !enemiesFound) {
+                rc.buildRobot(RobotType.CARRIER, carrierBuildLoc);
+            } else if (rc.canBuildRobot(RobotType.LAUNCHER, centerBuildLoc)) {
+                rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);
             }
         } else if (rc.canBuildRobot(RobotType.LAUNCHER, centerBuildLoc)) {
             rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);
-            robotsProduced++;
-        } else {
-            MapLocation carrierBuildLoc = buildTowards(rc, carrierBuildTarget);
-            if (rc.canBuildRobot(RobotType.CARRIER, carrierBuildLoc)) {
-                rc.buildRobot(RobotType.CARRIER, carrierBuildLoc);
-                robotsProduced++;
-            }
         }
     }
 

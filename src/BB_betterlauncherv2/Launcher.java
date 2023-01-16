@@ -186,7 +186,7 @@ public strictfp class Launcher {
             combatCD =5;
             state = LauncherState.Combat;
         } else if( combatCD >0 && pursuitLocation!=null &&
-                rc.getLocation().distanceSquaredTo(pursuitLocation) > 5 ){
+                rc.getLocation().distanceSquaredTo(pursuitLocation) > 2 ){
             state = LauncherState.Pursuing;
         }else{
             combatCD = 0;
@@ -248,8 +248,10 @@ public strictfp class Launcher {
                     // if attack already in radius, attack and kite
                     rc.setIndicatorString("attack and kite");
                     rc.attack(attackLoc);
+
+                    sense(rc);
                     moveFirst = false;
-                    if(nearestEnemyMil != null){
+                    if(rc.senseRobotAtLocation(attackLoc)!= null && nearestEnemyMil != null){
                         pursuitLocation = nearestEnemyMil.getLocation();
                         return Pathfinder.pathAwayFrom(rc, nearestEnemyMil.getLocation());
                     }
@@ -287,7 +289,7 @@ public strictfp class Launcher {
 
 
                             }
-                            if(alliesCanSee >= numEnemyMil || alliesCanSee >=3){
+                            if(alliesCanSee > numEnemyMil || alliesCanSee >=2){
                                 moveToAttack = true;
                             }
 
