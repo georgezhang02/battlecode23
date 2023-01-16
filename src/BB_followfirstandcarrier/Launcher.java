@@ -78,21 +78,22 @@ public strictfp class Launcher {
         // interpret overall macro state
         readComms(rc);
 
+        if(rc.getRoundNum()%2 == 0){
+            for(int i = 0; i< numNearbyAllyMil; i++){
+                alliesPrevious[i] = nearbyAllyMil[i];
+            }
+            numAlliesPrevious = numNearbyAllyMil;
 
-        for(int i = 0; i< numNearbyAllyMil; i++){
-            alliesPrevious[i] = nearbyAllyMil[i];
         }
-        numAlliesPrevious = numNearbyAllyMil;
 
 
         // sense part
         sense(rc);
 
-        rc.setIndicatorString(numAlliesPrevious+"");
 
-
-        if(alliesPrevious != null){
+        if(alliesPrevious != null ){
             checkMovement(rc);
+
         }
 
         // sense if other bots have moved
@@ -178,7 +179,7 @@ public strictfp class Launcher {
                     nearestNonAdjacentAllyMil = ally;
                 }
 
-                if(range<=5 && numNearbyAllyMil < 10){
+                if(range<=10 && numNearbyAllyMil < 10){
                     nearbyAllyMil[numNearbyAllyMil] = ally;
                     numNearbyAllyMil++;
                 }
@@ -440,26 +441,33 @@ public strictfp class Launcher {
     }
 
     static void checkMovement(RobotController rc){
+
         String checked ="";
+
+        String previous = "alliesPrevious ";
 
 
         for(RobotInfo ally:allies){
-            if(Clock.getBytecodesLeft() <1000){
-                break;
-            }
             if(ally.getType() == RobotType.LAUNCHER || ally.getType() == RobotType.DESTABILIZER){
+
                 int ID = ally.getID();
                 MapLocation loc = ally.getLocation();
 
+
+
                 for(int j = 0; j < numAlliesPrevious; j++){
+
                     //If the ids match up
                     if(ID == alliesPrevious[j].getID()){
+                        previous  = previous + ally.getID()+" "+ally.getLocation();
                         //If the previous ally location is different from before
-                        checked = checked + ID+" "+alliesPrevious[j].getLocation();
+
+
                         if(loc != alliesPrevious[j].getLocation()){
                             movementChange = true;
                             dirChange = alliesPrevious[j].getLocation().directionTo(loc);
                             followBot = ally;
+
                             return;
                         }
                     }
@@ -467,14 +475,12 @@ public strictfp class Launcher {
             }
         }
 
-        if(checked.length()>0){
-            rc.setIndicatorString(checked);
-        }
+
 
     }
 
     static void explore(RobotController rc) throws GameActionException{
-        Direction dir;
+        Direction dir = Direction.CENTER;
 
         if(RobotPlayer.turnCount < 2 && numAllyMil > 0 &&
                 nearestAllyMil.getLocation().distanceSquaredTo(rc.getLocation()) >=2){
@@ -493,9 +499,11 @@ public strictfp class Launcher {
             if(movementChange){
                 detachCD =10;
             }
-            if((movementChange || detachCD > 0) && rc.getLocation().distanceSquaredTo(followBot.getLocation())>2
-             && numNearbyAllyMil < 5){
-                dir = Pathfinder.pathBug(rc, followBot.getLocation());
+            if((movementChange || detachCD > 0)  && numNearbyAllyMil < 5){
+                if(!rc.getLocation().isAdjacentTo(followBot.getLocation())){
+                    dir = Pathfinder.pathBug(rc, followBot.getLocation());
+                }
+
                 //rc.setIndicatorString("following "+followBot.getLocation());
 
             } else{
