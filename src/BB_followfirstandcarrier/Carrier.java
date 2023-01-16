@@ -206,6 +206,16 @@ public strictfp class Carrier {
     }
 
     static void returnToHQ(RobotController rc) throws GameActionException{
+        // If lower than maxHealth and can throw, throw
+        if(rc.getHealth() < RobotType.CARRIER.getMaxHealth()) {
+            for (RobotInfo enemy : enemies) {
+                if (rc.canAttack(enemy.getLocation())) {
+                    rc.attack(enemy.getLocation());
+                    break;
+                }
+            }
+        }
+
         //move back to HQ
         if(HQ_LOCATION.distanceSquaredTo(location) > 2){
             pathTowards(rc, HQ_LOCATION);
