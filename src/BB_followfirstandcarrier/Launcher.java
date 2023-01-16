@@ -28,13 +28,13 @@ public strictfp class Launcher {
 
     static Direction dirChange;
 
-    static RobotInfo[] nearbyAllyMil = new RobotInfo[20];
+    static RobotInfo[] nearbyAllyMil = new RobotInfo[10];
 
     static RobotInfo nearestAllyMil;
 
     static RobotInfo furthestAllyMil;
 
-    static RobotInfo[] alliesPrevious = new RobotInfo[20];;
+    static RobotInfo[] alliesPrevious = new RobotInfo[10];;
 
     static int numAlliesPrevious =0;
 
@@ -178,7 +178,7 @@ public strictfp class Launcher {
                     nearestNonAdjacentAllyMil = ally;
                 }
 
-                if(range<=5 && numNearbyAllyMil < 20){
+                if(range<=5 && numNearbyAllyMil < 10){
                     nearbyAllyMil[numNearbyAllyMil] = ally;
                     numNearbyAllyMil++;
                 }
@@ -444,6 +444,9 @@ public strictfp class Launcher {
 
 
         for(RobotInfo ally:allies){
+            if(Clock.getBytecodesLeft() <1000){
+                break;
+            }
             if(ally.getType() == RobotType.LAUNCHER || ally.getType() == RobotType.DESTABILIZER){
                 int ID = ally.getID();
                 MapLocation loc = ally.getLocation();
@@ -481,11 +484,13 @@ public strictfp class Launcher {
             if(canMoveToExplore(rc, dir)) {
                 rc.move(dir);
             }
-
-
+        } else if(RobotPlayer.turnCount < 2) {
+            canExplore = true;
         }
 
-        if (canExplore && (rc.getRoundNum()%2 ==0|| rc.senseMapInfo(rc.getLocation()).getCooldownMultiplier(rc.getTeam()) != 1)) {
+
+        if (canExplore && (rc.getRoundNum()%2 == 0 ||
+                rc.senseMapInfo(rc.getLocation()).getCooldownMultiplier(rc.getTeam()) != 1)) {
             if(movementChange){
                 detachCD =10;
             }
@@ -494,7 +499,7 @@ public strictfp class Launcher {
                 //rc.setIndicatorString("following "+followBot.getLocation());
 
             } else{
-                dir = Pathfinder.pathToExplore(rc);
+                dir = Pathfinder.pathToExploreBug(rc);
                 //rc.setIndicatorString("pathing to explore" + Explorer.target);
             }
             if(canMoveToExplore(rc, dir)){
