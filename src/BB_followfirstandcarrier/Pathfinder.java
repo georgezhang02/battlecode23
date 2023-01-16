@@ -68,6 +68,22 @@ public strictfp class Pathfinder {
         return dir;
     }
 
+    public static Direction pathToExploreHQ(RobotController rc) throws GameActionException {
+
+        if(!exploring || rc.getLocation().distanceSquaredTo(Explorer.target) <= 16){
+            if(Explorer.HQsExplored != null){
+                Explorer.HQsExplored[Explorer.curHQExploreIndex] = true;
+            }
+            Explorer.getHQExploreTarget(rc);
+        }
+        //rc.setIndicatorString(Explorer.target+"");
+        Direction dir = pathBug(rc, Explorer.target);
+
+
+        exploring = true;
+        return dir;
+    }
+
     public static Direction pathToExploreBug(RobotController rc) throws GameActionException {
 
         if(!exploring || rc.getLocation().distanceSquaredTo(Explorer.target) <= 16){

@@ -99,6 +99,12 @@ public class Comms {
         rc.writeSharedArray(EXPLORATION_COUNT_OFFSET, encode(count + 1));
         return count;
     }
+    public static MapLocation getExplorationTarget(RobotController rc, int index) throws GameActionException {
+        int value = rc.readSharedArray(EXPLORATION_OFFSET + index);
+        int x = decode(value, 0);
+        int y = decode(value, 1);
+        return new MapLocation(x, y);
+    }
 
     /**
      * Returns the location of the closest team HQ location

@@ -179,7 +179,7 @@ public strictfp class Launcher {
                     nearestNonAdjacentAllyMil = ally;
                 }
 
-                if(range<=10 && numNearbyAllyMil < 10){
+                if(range<=8 && numNearbyAllyMil < 10){
                     nearbyAllyMil[numNearbyAllyMil] = ally;
                     numNearbyAllyMil++;
                 }
@@ -326,6 +326,24 @@ public strictfp class Launcher {
                             }
 
                         }
+
+                    } else if(!rc.canAttack(attackLoc)){
+                        int alliesCanSee = 0;
+                        for(RobotInfo ally: allies){
+
+                            if(ally.getType() == RobotType.LAUNCHER || ally.getType() == RobotType.DESTABILIZER){
+                                int range = ally.getLocation().distanceSquaredTo(attackLoc);
+                                if(range <= ally.getType().visionRadiusSquared ||
+                                        (rc.senseMapInfo(ally.getLocation()).getCooldownMultiplier(rc.getTeam()) >= 1 && range <= 4)){
+                                    alliesCanSee++;
+
+                                }
+                            }
+                        }
+                        if(alliesCanSee >= 1){
+                            moveToAttack = true;
+                        }
+
 
                     }
 
@@ -489,25 +507,22 @@ public strictfp class Launcher {
             if(canMoveToExplore(rc, dir)) {
                 rc.move(dir);
             }
-        } else if(RobotPlayer.turnCount < 2) {
+        } else if(numAllyMil <2){
             canExplore = true;
         }
-
 
         if (canExplore && (rc.getRoundNum()%2 == 0 ||
                 rc.senseMapInfo(rc.getLocation()).getCooldownMultiplier(rc.getTeam()) != 1)) {
             if(movementChange){
-                detachCD =10;
+                detachCD =4;
             }
             if((movementChange || detachCD > 0)  && numNearbyAllyMil < 5){
-                if(!rc.getLocation().isAdjacentTo(followBot.getLocation())){
-                    dir = Pathfinder.pathBug(rc, followBot.getLocation());
-                }
 
+                    dir = Pathfinder.pathBug(rc, followBot.getLocation());
                 //rc.setIndicatorString("following "+followBot.getLocation());
 
             } else{
-                dir = Pathfinder.pathToExploreBug(rc);
+                dir = Pathfinder.pathToExploreHQ(rc);
                 //rc.setIndicatorString("pathing to explore" + Explorer.target);
             }
             if(canMoveToExplore(rc, dir)){
