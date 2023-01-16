@@ -39,7 +39,8 @@ public strictfp class HQ {
         // sense part
         sense(rc);
 
-        checkEnemies();
+        //passing rc bc now we write the coordinates of the hqs that are under attack
+        checkEnemies(rc);
 
         think(rc);
 
@@ -87,14 +88,34 @@ public strictfp class HQ {
         enemies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam().opponent());
     }
 
-    static void checkEnemies() {
+    //added code establishing priority point at HQ coordinates written to shared array
+    static void checkEnemies(RobotController rc) throws GameActionException /*throws GameActionException*/ {
         enemiesFound = false;
         for (RobotInfo enemy : enemies) {
             if (!(enemy.getType() == RobotType.HEADQUARTERS || enemy.getType() == RobotType.CARRIER)) {
                 enemiesFound = true;
+                //that means there's an issue at hq location
                 break;
             }
         }
+        boolean firstIndex = true;
+        if(enemiesFound){
+            if(rc.readSharedArray(62) == -1) {
+                rc.writeSharedArray(62, Comms.encode(location.x, location.y));
+            }else{
+                firstIndex = false;
+                rc.writeSharedArray(63, Comms.encode(location.x, location.y));
+            }
+        }
+        /*
+        if(!enemiesFound){
+            //nothing to report
+            if(firstIndex){
+                rc.writeSharedArray(62, -1);
+            }else {
+                rc.writeSharedArray(63, -1);
+            }
+        }*/
     }
 
     static void think(RobotController rc) throws GameActionException {

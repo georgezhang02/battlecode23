@@ -120,7 +120,7 @@ public strictfp class Launcher {
         }
     }
 
-    static void selectState(RobotController rc) throws GameActionException{
+    static void selectState(RobotController rc) throws GameActionException /*throws GameActionException*/{
         // select combat state if you see an enemy robot that is not HQ
         // combatCD will be necessary in the future for avoiding high-cd multiplier squares
 
@@ -143,15 +143,43 @@ public strictfp class Launcher {
         } else if( combatCD >0 && pursuitLocation!=null &&
                 rc.getLocation().distanceSquaredTo(pursuitLocation) > 5 ){
             state = LauncherState.Pursuing;
-        }else{
+        }/*else{
             combatCD = 0;
             pursuitLocation = null;
             state = LauncherState.Exploring;
+        }*/
+        //case for when HQ is under attack
+
+        else{
+            int location1 = rc.readSharedArray(62);
+            int location2 = rc.readSharedArray(63);
+            //if HQs not under attack
+            if(location1 == -1 && location2 == -1){
+                combatCD = 0;
+                pursuitLocation = null;
+                state = LauncherState.Exploring;
+            }else{
+                MapLocation l1 = new MapLocation(Comms.decode(location1, 0), Comms.decode(location1, 1));
+                MapLocation l2 = new MapLocation(Comms.decode(location2, 0), Comms.decode(location2, 1));
+                if(rc.getLocation().distanceSquaredTo(l1) < 15){
+                    pursuitLocation = l1;
+                    state = LauncherState.Pursuing;
+                }else if(rc.getLocation().distanceSquaredTo(l2) < 15){
+                    pursuitLocation = l2;
+                    state = LauncherState.Pursuing;
+                }
+                //if it's too far away, keep exploring
+                else{
+                    combatCD = 0;
+                    pursuitLocation = null;
+                    state = LauncherState.Exploring;
+                }
+            }
         }
 
-
-
     }
+
+
 
     static void combat(RobotController rc) throws GameActionException{
         RobotInfo attackRobot = findAttack(rc);
