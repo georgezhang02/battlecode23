@@ -2,8 +2,6 @@ package BB_followfirstandcarrier;
 
 import battlecode.common.*;
 
-import java.util.Map;
-
 public strictfp class HQ {
 
     static final int ANCHOR_BUILD_THRESHOLD = 30;
@@ -262,7 +260,7 @@ public strictfp class HQ {
                 if (rc.canBuildAnchor(Anchor.STANDARD)) {
                     rc.buildAnchor(Anchor.STANDARD);
                 }
-            } else if (rc.canBuildRobot(RobotType.CARRIER, carrierBuildLoc) && !enemiesFound) {
+            } else if (rc.canBuildRobot(RobotType.CARRIER, carrierBuildLoc)) {
                 rc.buildRobot(RobotType.CARRIER, carrierBuildLoc);
             } else if (rc.canBuildRobot(RobotType.LAUNCHER, centerBuildLoc)) {
                 rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);
