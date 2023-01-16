@@ -2,6 +2,8 @@ package BB_followfirstandcarrier;
 
 import battlecode.common.*;
 
+import java.util.Arrays;
+
 public strictfp class HQ {
 
     static final int ANCHOR_BUILD_THRESHOLD = 30;
@@ -33,18 +35,22 @@ public strictfp class HQ {
 
     public static void run(RobotController rc) throws GameActionException {
 
-        // sense part
-        sense(rc);
+        enemies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam().opponent());
 
         if(!initialized){
             onUnitInit(rc); // first time starting the bot, do some setup
             initialized = true;
         }
 
+        // sense part
+        sense(rc);
+
         // If first HQ and 2nd round, check map symmetries for exploration targets
         if (HQIndex == 0 && rc.getRoundNum() == 2) {
             findExplorationTargets(rc);
+            System.out.println(Arrays.toString(explorationTargets));
         }
+
 
         checkEnemies();
 
@@ -158,25 +164,41 @@ public strictfp class HQ {
                 if (entireWidth && !entireHeight) {
                     for (MapLocation loc: allHQs) {
                         explorationTargets[targetCount++] = rotate(loc);
+                    }
+                    for (MapLocation loc: allHQs) {
                         explorationTargets[targetCount++] = reflectAcrossHorizontal(loc);
+                    }
+                    for (MapLocation loc: allHQs) {
                         explorationTargets[targetCount++] = reflectAcrossVertical(loc);
                     }
                 } else if (entireHeight && !entireWidth) {
                     for (MapLocation loc: allHQs) {
                         explorationTargets[targetCount++] = rotate(loc);
+                    }
+                    for (MapLocation loc: allHQs) {
                         explorationTargets[targetCount++] = reflectAcrossVertical(loc);
+                    }
+                    for (MapLocation loc: allHQs) {
                         explorationTargets[targetCount++] = reflectAcrossHorizontal(loc);
                     }
                 } else if (entireWidth && entireHeight) {
                     for (MapLocation loc: allHQs) {
                         explorationTargets[targetCount++] = reflectAcrossVertical(loc);
+                    }
+                    for (MapLocation loc: allHQs) {
                         explorationTargets[targetCount++] = reflectAcrossHorizontal(loc);
+                    }
+                    for (MapLocation loc: allHQs) {
                         explorationTargets[targetCount++] = rotate(loc);
                     }
                 } else {
                     for (MapLocation loc: allHQs) {
                         explorationTargets[targetCount++] = rotate(loc);
+                    }
+                    for (MapLocation loc: allHQs) {
                         explorationTargets[targetCount++] = reflectAcrossVertical(loc);
+                    }
+                    for (MapLocation loc: allHQs) {
                         explorationTargets[targetCount++] = reflectAcrossHorizontal(loc);
                     }
                 }
@@ -189,7 +211,6 @@ public strictfp class HQ {
 
     static void sense(RobotController rc) throws GameActionException {
         totalAnchorCount = rc.senseRobot(id).getTotalAnchors();
-        enemies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam().opponent());
     }
 
     static void checkEnemies() {
@@ -298,7 +319,9 @@ public strictfp class HQ {
     }
 
     private static MapLocation rotate(MapLocation loc) {
-        return new MapLocation(loc.y, loc.x);
+        int distXFromCenter = loc.x - center.x;
+        int distYFromCenter = loc.y - center.y;
+        return new MapLocation(width - loc.x - 1, height - loc.y - 1);
     }
 
     private static MapLocation reflectAcrossVertical(MapLocation loc) {
