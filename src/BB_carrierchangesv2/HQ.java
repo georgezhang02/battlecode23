@@ -134,7 +134,12 @@ public strictfp class HQ {
                         + wellsDiscoveredNearby[unassignedIndex].y
                         + ", assigned: " + wellsAssigned[unassignedIndex];
                 assigning = true;
-                carrierBuildTarget = wellsDiscoveredNearby[unassignedIndex];
+                int newIndex = getUnassignedWell();
+                if (newIndex == -1) {
+                    carrierBuildTarget = center;
+                } else {
+                    carrierBuildTarget = wellsDiscoveredNearby[newIndex];
+                }
             } else {
                 carrierBuildTarget = center;
             }
