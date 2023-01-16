@@ -319,8 +319,6 @@ public strictfp class HQ {
     }
 
     private static MapLocation rotate(MapLocation loc) {
-        int distXFromCenter = loc.x - center.x;
-        int distYFromCenter = loc.y - center.y;
         return new MapLocation(width - loc.x - 1, height - loc.y - 1);
     }
 
