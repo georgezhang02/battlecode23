@@ -27,6 +27,8 @@ public strictfp class Carrier {
     static MapLocation assignedWell = null;
     static int[] knownWells;
     static WellInfo discoveredWell = null;
+    static MapLocation previousCommand = null;
+    static MapLocation newCommand = null;
 
     static void run(RobotController rc) throws GameActionException {
         sense(rc);
@@ -34,14 +36,15 @@ public strictfp class Carrier {
             onUnitInit(rc); // first time starting the bot, do some setup
             initialized = true;
         }
+        comms(rc);
         updateState(rc);
         runState(rc);
+        previousCommand = newCommand;
         rc.setIndicatorString(String.valueOf(state));
     }
 
     static void sense(RobotController rc) throws GameActionException{
         location = rc.getLocation();
-        enemies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam().opponent());
         allies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam());
         adAmount = rc.getResourceAmount(ResourceType.ADAMANTIUM);
         manaAmount = rc.getResourceAmount(ResourceType.MANA);
@@ -53,7 +56,6 @@ public strictfp class Carrier {
             if (ally.getType() == RobotType.HEADQUARTERS) {
                 HQ_LOCATION = ally.getLocation();
                 HQIndex = Comms.getHQIndexByID(rc, ally.getID());
-                knownWells = Comms.getAllWellValues(rc);
                 if (location.distanceSquaredTo(HQ_LOCATION) <= 9) {
                     assignedWell = Comms.getWellCommand(rc, HQIndex);
                     Comms.clearWellCommand(rc, HQIndex);
@@ -69,8 +71,13 @@ public strictfp class Carrier {
         }
     }
 
-    static void updateState(RobotController rc) throws GameActionException {
-        // Check enemies
+    static void comms(RobotController rc) throws GameActionException {
+        knownWells = Comms.getAllWellValues(rc);
+        newCommand = Comms.getWellCommand(rc, HQIndex);
+    }
+
+    static boolean enemiesFound(RobotController rc) throws GameActionException {
+        enemies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam().opponent());
         boolean enemiesFound = false;
         for (RobotInfo enemy : enemies) {
             if (!(enemy.getType() == RobotType.HEADQUARTERS || enemy.getType() == RobotType.CARRIER)) {
@@ -78,7 +85,12 @@ public strictfp class Carrier {
                 break;
             }
         }
-        if(enemiesFound){
+        return enemiesFound;
+    }
+
+    static void updateState(RobotController rc) throws GameActionException {
+        // Check enemies
+        if(enemiesFound(rc)){
             state = CarrierState.Returning;
         } else {
             // Update states
@@ -160,6 +172,11 @@ public strictfp class Carrier {
                 break;
             }
         }
+
+        // If the HQ started assigning again, also return
+        if (previousCommand == null && newCommand != null) {
+            state = CarrierState.Returning;
+        }
     }
 
     static void explore(RobotController rc) throws GameActionException{
@@ -171,8 +188,6 @@ public strictfp class Carrier {
                 && adAmount == 0 && manaAmount == 0 && elixirAmount == 0) {
             // Get command or anchor if available
             if (assignedWell == null) {
-                // Update known wells
-                knownWells = Comms.getAllWellValues(rc);
                 MapLocation command = Comms.getWellCommand(rc, HQIndex);
                 if (command != null) {
                     assignedWell = command;
@@ -305,6 +320,10 @@ public strictfp class Carrier {
             if(moveDir != null && rc.canMove(moveDir)){
                 rc.move(moveDir);
             }
+        }
+        if(enemiesFound(rc)){
+            state = CarrierState.Returning;
+            target = HQ_LOCATION;
         }
         if(rc.isMovementReady()) {
             Direction moveDir = Pathfinder.pathBug(rc, target);
