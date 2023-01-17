@@ -180,7 +180,7 @@ public strictfp class Pathfinder {
                     rotatingBug = false;
                     //rc.setIndicatorString("canmovethrough");
                 } else{
-
+                    rc.setIndicatorDot(rc.getLocation().add(lastBugDir.rotateLeft().rotateLeft()), 255, 255, 0);
                     int count = 0;
                     while( count <4){
                         if(canMoveThrough(rc, lastBugDir.rotateLeft(), rc.getLocation())){
@@ -202,6 +202,7 @@ public strictfp class Pathfinder {
                         || !rc.onTheMap(rc.getLocation().add(lastBugDir.rotateRight().rotateRight()))){
                     rotatingBug = false;
                 } else{
+                    rc.setIndicatorDot(rc.getLocation().add(lastBugDir.rotateRight().rotateRight()), 255, 255, 0);
                     int count = 0;
                     while( count <4){
                         if(canMoveThrough(rc, lastBugDir.rotateRight(), rc.getLocation())){
