@@ -167,12 +167,14 @@ public strictfp class Pathfinder {
         }
         lastTarget=target;
 
+        if(currentDist < lowestDist){
+            rotatingBug = false;
+        }
+
         if(rotatingBug){
-            /*rc.setIndicatorString("rotating "+target.toString() +
-                    " "+currentDist+" "+lowestDist +" "+lastBugDir+" wallleft:"+wallLeft);*/
-            if(currentDist < lowestDist){
-                rotatingBug = false;
-            }
+            rc.setIndicatorString("rotating "+target.toString() +
+                    " "+currentDist+" "+lowestDist +" "+lastBugDir+" wallleft:"+wallLeft);
+
 
             if(wallLeft){
                 if(canMoveThrough(rc, lastBugDir.rotateLeft().rotateLeft(), rc.getLocation())
@@ -223,7 +225,7 @@ public strictfp class Pathfinder {
 
         } else{
 
-            //rc.setIndicatorString("bug "+target.toString());
+            rc.setIndicatorString("bug "+target.toString());
 
             Direction moveDir = rc.getLocation().directionTo(target);
             if(canMoveThrough(rc,moveDir, rc.getLocation())){
