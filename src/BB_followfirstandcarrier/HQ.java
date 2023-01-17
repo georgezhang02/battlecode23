@@ -48,9 +48,7 @@ public strictfp class HQ {
         // If first HQ and 2nd round, check map symmetries for exploration targets
         if (HQIndex == 0 && rc.getRoundNum() == 2) {
             findExplorationTargets(rc);
-            System.out.println(Arrays.toString(explorationTargets));
         }
-
 
         checkEnemies();
 
@@ -143,6 +141,7 @@ public strictfp class HQ {
                     }
                 }
             }
+
             // Otherwise, if we're on the same side, assume rotational then reflectional symmetry
             else {
                 boolean xLeft = false;

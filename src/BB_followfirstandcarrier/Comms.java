@@ -66,7 +66,7 @@ public class Comms {
     }
 
     public static void setEnemyHQLocation(RobotController rc, MapLocation HQLocation, int id) throws GameActionException {
-        int HQCount = getNumWells(rc);
+        int HQCount = getNumHQs(rc);
         int wellCount = getNumWells(rc);
         int count = getNumEnemyHQs(rc);
         rc.writeSharedArray(count + ENEMY_HQ_OFFSET, encode(HQLocation.x, HQLocation.y, id));
@@ -83,7 +83,7 @@ public class Comms {
     public static MapLocation[] getAllEnemyHQs(RobotController rc) throws GameActionException {
         int count = getNumEnemyHQs(rc);
         MapLocation[] allEnemyHQs = new MapLocation[count];
-        for (int i = 0; i < count; i ++) {
+        for (int i = 0; i < count; i++) {
             allEnemyHQs[i] = getEnemyHQLocation(rc, i);
         }
         return allEnemyHQs;
@@ -93,12 +93,12 @@ public class Comms {
         return decode(rc.readSharedArray(EXPLORATION_COUNT_OFFSET), 0);
     }
 
-    public static int writeExplorationTarget(RobotController rc, MapLocation location) throws GameActionException {
+    public static void writeExplorationTarget(RobotController rc, MapLocation location) throws GameActionException {
         int count = getNumExploration(rc);
         rc.writeSharedArray(count + EXPLORATION_OFFSET, encode(location.x, location.y));
         rc.writeSharedArray(EXPLORATION_COUNT_OFFSET, encode(count + 1));
-        return count;
     }
+
     public static MapLocation getExplorationTarget(RobotController rc, int index) throws GameActionException {
         int value = rc.readSharedArray(EXPLORATION_OFFSET + index);
         int x = decode(value, 0);
@@ -145,8 +145,9 @@ public class Comms {
                 }
             }
             rc.writeSharedArray(count + WELL_OFFSET, encode(well.x, well.y));
-            int HQCount = decode(rc.readSharedArray(COUNT_OFFSET), 0);
-            rc.writeSharedArray(COUNT_OFFSET, encode(HQCount, count + 1));
+            int HQCount = getNumHQs(rc);
+            int EnemyHQCount = getNumEnemyHQs(rc);
+            rc.writeSharedArray(COUNT_OFFSET, encode(HQCount, count + 1, EnemyHQCount));
         }
     }
 
