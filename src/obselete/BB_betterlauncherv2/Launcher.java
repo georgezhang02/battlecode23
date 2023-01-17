@@ -1,4 +1,4 @@
-package BB_followfirst;
+package obselete.BB_betterlauncherv2;
 
 import battlecode.common.*;
 
@@ -12,6 +12,7 @@ public strictfp class Launcher {
 
     static RobotInfo nearestEnemyMil;
     static RobotInfo[] allies;
+
     static WellInfo[]wells;
     static boolean initialized = false;
 
@@ -26,31 +27,15 @@ public strictfp class Launcher {
 
     static int numNearbyAllyMil;
 
-    static Direction dirChange;
-
-    static RobotInfo[] nearbyAllyMil = new RobotInfo[20];
+    static RobotInfo[] nearbyAllyMil = new RobotInfo[8];
 
     static RobotInfo nearestAllyMil;
 
     static RobotInfo furthestAllyMil;
 
-    static RobotInfo[] alliesPrevious = new RobotInfo[20];;
-
-    static int numAlliesPrevious =0;
-
-    static boolean movementChange;
-
-    static RobotInfo followBot;
-
     static RobotInfo nearestNonAdjacentAllyMil;
 
     static boolean canExplore = false;
-
-    static int cooldownTurn = 0;
-
-    static int detachCD = 0;
-
-
 
     static String allyString;
 
@@ -78,28 +63,12 @@ public strictfp class Launcher {
         // interpret overall macro state
         readComms(rc);
 
-
-        for(int i = 0; i< numNearbyAllyMil; i++){
-            alliesPrevious[i] = nearbyAllyMil[i];
-        }
-        numAlliesPrevious = numNearbyAllyMil;
-
-
         // sense part
         sense(rc);
 
-        rc.setIndicatorString(numAlliesPrevious+"");
-
-
-        if(alliesPrevious != null){
-            checkMovement(rc);
-        }
-
-        // sense if other bots have moved
-
-
         selectState(rc);
 
+        rc.setIndicatorString(state.name());
 
         //select action based on state
         switch (state){
@@ -122,10 +91,7 @@ public strictfp class Launcher {
     }
 
     static void onTurnStart(RobotController rc) throws GameActionException{
-        dirChange = null;
-        movementChange = false;
         combatCD--;
-        detachCD--;
     }
 
     static void readComms(RobotController rc)throws GameActionException{
@@ -136,8 +102,8 @@ public strictfp class Launcher {
         int minRange = RobotType.LAUNCHER.visionRadiusSquared+1;
         enemies = rc.senseNearbyRobots(RobotType.LAUNCHER.visionRadiusSquared, rc.getTeam().opponent());
         wells = rc.senseNearbyWells();
-
         allies = rc.senseNearbyRobots(RobotType.LAUNCHER.visionRadiusSquared, rc.getTeam());
+
         numEnemyMil = 0;
         nearestEnemyMil = null;
         for(RobotInfo enemy: enemies){
@@ -160,6 +126,9 @@ public strictfp class Launcher {
         furthestAllyMil = null;
         nearestNonAdjacentAllyMil = null;
 
+        String allyString="";
+
+
         for(RobotInfo ally: allies){
             if(ally.getType() == RobotType.LAUNCHER || ally.getType() == RobotType.DESTABILIZER){
                 int range = rc.getLocation().distanceSquaredTo(ally.getLocation());
@@ -178,7 +147,7 @@ public strictfp class Launcher {
                     nearestNonAdjacentAllyMil = ally;
                 }
 
-                if(range<=5 && numNearbyAllyMil < 20){
+                if(range<=2){
                     nearbyAllyMil[numNearbyAllyMil] = ally;
                     numNearbyAllyMil++;
                 }
@@ -188,15 +157,11 @@ public strictfp class Launcher {
         }
 
 
-        if((numAllyMil >=2 && cooldownTurn >=2) || numEnemyMil >= 1 || rc.getRoundNum() >30){
 
+        if(numAllyMil >=2 || numEnemyMil >= 1 || rc.getRoundNum() >20){
             canExplore = true;
         }
-        if(numAllyMil >=2 && cooldownTurn <2){
-            cooldownTurn++;
-        }
     }
-
 
     static void selectState(RobotController rc) throws GameActionException{
         // select combat state if you see an enemy robot that is not HQ
@@ -219,7 +184,7 @@ public strictfp class Launcher {
             combatCD =5;
             state = LauncherState.Combat;
         } else if( combatCD >0 && pursuitLocation!=null &&
-                rc.getLocation().distanceSquaredTo(pursuitLocation) > 5 ){
+                rc.getLocation().distanceSquaredTo(pursuitLocation) > 2 ){
             state = LauncherState.Pursuing;
         }else{
             combatCD = 0;
@@ -262,8 +227,7 @@ public strictfp class Launcher {
 
         if(!rc.isActionReady()){
             // no action available, run from enemies
-            if(nearestEnemyMil != null &&
-                    (nearestEnemyMil.getLocation().distanceSquaredTo(rc.getLocation()) <= 16 && rc.getActionCooldownTurns()<=1)){
+            if(nearestEnemyMil != null){
                 rc.setIndicatorString("no actions, run");
                 return Pathfinder.pathAwayFrom(rc, nearestEnemyMil.getLocation());
             }  else if(attackRobot!= null){
@@ -282,8 +246,10 @@ public strictfp class Launcher {
                     // if attack already in radius, attack and kite
                     rc.setIndicatorString("attack and kite");
                     rc.attack(attackLoc);
+
+                    sense(rc);
                     moveFirst = false;
-                    if(nearestEnemyMil != null){
+                    if(rc.senseRobotAtLocation(attackLoc)!= null && nearestEnemyMil != null){
                         pursuitLocation = nearestEnemyMil.getLocation();
                         return Pathfinder.pathAwayFrom(rc, nearestEnemyMil.getLocation());
                     }
@@ -314,13 +280,14 @@ public strictfp class Launcher {
                                             (rc.senseMapInfo(ally.getLocation()).getCooldownMultiplier(rc.getTeam()) >= 1 && range <= 4)){
                                             alliesCanSee++;
 
+                                            // using cooldown here as heuristic for being in cloud
                                     }
                                 }
 
 
 
                             }
-                            if(alliesCanSee >= numEnemyMil || alliesCanSee >=2){
+                            if(alliesCanSee > numEnemyMil || alliesCanSee >=2){
                                 moveToAttack = true;
                             }
 
@@ -344,6 +311,10 @@ public strictfp class Launcher {
 
 
     }
+
+
+
+
 
     static RobotInfo findAttack(RobotController rc) throws GameActionException{
         int maxValue = 0;
@@ -439,65 +410,44 @@ public strictfp class Launcher {
         }
     }
 
-    static void checkMovement(RobotController rc){
-        String checked ="";
-
-
-        for(RobotInfo ally:allies){
-            if(ally.getType() == RobotType.LAUNCHER || ally.getType() == RobotType.DESTABILIZER){
-                int ID = ally.getID();
-                MapLocation loc = ally.getLocation();
-
-                for(int j = 0; j < numAlliesPrevious; j++){
-                    //If the ids match up
-                    if(ID == alliesPrevious[j].getID()){
-                        //If the previous ally location is different from before
-                        checked = checked + ID+" "+alliesPrevious[j].getLocation();
-
-                        if(loc != alliesPrevious[j].getLocation()){
-                            movementChange = true;
-                            dirChange = alliesPrevious[j].getLocation().directionTo(loc);
-                            followBot = ally;
-                            return;
-                        }
-                    }
-                }
-            }
-        }
-
-        if(checked.length()>0){
-            rc.setIndicatorString(checked);
-        }
-
-    }
-
     static void explore(RobotController rc) throws GameActionException{
-        Direction dir;
 
-        if(RobotPlayer.turnCount < 2 && numAllyMil > 0 &&
-                nearestAllyMil.getLocation().distanceSquaredTo(rc.getLocation()) >=2){
-            canExplore = true;
-            dir = Pathfinder.pathBug(rc, nearestAllyMil.getLocation());
-            if(canMoveToExplore(rc, dir)) {
-                rc.move(dir);
-            }
+        if (canExplore) {
+            Direction dir;
+            if(numNearbyAllyMil>=2){
+                // 2 adjacent allies
+                dir = Pathfinder.pathToExploreBug(rc);
+                rc.setIndicatorString("2 adj, path to explore");
+            } else if(numNearbyAllyMil == 1){
+                // only one adjacent ally
 
+                if(nearestNonAdjacentAllyMil != null
+                        ){
+                    dir = Pathfinder.pathBug(rc, nearestNonAdjacentAllyMil.getLocation());
+                    if(rc.getLocation().add(dir).distanceSquaredTo(nearestNonAdjacentAllyMil.getLocation()) <= 2){
+                        rc.setIndicatorString("one adjacent, path tonearest nonadj");
+                    } else{
+                        dir = Pathfinder.pathToExploreBug(rc);
+                        rc.setIndicatorString("1 adj, too far to nonadj, path to explore");
+                    }
 
-        } else if(RobotPlayer.turnCount < 2) {
-            canExplore = true;
-        }
+                } else if(numAllyMil <2){
+                    dir = Pathfinder.pathToExploreBug(rc);
+                    rc.setIndicatorString("1 adj, 0 else sensed, path to explore");
+                } else{
+                    dir = Pathfinder.pathToExploreBug(rc);
+                    rc.setIndicatorString("1 adj, others sensed, path to explore");
+                }
+            }else{
+                // no adjacent allies
+                if(numAllyMil == 0){
+                    dir = Pathfinder.pathToExploreBug(rc);
+                    rc.setIndicatorString("0 adj, path to explore");
+                } else{
+                    dir = Pathfinder.pathBug(rc, nearestAllyMil.getLocation());
+                    rc.setIndicatorString(numAllyMil + " 0 adj, path to nearest");
+                }
 
-        if (canExplore && (rc.getRoundNum()%2 ==0|| rc.senseMapInfo(rc.getLocation()).getCooldownMultiplier(rc.getTeam()) != 1)) {
-            if(movementChange){
-                detachCD =10;
-            }
-            if((movementChange || detachCD > 0) && rc.getLocation().distanceSquaredTo(followBot.getLocation())>2){
-                dir = Pathfinder.pathBug(rc, followBot.getLocation());
-                //rc.setIndicatorString("following "+followBot.getLocation());
-
-            } else{
-                dir = Pathfinder.pathToExplore(rc);
-                //rc.setIndicatorString("pathing to explore" + Explorer.target);
             }
             if(canMoveToExplore(rc, dir)){
                 rc.move(dir);
@@ -517,11 +467,15 @@ public strictfp class Launcher {
 
     static boolean canMove(RobotController rc, Direction dir) throws GameActionException{
         return dir != null && rc.canMove(dir);
+
+
     }
 
     static boolean canMoveToExplore(RobotController rc, Direction dir) throws GameActionException{
         return dir != null && rc.canMove(dir) &&
                 (rc.getRoundNum()%2 ==0 || rc.senseMapInfo(rc.getLocation()).getCooldownMultiplier(rc.getTeam()) != 1);
+
+
     }
 
 

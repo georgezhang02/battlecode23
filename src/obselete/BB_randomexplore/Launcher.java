@@ -1,4 +1,4 @@
-package BB_followfirst;
+package obselete.BB_randomexplore;
 
 import battlecode.common.*;
 
@@ -28,13 +28,13 @@ public strictfp class Launcher {
 
     static Direction dirChange;
 
-    static RobotInfo[] nearbyAllyMil = new RobotInfo[20];
+    static RobotInfo[] nearbyAllyMil = new RobotInfo[10];
 
     static RobotInfo nearestAllyMil;
 
     static RobotInfo furthestAllyMil;
 
-    static RobotInfo[] alliesPrevious = new RobotInfo[20];;
+    static RobotInfo[] alliesPrevious = new RobotInfo[10];;
 
     static int numAlliesPrevious =0;
 
@@ -78,21 +78,22 @@ public strictfp class Launcher {
         // interpret overall macro state
         readComms(rc);
 
+        if(rc.getRoundNum()%2 == 0){
+            for(int i = 0; i< numNearbyAllyMil; i++){
+                alliesPrevious[i] = nearbyAllyMil[i];
+            }
+            numAlliesPrevious = numNearbyAllyMil;
 
-        for(int i = 0; i< numNearbyAllyMil; i++){
-            alliesPrevious[i] = nearbyAllyMil[i];
         }
-        numAlliesPrevious = numNearbyAllyMil;
 
 
         // sense part
         sense(rc);
 
-        rc.setIndicatorString(numAlliesPrevious+"");
 
-
-        if(alliesPrevious != null){
+        if(alliesPrevious != null ){
             checkMovement(rc);
+
         }
 
         // sense if other bots have moved
@@ -178,7 +179,7 @@ public strictfp class Launcher {
                     nearestNonAdjacentAllyMil = ally;
                 }
 
-                if(range<=5 && numNearbyAllyMil < 20){
+                if(range<=8 && numNearbyAllyMil < 10){
                     nearbyAllyMil[numNearbyAllyMil] = ally;
                     numNearbyAllyMil++;
                 }
@@ -326,6 +327,24 @@ public strictfp class Launcher {
 
                         }
 
+                    } else if(!rc.canAttack(attackLoc)){
+                        int alliesCanSee = 0;
+                        for(RobotInfo ally: allies){
+
+                            if(ally.getType() == RobotType.LAUNCHER || ally.getType() == RobotType.DESTABILIZER){
+                                int range = ally.getLocation().distanceSquaredTo(attackLoc);
+                                if(range <= ally.getType().visionRadiusSquared ||
+                                        (rc.senseMapInfo(ally.getLocation()).getCooldownMultiplier(rc.getTeam()) >= 1 && range <= 4)){
+                                    alliesCanSee++;
+
+                                }
+                            }
+                        }
+                        if(alliesCanSee >= 1){
+                            moveToAttack = true;
+                        }
+
+
                     }
 
 
@@ -440,24 +459,33 @@ public strictfp class Launcher {
     }
 
     static void checkMovement(RobotController rc){
+
         String checked ="";
+
+        String previous = "alliesPrevious ";
 
 
         for(RobotInfo ally:allies){
             if(ally.getType() == RobotType.LAUNCHER || ally.getType() == RobotType.DESTABILIZER){
+
                 int ID = ally.getID();
                 MapLocation loc = ally.getLocation();
 
+
+
                 for(int j = 0; j < numAlliesPrevious; j++){
+
                     //If the ids match up
                     if(ID == alliesPrevious[j].getID()){
+                        previous  = previous + ally.getID()+" "+ally.getLocation();
                         //If the previous ally location is different from before
-                        checked = checked + ID+" "+alliesPrevious[j].getLocation();
+
 
                         if(loc != alliesPrevious[j].getLocation()){
                             movementChange = true;
                             dirChange = alliesPrevious[j].getLocation().directionTo(loc);
                             followBot = ally;
+
                             return;
                         }
                     }
@@ -465,14 +493,12 @@ public strictfp class Launcher {
             }
         }
 
-        if(checked.length()>0){
-            rc.setIndicatorString(checked);
-        }
+
 
     }
 
     static void explore(RobotController rc) throws GameActionException{
-        Direction dir;
+        Direction dir = Direction.CENTER;
 
         if(RobotPlayer.turnCount < 2 && numAllyMil > 0 &&
                 nearestAllyMil.getLocation().distanceSquaredTo(rc.getLocation()) >=2){
@@ -481,18 +507,15 @@ public strictfp class Launcher {
             if(canMoveToExplore(rc, dir)) {
                 rc.move(dir);
             }
-
-
-        } else if(RobotPlayer.turnCount < 2) {
-            canExplore = true;
         }
-
-        if (canExplore && (rc.getRoundNum()%2 ==0|| rc.senseMapInfo(rc.getLocation()).getCooldownMultiplier(rc.getTeam()) != 1)) {
+        if (canExplore && (rc.getRoundNum()%2 == 0 ||
+                rc.senseMapInfo(rc.getLocation()).getCooldownMultiplier(rc.getTeam()) != 1)) {
             if(movementChange){
-                detachCD =10;
+                detachCD =4;
             }
-            if((movementChange || detachCD > 0) && rc.getLocation().distanceSquaredTo(followBot.getLocation())>2){
-                dir = Pathfinder.pathBug(rc, followBot.getLocation());
+            if((movementChange || detachCD > 0)  && numNearbyAllyMil < 5){
+
+                    dir = Pathfinder.pathBug(rc, followBot.getLocation());
                 //rc.setIndicatorString("following "+followBot.getLocation());
 
             } else{
