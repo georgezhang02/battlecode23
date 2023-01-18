@@ -85,7 +85,7 @@ public strictfp class Booster {
         numEnemyMil = 0;
         nearestEnemyMil = null;
         for(RobotInfo enemy: enemies){
-            if(enemy.getType() == RobotType.LAUNCHER || enemy.getType() == RobotType.BOOSTER){
+            if(enemy.getType() == RobotType.LAUNCHER || enemy.getType() == RobotType.DESTABILIZER){
                 numEnemyMil++;
 
                 int range = rc.getLocation().distanceSquaredTo(enemy.getLocation());
