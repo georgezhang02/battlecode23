@@ -1,7 +1,6 @@
-package CB_basicdestablizer;
+package CB_basicelxrunits;
 
 import battlecode.common.*;
-import battlecode.world.Well;
 
 import java.util.Arrays;
 import java.util.HashSet;

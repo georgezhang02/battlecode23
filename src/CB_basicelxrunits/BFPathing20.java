@@ -1,4 +1,4 @@
-package CB_basicdestablizer;
+package CB_basicelxrunits;
 
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;

@@ -1,4 +1,4 @@
-package CB_basicdestablizer;
+package CB_basicelxrunits;
 
 import battlecode.common.*;
 
@@ -287,6 +287,8 @@ public strictfp class HQ {
                 if (rc.canBuildAnchor(Anchor.STANDARD)) {
                     rc.buildAnchor(Anchor.STANDARD);
                 }
+            } else if (rc.canBuildRobot(RobotType.BOOSTER, carrierBuildLoc)){
+                rc.buildRobot(RobotType.BOOSTER, centerBuildLoc);
             } else if (rc.canBuildRobot(RobotType.DESTABILIZER, carrierBuildLoc)){
                 rc.buildRobot(RobotType.DESTABILIZER, centerBuildLoc);
             } else if (rc.canBuildRobot(RobotType.CARRIER, carrierBuildLoc)) {

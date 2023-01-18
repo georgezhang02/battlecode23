@@ -1,11 +1,11 @@
-package CB_basicdestablizer;
+package CB_basicelxrunits;
 
 import battlecode.common.*;
 
-public strictfp class Destabilizer {
+public strictfp class Booster {
 
-    public enum DestabilizerState {
-        Combat, Exploring, Hover
+    public enum BoosterState {
+        Exploring, Hover, Combat, Support
     }
 
     static RobotInfo[] enemies;
@@ -17,8 +17,6 @@ public strictfp class Destabilizer {
     static WellInfo[]wells;
 
     static boolean initialized = false;
-
-    static boolean moveFirst = false;
 
     static int numEnemyMil;
 
@@ -34,7 +32,7 @@ public strictfp class Destabilizer {
 
     static RobotInfo nearestNonAdjacentAllyMil;
 
-    static Destabilizer.DestabilizerState state;
+    static Booster.BoosterState state;
 
     static void run(RobotController rc) throws GameActionException {
         if(!initialized){
@@ -61,12 +59,15 @@ public strictfp class Destabilizer {
             case Exploring:
                 explore(rc);
                 break;
+            case Support:
+                support(rc);
+                break;
         }
 
     }
 
     static void onUnitInit(RobotController rc) throws GameActionException{
-        state = Destabilizer.DestabilizerState.Exploring;
+        state = Booster.BoosterState.Exploring;
     }
 
     static void readComms(RobotController rc)throws GameActionException{
@@ -143,42 +144,24 @@ public strictfp class Destabilizer {
             }
         }
         if (enemiesFound){
-            state = Destabilizer.DestabilizerState.Combat;
+            state = Booster.BoosterState.Combat;
         } else if(numAllyMil >= 1){
-            state = Destabilizer.DestabilizerState.Hover;
+            state = Booster.BoosterState.Hover;
         }else{
-            state = Destabilizer.DestabilizerState.Exploring;
+            state = Booster.BoosterState.Exploring;
         }
     }
 
     static void combat(RobotController rc) throws GameActionException{
-        RobotInfo attackRobot = findAttack(rc);
-        Direction moveDir = findMovementCombat(rc, attackRobot);
-
-        if(attackRobot!=null){
-            if(moveFirst){
-                if(canMove(rc, moveDir)){
-                    rc.move(moveDir);
-                    sense(rc);
-                    if(enemies.length > 0){
-                        RobotInfo enemy = findAttack(rc);
-                        attackRobot = enemy;
-                    }
-                }
-            }
-            //rc.setIndicatorString(attackRobot.getLocation().toString() + " " + rc.canAttack(attackRobot.getLocation()) + " " + rc.getActionCooldownTurns());
-            if(attackRobot != null &&  rc.canDestabilize(attackRobot.getLocation())){
-                rc.destabilize(attackRobot.getLocation());
-            }
-
-            if(!moveFirst){
-                if(canMove(rc, moveDir)){
-                    rc.move(moveDir);
-                }
-            }
+        Direction moveDir = findMovementCombat(rc);
+        if(rc.canBoost()){
+            rc.boost();
+        }
+        if(canMove(rc, moveDir)){
+            rc.move(moveDir);
         }
     }
-
+    
     //Hover around the nearest ally
     static void hover(RobotController rc) throws GameActionException{
         Direction dir = Pathfinder.pathBug(rc, nearestAllyMil.getLocation());
@@ -187,82 +170,27 @@ public strictfp class Destabilizer {
         }
     }
 
-    //Probably find some way to optimize to attack a group of enemies, for now it just attacks the closest
-    static RobotInfo findAttack(RobotController rc) throws GameActionException{
-        int minRange = 100;
-        int maxRange = 0;
-
-        RobotInfo enemyToAttack = null;
-        for(RobotInfo enemy : enemies){
-            if(enemy.getType() != RobotType.HEADQUARTERS){
-                int range = enemy.getLocation().distanceSquaredTo(rc.getLocation());
-
-                if(range < RobotType.DESTABILIZER.actionRadiusSquared){
-                    if(range > maxRange){
-                        maxRange = range;
-                    }
-                    if(range < minRange){
-                        enemyToAttack = enemy;
-                        minRange = range;
-                    }
-                }
-            }
-        }
-        return enemyToAttack;
-    }
-
-    static Direction findMovementCombat(RobotController rc, RobotInfo attackRobot) throws GameActionException {
-        moveFirst = false;
-        if(!rc.isActionReady()){
-            // no action available, run from enemies; you're a destablizier not much you can do
-            rc.setIndicatorString("no actions, run");
-            if(nearestEnemyMil != null){
-                return Pathfinder.pathAwayFrom(rc, nearestEnemyMil.getLocation());
-            }
-            return Pathfinder.pathAwayFrom(rc,enemies[0].getLocation());
-        } else{
-            // action ready
-            //rc.setIndicatorString(attackRobot+"");
-            if(attackRobot!= null){
-
-                MapLocation attackLoc = attackRobot.getLocation();
-
-                if(rc.canAttack(attackLoc)){
-                    // if attack already in radius, attack and kite
-                    rc.setIndicatorString("attack and kite");
-                    rc.attack(attackLoc);
-                    return Pathfinder.pathAwayFrom(rc, nearestEnemyMil.getLocation());
-                } else {
-                    // attack not in radius
-                    // only move forward to hit if the enemy is killable or you have nearby allies
-                    int alliesCanSee = 0;
-                    if(numEnemyMil > 0) {
-                        for (RobotInfo ally : allies) {
-                            if (ally.getLocation().distanceSquaredTo(attackLoc) <= attackRobot.getType().actionRadiusSquared) {
-                                alliesCanSee++;
-                            }
-                        }
-                        if(alliesCanSee > 2){
-                            moveFirst = true;
-                            return Pathfinder.pathBug(rc, attackLoc);
-                        }
-                    }
-                }
-            }
-        }
-        return null;
-
-    }
-
-    //Explore if there are no military units nearby
     static void explore(RobotController rc) throws GameActionException{
         Direction dir = Pathfinder.pathToExploreHQ(rc);
         if(rc.canMove(dir)){
             rc.move(dir);
         }
     }
-
     static boolean canMove(RobotController rc, Direction dir) throws GameActionException{
         return dir != null && rc.canMove(dir);
     }
+
+    //The concept for support is to constantly be boosting allies near hq or near island?
+    //Non combat utility ig
+    static void support(RobotController rc) throws GameActionException{
+
+    }
+    static Direction findMovementCombat(RobotController rc) throws GameActionException {
+        //As a booster, you just kite no matter what the situation is
+        if (nearestEnemyMil != null) {
+            return Pathfinder.pathAwayFrom(rc, nearestEnemyMil.getLocation());
+        }
+        return Pathfinder.pathAwayFrom(rc, enemies[0].getLocation());
+    }
+
 }

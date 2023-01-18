@@ -1,4 +1,4 @@
-package CB_basicdestablizer;
+package CB_basicelxrunits;
 
 import battlecode.common.Clock;
 import battlecode.common.GameActionException;
@@ -40,9 +40,9 @@ public strictfp class RobotPlayer {
                     case HEADQUARTERS:     HQ.run(rc);  break;
                     case CARRIER:      Carrier.run(rc);   break;
                     case LAUNCHER: Launcher.run(rc); break;
-                    case BOOSTER: // Examplefuncsplayer doesn't use any of these robot types below.
+                    case BOOSTER:  Booster.run(rc); break;
                     case DESTABILIZER: Destabilizer.run(rc); break;
-                    case AMPLIFIER:       break;
+                    case AMPLIFIER:      break;
                 }
 
             } catch (GameActionException e) {
