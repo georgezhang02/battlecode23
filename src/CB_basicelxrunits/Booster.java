@@ -76,15 +76,15 @@ public strictfp class Booster {
 
     //Sense nearby allies / enemies
     static void sense(RobotController rc) throws GameActionException{
-        int minRange = RobotType.DESTABILIZER.visionRadiusSquared+1;
-        enemies = rc.senseNearbyRobots(RobotType.DESTABILIZER.visionRadiusSquared, rc.getTeam().opponent());
+        int minRange = RobotType.BOOSTER.visionRadiusSquared+1;
+        enemies = rc.senseNearbyRobots(RobotType.BOOSTER.visionRadiusSquared, rc.getTeam().opponent());
         wells = rc.senseNearbyWells();
 
-        allies = rc.senseNearbyRobots(RobotType.DESTABILIZER.visionRadiusSquared, rc.getTeam());
+        allies = rc.senseNearbyRobots(RobotType.BOOSTER.visionRadiusSquared, rc.getTeam());
         numEnemyMil = 0;
         nearestEnemyMil = null;
         for(RobotInfo enemy: enemies){
-            if(enemy.getType() == RobotType.LAUNCHER || enemy.getType() == RobotType.DESTABILIZER){
+            if(enemy.getType() == RobotType.LAUNCHER || enemy.getType() == RobotType.BOOSTER){
                 numEnemyMil++;
 
                 int range = rc.getLocation().distanceSquaredTo(enemy.getLocation());
@@ -94,8 +94,8 @@ public strictfp class Booster {
                 }
             }
         }
-        minRange = RobotType.DESTABILIZER.visionRadiusSquared+1;
-        int minRangeNonAdj = RobotType.DESTABILIZER.visionRadiusSquared+1;;
+        minRange = RobotType.BOOSTER.visionRadiusSquared+1;
+        int minRangeNonAdj = RobotType.BOOSTER.visionRadiusSquared+1;;
         int maxRange = 0;
         numAllyMil = 0;
         numNearbyAllyMil = 0;
@@ -104,7 +104,7 @@ public strictfp class Booster {
         nearestNonAdjacentAllyMil = null;
 
         for(RobotInfo ally: allies){
-            if(ally.getType() == RobotType.LAUNCHER || ally.getType() == RobotType.DESTABILIZER){
+            if(ally.getType() == RobotType.LAUNCHER || ally.getType() == RobotType.BOOSTER){
                 int range = rc.getLocation().distanceSquaredTo(ally.getLocation());
                 if(range > maxRange){
                     furthestAllyMil = ally;
