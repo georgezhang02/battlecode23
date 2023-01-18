@@ -1,6 +1,9 @@
 package CB_first;
 
 import battlecode.common.*;
+import jdk.nashorn.internal.runtime.regexp.joni.constants.internal.AnchorType;
+
+import java.util.Objects;
 
 public class Comms {
     private static final int COUNT_OFFSET = 0;
@@ -234,5 +237,149 @@ public class Comms {
             result += fields[i] * Math.pow(64, i);
         }
         return result;
+    }
+    public static class Attack {
+        public MapLocation location;
+        public RobotType type;
+        public int num;
+
+        public Attack(MapLocation location, RobotType type) {
+            this.location = location;
+            this.type = type;
+        }
+
+        public Attack(MapLocation location, int num) {
+            this.location = location;
+            this.num = num;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == null)
+                return false;
+            Attack command = (Attack) o;
+            return Objects.equals(location, command.location) && type == command.type;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(location, type);
+        }
+
+        public int priority() {
+            return getCommPrio(type);
+        }
+    };
+
+    public static class Well{
+        public MapLocation location;
+        public ResourceType type;
+        public boolean contested;
+
+
+        public Well(MapLocation location, ResourceType type) {
+            this.location = location;
+            this.type = type;
+            contested = false;
+        }
+
+        public Well(MapLocation location, ResourceType type, boolean contested) {
+            this.location = location;
+            this.type = type;
+            contested = true;
+        }
+
+        public Well(MapLocation location, ResourceType type, int num) {
+            this.location = location;
+            this.type = type;
+            contested = (num == 1);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == null)
+                return false;
+            Well w = (Well) o;
+            return Objects.equals(location, w.location) && type == w.type;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(location, type);
+        }
+    }
+
+    public static class Island{
+        public MapLocation location;
+        public int id;
+        public Team owner; // note: null equals no team owned
+        public Anchor anchorType;
+
+        public Island(MapLocation location, int id){
+            this.location = location;
+            this.id = id;
+            owner = null;
+            anchorType = Anchor.STANDARD;
+        }
+
+        public Island(MapLocation location, int id, Anchor anchorType){
+            this.location = location;
+            this.id = id;
+            owner = null;
+            this.anchorType = anchorType;
+        }
+
+        public Island(MapLocation location, int id, Team owner){
+            this.location = location;
+            this.id = id;
+            this.owner = owner;
+            anchorType = Anchor.STANDARD;
+        }
+
+        public Island(MapLocation location, int id, Team owner, Anchor anchorType){
+            this.location = location;
+            this.id = id;
+            this.owner = owner;
+            this.anchorType = anchorType;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == null)
+                return false;
+            Island island = (Island) o;
+            return Objects.equals(location, island.location) && id == island.id;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(location, id);
+        }
+
+    }
+    private static int getCommPrio(RobotType type) {
+        if (type == null) {
+            return 0;
+        }
+        switch (type) {
+            case HEADQUARTERS:
+                return 10;
+            case DESTABILIZER:
+                return 8;
+            case BOOSTER:
+                return 8;
+            case AMPLIFIER:
+                return 7;
+            case LAUNCHER:
+                return 6;
+            case CARRIER:
+                return 4;
+
+
+            default:
+                break;
+        }
+
+        return -1;
     }
 }
