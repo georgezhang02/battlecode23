@@ -4,6 +4,7 @@ import battlecode.common.*;
 
 public strictfp class Launcher {
 
+    static final int ATTACKDMG = 30;
     public enum LauncherState {
         Combat, Pursuing, Exploring
     }
@@ -293,7 +294,7 @@ public strictfp class Launcher {
                     // only move forward to hit if the enemy is killable or you have significant man advantage
                     boolean moveToAttack = false;
                     if(numEnemyMil >0){
-                        if(attackRobot.getHealth() <=6){
+                        if(attackRobot.getHealth() <= ATTACKDMG){
                             moveToAttack = true;
                         } else{
                             for(RobotInfo ally: allies){
@@ -379,21 +380,21 @@ public strictfp class Launcher {
                 // weight value based on unit attacked
                 if(enemy.getType() == RobotType.LAUNCHER || enemy.getType()==RobotType.BOOSTER ||
                         enemy.getType()==RobotType.DESTABILIZER){
-                    attackValue += 20 ;
+                    attackValue += 200;
 
                 } else if(enemy.getType() == RobotType.AMPLIFIER){
-                    attackValue +=15;
+                    attackValue +=150;
                 } else if(enemy.getType() == RobotType.CARRIER){
-                    attackValue += 10;
+                    attackValue += 100;
                 }
 
                 //add value for every hp point attacked
-                attackValue+= Math.min(enemy.getHealth(), 6);
+                attackValue+= Math.min(enemy.getHealth(), ATTACKDMG);
 
 
                 //if you can kill the unit, add 10 value
-                if(enemy.getHealth() - 6 <= 0){
-                    attackValue+=10;
+                if(enemy.getHealth() - ATTACKDMG <= 0){
+                    attackValue+=100;
                 } else{
                     // focus low health targets
                     attackValue+= (enemy.getType().getMaxHealth() - enemy.getHealth())/2;
