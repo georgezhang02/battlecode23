@@ -1,6 +1,10 @@
 package BB_kiteexplore;
 
-import battlecode.common.*;
+import battlecode.common.Direction;
+import battlecode.common.GameActionException;
+import battlecode.common.MapLocation;
+import battlecode.common.RobotController;
+
 public strictfp class BFPathing20 {
     static Direction dir9;
     static Direction dir10;
@@ -475,7 +479,7 @@ public strictfp class BFPathing20 {
         ml68 = ml67.add(Direction.SOUTH);
         if(rc.canSenseLocation(ml1) && rc.sensePassability(ml1)){
             if(!rc.isLocationOccupied(ml1)){
-                dist1 = rc.senseMapInfo(ml1).getCooldownMultiplier(rc.getTeam());
+                dist1 = rc.senseMapInfo(ml1).getCooldownMultiplier(rc.getTeam());;
             }
         }
         if(rc.canSenseLocation(ml2) && rc.sensePassability(ml2)){
@@ -1249,7 +1253,7 @@ public strictfp class BFPathing20 {
 
         }
         if(rc.canSenseLocation(ml45) && rc.sensePassability(ml45)){
-            cost45 = rc.senseMapInfo(ml45).getCooldownMultiplier(rc.getTeam());
+            cost45 = rc.senseMapInfo(ml45).getCooldownMultiplier(rc.getTeam());;
             if(cost45 + dist44 < dist45){
                 dist45 = cost45 + dist44;
                 dir45 = dir44;
@@ -1773,10 +1777,6 @@ public strictfp class BFPathing20 {
             }
 
         }
-
-
-
-
 
 
         int xDiff = target.x - ml0.x;
