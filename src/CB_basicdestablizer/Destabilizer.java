@@ -21,6 +21,7 @@ public strictfp class Destabilizer {
     static boolean moveFirst = false;
 
     static int numEnemyMil;
+
     static int numAllyMil;
 
     static int numNearbyAllyMil;
@@ -31,7 +32,6 @@ public strictfp class Destabilizer {
 
     static RobotInfo furthestAllyMil;
 
-
     static RobotInfo nearestNonAdjacentAllyMil;
 
     static Destabilizer.DestabilizerState state;
@@ -41,7 +41,6 @@ public strictfp class Destabilizer {
             onUnitInit(rc); // first time starting the bot, do some setup
             initialized = true;
         }
-
         // interpret overall macro state
         readComms(rc);
 
@@ -63,6 +62,7 @@ public strictfp class Destabilizer {
                 explore(rc);
                 break;
         }
+
     }
 
     static void onUnitInit(RobotController rc) throws GameActionException{
@@ -166,10 +166,9 @@ public strictfp class Destabilizer {
                     }
                 }
             }
-            rc.setIndicatorString(attackRobot.getLocation().toString() + rc.canAttack(attackRobot.getLocation()));
-            if(attackRobot != null &&  rc.canAttack(attackRobot.getLocation())){
-                System.out.println("attack");
-                rc.attack(attackRobot.getLocation());
+            //rc.setIndicatorString(attackRobot.getLocation().toString() + " " + rc.canAttack(attackRobot.getLocation()) + " " + rc.getActionCooldownTurns());
+            if(attackRobot != null &&  rc.canDestabilize(attackRobot.getLocation())){
+                rc.destabilize(attackRobot.getLocation());
             }
 
             if(!moveFirst){
@@ -217,7 +216,10 @@ public strictfp class Destabilizer {
         if(!rc.isActionReady()){
             // no action available, run from enemies; you're a destablizier not much you can do
             rc.setIndicatorString("no actions, run");
-            return Pathfinder.pathAwayFrom(rc, nearestEnemyMil.getLocation());
+            if(nearestEnemyMil != null){
+                return Pathfinder.pathAwayFrom(rc, nearestEnemyMil.getLocation());
+            }
+            return Pathfinder.pathAwayFrom(rc,enemies[0].getLocation());
         } else{
             // action ready
             //rc.setIndicatorString(attackRobot+"");
