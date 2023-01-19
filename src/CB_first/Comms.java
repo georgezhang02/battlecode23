@@ -5,23 +5,200 @@ import battlecode.common.*;
 import java.util.Objects;
 
 public class Comms {
-    private static final int COUNT_OFFSET = 0;
-    private static final int TEAM_HQ_OFFSET = 1;
-    private static final int ENEMY_HQ_OFFSET = 5;
-    private static final int WELL_COMMAND_OFFSET = 9;
-    private static final int WELL_OFFSET = 13;
-    private static final int MAX_WELLS = 12;
-    private static final int WELL_REPORT_OFFSET = WELL_OFFSET + MAX_WELLS;
-    private static final int EXPLORATION_OFFSET = 29;
-    private static final int EXPLORATION_COUNT_OFFSET = 63;
+    private static final int COUNT_OFFSET_1 = 0;
+    private static final int COUNT_OFFSET_2 = 1;
+    private static final int COUNT_OFFSET_3 = 2;
+    private static final int COUNT_OFFSET_4 = 3;
+    private static final int ALLY_HQ_OFFSET = 4;
+    private static final int ENEMY_HQ_OFFSET = 8;
 
+    private static final int HQ_COMM_OFFSET = 12;
+    private static final int WELL_COMM_OFFSET = 16;
+    private static final int WELL_PERM_OFFSET = 20;
+    private static final int WELL_REPORT_OFFSET = 28;
+    private static final int ISLAND_OFFSET = 32;
+    private static final int ISLAND_REP_OFFSET = 40;
+    private static final int ANCHOR_OFFSET_EVEN = 44;
+
+    private static final int ANCHOR_OFFSET_ODD = 44;
+    private static final int AC_EVEN_OFFSET = 48;
+
+    private static final int AC_ODD_OFFSET = 56;
+
+    private static final int ALLY_HQ_MAXCOUNT = 4;
+    private static final int ENEMY_HQ_MAXCOUNT = 4;
+
+    private static final int WELL_COMM_MAXCOUNT = 4;
+    private static final int WELL_PERM_MAXCOUNT = 8;
+    private static final int WELL_REP_MAXCOUNT = 4;
+    private static final int ISLAND_MAXCOUNT = 8;
+    private static final int ISLAND_REP_MAXCOUNT = 4;
+    private static final int ANCHOR_MAXCOUNT = 2;
+    private static final int AC_MAXCOUNT = 8;
+
+    // Team Count
     /**
-     * Sets the team HQ location in the next available location
+     *
      * @return the number of HQs
      */
     public static int getNumHQs(RobotController rc) throws GameActionException {
-        return decode(rc.readSharedArray(COUNT_OFFSET), 0);
+        return decode(rc.readSharedArray(COUNT_OFFSET_1), 0);
     }
+
+    /**
+     *
+     * @return Number of odd attack commands
+     */
+    public static int getNumACOdd(RobotController rc) throws GameActionException {
+        return decode(rc.readSharedArray(COUNT_OFFSET_1), 1);
+    }
+
+    /**
+     *
+     * @return Number of odd attack commands
+     */
+    public static int getNumACEven(RobotController rc) throws GameActionException {
+        return decode(rc.readSharedArray(COUNT_OFFSET_1), 2);
+    }
+
+    /**
+     *
+     * @return Number of [HQs, Odd ACs, Even ACs]
+     */
+    public static int[] getAllCount1(RobotController rc) throws GameActionException {
+        int val = rc.readSharedArray(COUNT_OFFSET_1);
+        int HQCount = decode(val, 0);
+        int ACOddCount = decode(val, 1);
+        int ACEvenCount = decode(val, 2);
+        return new int[]{HQCount, ACOddCount, ACEvenCount};
+    }
+
+    /**
+     * @return Number of Well Commands
+     */
+    public static int getNumWellComms(RobotController rc) throws GameActionException {
+        return decode(rc.readSharedArray(COUNT_OFFSET_2), 0);
+    }
+
+    /**
+     * @return Number of Permanent Wells
+     */
+    public static int getNumWellsPerm(RobotController rc) throws GameActionException {
+        return decode(rc.readSharedArray(COUNT_OFFSET_2), 1);
+    }
+
+    /**
+     * @return Number of Well Reports
+     */
+    public static int getNumWellRep(RobotController rc) throws GameActionException {
+        return decode(rc.readSharedArray(COUNT_OFFSET_2), 2);
+    }
+
+    /**
+     * @return Number of [HQ Comms, Permanent Wells, Well Reports]
+     */
+    public static int[] getAllCount2(RobotController rc) throws GameActionException {
+        int val = rc.readSharedArray(COUNT_OFFSET_2);
+        int WellCommCount = decode(val, 0);
+        int PermWellCount = decode(val, 1);
+        int WellRepCount = decode(val, 2);
+        return new int[]{WellCommCount, PermWellCount, WellRepCount};
+    }
+    /**
+     * @return Number of Enemy HQs
+     */
+    public static int getNumEnemyHQs(RobotController rc) throws GameActionException {
+        return decode(rc.readSharedArray(COUNT_OFFSET_3), 0);
+    }
+
+    /**
+     * @return Number of Islands in comms
+     */
+    public static int getNumIslands(RobotController rc) throws GameActionException {
+        return decode(rc.readSharedArray(COUNT_OFFSET_3), 1);
+    }
+
+    /**
+     * @return Number of Island Reports
+     */
+    public static int getNumIslandRep(RobotController rc) throws GameActionException {
+        return decode(rc.readSharedArray(COUNT_OFFSET_3), 2);
+    }
+
+    /**
+     * @return Number of [Enemy HQ, Team Island, Island Report]
+     */
+    public static int[] getAllCount3(RobotController rc) throws GameActionException {
+        int val = rc.readSharedArray(COUNT_OFFSET_3);
+        int HQCount = decode(val, 0);
+        int IslandCount = decode(val, 1);
+        int IslandRepCount = decode(val, 2);
+        return new int[]{HQCount, IslandCount, IslandRepCount};
+    }
+
+    /**
+     * @return Number of Enemy HQs Found
+     */
+    public static int getNumAnchorEven(RobotController rc) throws GameActionException{
+        return decode(rc.readSharedArray(COUNT_OFFSET_4), 0);
+    }
+
+    public static int getNumAnchorOdd(RobotController rc) throws GameActionException{
+        return decode(rc.readSharedArray(COUNT_OFFSET_4), 1);
+    }
+
+
+    /**
+     * @return Symmetries found and viable symmetries
+     * symmetries are in order of [symmetryFound, rotational, horizontal, vertical]
+     */
+    public static boolean[] getSymmetries(RobotController rc) throws GameActionException{
+        int val = decode(rc.readSharedArray(COUNT_OFFSET_4), 2);
+        boolean rotational = (val%8)/4 == 0;
+        boolean horizontal = (val%4)/2 == 0;
+        boolean vertical = val%2 == 0;
+        return new boolean[]{rotational, horizontal, vertical};
+    }
+    public static void setSymmetries(RobotController rc, boolean rotational,
+                                          boolean horizontal, boolean vertical) throws GameActionException{
+        int[]count4 = getAllCount4(rc);
+        int val = count4[2];
+        int bits = val/8; // extract commscleaned
+        if(rotational) bits += 4;
+        if(horizontal) bits += 2;
+        if(vertical) bits += 1;
+
+        rc.writeSharedArray(COUNT_OFFSET_4, encode(count4[0], count4[1], bits));
+    }
+
+    /**
+     * @return If the array was wiped on this turn
+     */
+    public static boolean isCommsCleaned(RobotController rc) throws GameActionException{
+        int val = decode(rc.readSharedArray(COUNT_OFFSET_4), 2);
+        return val/8 == rc.getRoundNum() % 2;
+    }
+
+
+    public static void setCommsCleaned(RobotController rc) throws GameActionException{
+        int[]count4 = getAllCount4(rc);
+        int val = count4[2];
+        val = val-(val/8);
+        val = val + (rc.getRoundNum() % 2) * 8;
+        rc.writeSharedArray(COUNT_OFFSET_4, encode(count4[0], count4[1], val));
+    }
+
+    /**
+     * @return The number of [Anchor command even, Anchor command odd, and bits for symmetry and tracking array clean]
+     */
+    public static int[] getAllCount4(RobotController rc) throws GameActionException {
+        int val = rc.readSharedArray(COUNT_OFFSET_4);
+        int AnchorCountEven = decode(val, 0);
+        int AnchorCountOdd  = decode(val, 1);
+        int bits = decode(val, 2);
+        return new int[]{AnchorCountEven, AnchorCountOdd, bits};
+    }
+
 
     // HQ
     /**
@@ -29,17 +206,15 @@ public class Comms {
      * @return the index corresponding to the HQ
      */
     public static int setTeamHQLocation(RobotController rc, MapLocation HQLocation, int id) throws GameActionException {
-        int count = getNumHQs(rc);
-        int wellCount = getNumWells(rc);
-        int enemyCount = getNumEnemyHQs(rc);
-        rc.writeSharedArray(count + TEAM_HQ_OFFSET, encode(HQLocation.x, HQLocation.y, id));
-        rc.writeSharedArray(COUNT_OFFSET, encode(count + 1, wellCount, enemyCount));
-        return count;
+        int[] count = getAllCount1(rc);
+        rc.writeSharedArray(count[0] + ALLY_HQ_OFFSET, encode(HQLocation.x, HQLocation.y, id));
+        rc.writeSharedArray(COUNT_OFFSET_1, encode(count[0] + 1, count[1], count[2]));
+        return count[0];
     }
 
     public static int getHQIndexByID(RobotController rc, int HQID) throws GameActionException {
-        for (int i = 0; i < Comms.getNumHQs(rc); i++) {
-            int id = decode(rc.readSharedArray(i + TEAM_HQ_OFFSET), 2);
+        for (int i = 0; i < getNumHQs(rc); i++) {
+            int id = decode(rc.readSharedArray(i + ALLY_HQ_OFFSET), 2);
             if (HQID == id) {
                 return i;
             }
@@ -47,8 +222,11 @@ public class Comms {
         return -1;
     }
 
+    /**
+     * Returns the location of the closest team HQ location
+     */
     public static MapLocation getTeamHQLocation(RobotController rc, int index) throws GameActionException {
-        int value = rc.readSharedArray(index + TEAM_HQ_OFFSET);
+        int value = rc.readSharedArray(index + ALLY_HQ_OFFSET);
         int x = decode(value, 0);
         int y = decode(value, 1);
         return new MapLocation(x, y);
@@ -63,16 +241,38 @@ public class Comms {
         return allHQs;
     }
 
-    public static int getNumEnemyHQs(RobotController rc) throws GameActionException {
-        return decode(rc.readSharedArray(COUNT_OFFSET), 2);
+    public static MapLocation getClosestTeamHQLocation(RobotController rc, MapLocation current) throws GameActionException {
+        int lowest_dist = 100;
+        int numHQs = getNumHQs(rc);
+        MapLocation closest = null;
+        for (int i = 0; i < numHQs; i++) {
+            int value = rc.readSharedArray(i + ALLY_HQ_OFFSET);
+            int x = decode(value, 0);
+            int y = decode(value, 1);
+            int distance = Helper.distanceTo(current.x, current.y, x, y);
+            if (distance < lowest_dist) {
+                lowest_dist = distance;
+                closest = new MapLocation(x, y);
+            }
+
+        }
+        return closest;
     }
 
     public static void setEnemyHQLocation(RobotController rc, MapLocation HQLocation, int id) throws GameActionException {
-        int HQCount = getNumHQs(rc);
-        int wellCount = getNumWells(rc);
-        int count = getNumEnemyHQs(rc);
-        rc.writeSharedArray(count + ENEMY_HQ_OFFSET, encode(HQLocation.x, HQLocation.y, id));
-        rc.writeSharedArray(COUNT_OFFSET, encode(HQCount, wellCount, count + 1));
+        int[] count3 = getAllCount3(rc);
+        int enemyHQCount = count3[0];
+
+        if(enemyHQCount < ENEMY_HQ_MAXCOUNT){
+            for(int i = 0; i<enemyHQCount; i++){
+                if(getEnemyHQLocation(rc, i).equals(HQLocation)){
+                    return;
+                }
+            }
+            rc.writeSharedArray(enemyHQCount + ENEMY_HQ_OFFSET, encode(HQLocation.x, HQLocation.y, id));
+            rc.writeSharedArray(COUNT_OFFSET_3, encode(enemyHQCount+1, count3[1], count3[2]));
+        }
+
     }
 
     public static MapLocation getEnemyHQLocation(RobotController rc, int index) throws GameActionException {
@@ -91,79 +291,8 @@ public class Comms {
         return allEnemyHQs;
     }
 
-    public static int getNumExploration(RobotController rc) throws GameActionException {
-        return decode(rc.readSharedArray(EXPLORATION_COUNT_OFFSET), 0);
-    }
-
-    public static void writeExplorationTarget(RobotController rc, MapLocation location) throws GameActionException {
-        int count = getNumExploration(rc);
-        rc.writeSharedArray(count + EXPLORATION_OFFSET, encode(location.x, location.y));
-        rc.writeSharedArray(EXPLORATION_COUNT_OFFSET, encode(count + 1));
-    }
-
-    public static MapLocation getExplorationTarget(RobotController rc, int index) throws GameActionException {
-        int value = rc.readSharedArray(EXPLORATION_OFFSET + index);
-        int x = decode(value, 0);
-        int y = decode(value, 1);
-        return new MapLocation(x, y);
-    }
-
-    /**
-     * Returns the location of the closest team HQ location
-     */
-    public static MapLocation getClosestTeamHQLocation(RobotController rc, MapLocation current) throws GameActionException {
-        int lowest_dist = 100;
-        MapLocation closest = null;
-        for (int i = 0; i < GameConstants.MAX_STARTING_HEADQUARTERS; i++) {
-            int value = rc.readSharedArray(i + TEAM_HQ_OFFSET);
-            if (decode(value, 2) != 0) {
-                int x = decode(value, 0);
-                int y = decode(value, 1);
-                int distance = Helper.distanceTo(current.x, current.y, x, y);
-                if (distance < lowest_dist) {
-                    lowest_dist = distance;
-                    closest = new MapLocation(x, y);
-                }
-            } else {
-                break;
-            }
-        }
-        return closest;
-    }
-
-    public static int getNumWells(RobotController rc) throws GameActionException {
-        return decode(rc.readSharedArray(COUNT_OFFSET), 1);
-    }
-
-    public static void addWellLocation(RobotController rc, MapLocation well) throws GameActionException {
-        int count = getNumWells(rc);
-        if (count < MAX_WELLS) {
-            for (int i = 0; i < count; i++) {
-                int value = rc.readSharedArray(i + WELL_OFFSET);
-                int wellXAtIndex = decode(value, 0);
-                int wellYAtIndex = decode(value, 1);
-                if (wellXAtIndex == well.x && wellYAtIndex == well.y) {
-                    return;
-                }
-            }
-            rc.writeSharedArray(count + WELL_OFFSET, encode(well.x, well.y));
-            int HQCount = getNumHQs(rc);
-            int EnemyHQCount = getNumEnemyHQs(rc);
-            rc.writeSharedArray(COUNT_OFFSET, encode(HQCount, count + 1, EnemyHQCount));
-        }
-    }
-
-    public static int[] getAllWellValues(RobotController rc) throws GameActionException {
-        int count = getNumWells(rc);
-        int[] allWells = new int[count];
-        for (int i = 0; i < count; i++) {
-            allWells[i] = rc.readSharedArray(i + WELL_OFFSET);
-        }
-        return allWells;
-    }
-
-    public static MapLocation getWellCommand(RobotController rc, int HQIndex) throws GameActionException {
-        int value = rc.readSharedArray(WELL_COMMAND_OFFSET + HQIndex);
+    public static MapLocation getHQCommand(RobotController rc, int HQIndex) throws GameActionException {
+        int value = rc.readSharedArray(HQ_COMM_OFFSET + HQIndex);
         int x = decode(value, 0);
         int y = decode(value, 1);
         int assigned = decode(value, 2);
@@ -172,12 +301,46 @@ public class Comms {
         }
         return null;
     }
-    public static void writeWellCommand(RobotController rc, int HQIndex, MapLocation well) throws GameActionException {
-        rc.writeSharedArray(HQIndex + WELL_COMMAND_OFFSET, encode(well.x, well.y, 1));
+    public static void writeHQCommand(RobotController rc, int HQIndex, MapLocation well) throws GameActionException {
+        rc.writeSharedArray(HQIndex + HQ_COMM_OFFSET, encode(well.x, well.y, 1));
+    }
+    public static void clearHQCommand(RobotController rc, int HQIndex) throws GameActionException {
+        rc.writeSharedArray(HQIndex + HQ_COMM_OFFSET, encode(0, 0, 0));
+    }
+    public static void setWellCommand(RobotController rc, MapLocation loc, ResourceType type) throws GameActionException {
+        int[] count2 = getAllCount2(rc);
+        int wellCommCount = count2[0];
+
+        if(wellCommCount < WELL_COMM_MAXCOUNT){
+            for(int i = 0; i<wellCommCount; i++){
+                if(getWellCommand(rc, i).location.equals(loc)){
+                    return;
+                }
+            }
+            rc.writeSharedArray(wellCommCount+ WELL_COMM_OFFSET,
+                    encode(loc.x, loc.y, type.resourceID));
+            rc.writeSharedArray(COUNT_OFFSET_2, encode(wellCommCount+1, count2[1], count2[2]));
+        }
     }
 
-    public static void clearWellCommand(RobotController rc, int index) throws GameActionException {
-        rc.writeSharedArray(index + WELL_COMMAND_OFFSET, encode(0, 0, 0));
+    public static Well getWellCommand(RobotController rc, int index) throws GameActionException {
+        int val = rc.readSharedArray(WELL_COMM_OFFSET+index);
+        int x = decode(val, 0);
+        int y = decode(val, 1);
+        ResourceType type = ResourceType.values()[decode(val, 2)];
+        return new Well(new MapLocation(x, y), type);
+    }
+
+    /**
+     * Returns the location of the closest team HQ location
+     */
+    public static Well[] getAllWellCommands(RobotController rc) throws GameActionException {
+        int count = getNumWellComms(rc);
+        Well[] allComms = new Well[count];
+        for (int i = 0; i < count; i ++) {
+            allComms[i] = getWellCommand(rc, i);
+        }
+        return allComms;
     }
 
     public static boolean reportWellLocation(RobotController rc, int index, WellInfo well) throws GameActionException {
@@ -257,7 +420,7 @@ public class Comms {
             if (o == null)
                 return false;
             Attack command = (Attack) o;
-            return Objects.equals(location, command.location) && type == command.type;
+            return location.equals(command.location) && type == command.type;
         }
 
         @Override
@@ -273,25 +436,11 @@ public class Comms {
     public static class Well{
         public MapLocation location;
         public ResourceType type;
-        public boolean contested;
 
 
         public Well(MapLocation location, ResourceType type) {
             this.location = location;
             this.type = type;
-            contested = false;
-        }
-
-        public Well(MapLocation location, ResourceType type, boolean contested) {
-            this.location = location;
-            this.type = type;
-            contested = true;
-        }
-
-        public Well(MapLocation location, ResourceType type, int num) {
-            this.location = location;
-            this.type = type;
-            contested = (num == 1);
         }
 
         @Override
@@ -299,7 +448,7 @@ public class Comms {
             if (o == null)
                 return false;
             Well w = (Well) o;
-            return Objects.equals(location, w.location) && type == w.type;
+            return location.equals(w.location) && type == w.type;
         }
 
         @Override
@@ -347,7 +496,7 @@ public class Comms {
             if (o == null)
                 return false;
             Island island = (Island) o;
-            return Objects.equals(location, island.location) && id == island.id;
+            return location.equals(island.location) && id == island.id;
         }
 
         @Override
@@ -356,6 +505,30 @@ public class Comms {
         }
 
     }
+
+    public static class Command {
+        public MapLocation location;
+        public int num;
+
+        public Command(MapLocation location, int num) {
+            this.location = location;
+            this.num = num;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == null)
+                return false;
+            Command command = (Command) o;
+            return location.equals(command.location) && command.num == num;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(location, num);
+        }
+
+    };
     private static int getCommPrio(RobotType type) {
         if (type == null) {
             return 0;
