@@ -343,6 +343,27 @@ public class Comms {
         return allComms;
     }
 
+    /**
+     * NEED TO IMPLEMENT; check getWellPerm and getAllWellPerm
+     */
+    public static void setWellPerm(RobotController rc, MapLocation loc, ResourceType type) throws GameActionException {
+    }
+    public static Well getWellPerm(RobotController rc, int index) throws GameActionException {
+        int val = rc.readSharedArray(WELL_PERM_OFFSET+index);
+        int x = decode(val, 0);
+        int y = decode(val, 1);
+        ResourceType type = ResourceType.values()[decode(val, 2)];
+        return new Well(new MapLocation(x, y), type);
+    }
+
+    public static Well[] getAllWellPerm(RobotController rc) throws GameActionException{
+        Well[] allPerm = new Well[WELL_PERM_MAXCOUNT];
+        for (int i = 0; i < WELL_PERM_MAXCOUNT; i ++) {
+            allPerm[i] = getWellPerm(rc, i);
+        }
+        return allPerm;
+    }
+
     public static boolean reportWellLocation(RobotController rc, int index, WellInfo well) throws GameActionException {
         int value = rc.readSharedArray(index + WELL_REPORT_OFFSET);
         if (decode(value, 2) == 0) {
@@ -380,6 +401,90 @@ public class Comms {
 
     public static void clearWellReport(RobotController rc, int index) throws GameActionException {
         rc.writeSharedArray(index + WELL_REPORT_OFFSET, encode(0, 0, 0));
+    }
+
+    public static Island getIslandLocation(RobotController rc, int index) throws GameActionException{
+        int val = rc.readSharedArray(ISLAND_OFFSET+index);
+        int x = decode(val, 0);
+        int y = decode(val, 1);
+        //Island size?
+        return new Island(new MapLocation(x, y), 1);
+    }
+
+    public static Island[] getIslandLocations(RobotController rc) throws GameActionException{
+        Island[] islands = new Island[ISLAND_MAXCOUNT];
+        for (int i = 0; i < ISLAND_MAXCOUNT; i ++) {
+            islands[i] = getIslandLocation(rc, i);
+        }
+        return islands;
+    }
+
+    public static void setIslandLocation(RobotController rc, MapLocation loc){}
+
+
+    public static boolean reportIslandLocation(){return false;}
+
+    public static int[] readIslandReport(){return null;}
+
+    public static void clearIslandReport(RobotController rc, int index) throws GameActionException {
+        rc.writeSharedArray(index + ISLAND_REP_OFFSET, encode(0, 0, 0));
+    }
+
+    public static void setAnchorCommandEven(RobotController rc, MapLocation loc, ResourceType type) throws GameActionException {}
+
+    public static MapLocation getAnchorCommandEven(RobotController rc, int index) throws GameActionException {
+        int val = rc.readSharedArray(ANCHOR_OFFSET_EVEN+index);
+        int x = decode(val, 0);
+        int y = decode(val, 1);
+        return new MapLocation(x, y);
+    }
+
+    public static MapLocation[] getAllAnchorCommandEven(RobotController rc) throws GameActionException{
+        MapLocation[] anchorLocations = new MapLocation[ANCHOR_MAXCOUNT];
+        for(int i = 0; i < ANCHOR_MAXCOUNT; i++){
+            anchorLocations[i] = getAnchorCommandEven(rc, i);
+        }
+        return anchorLocations;
+    }
+    public static void setAnchorCommandOdd(RobotController rc, MapLocation loc, ResourceType type) throws GameActionException {}
+
+    public static MapLocation getAnchorCommandOdd(RobotController rc, int index) throws GameActionException {
+        int val = rc.readSharedArray(ANCHOR_OFFSET_ODD+index);
+        int x = decode(val, 0);
+        int y = decode(val, 1);
+        return new MapLocation(x, y);
+    }
+
+    public static MapLocation[] getAllAnchorCommandOdd(RobotController rc) throws GameActionException{
+        MapLocation[] anchorLocations = new MapLocation[ANCHOR_MAXCOUNT];
+        for(int i = 0; i < ANCHOR_MAXCOUNT; i++){
+            anchorLocations[i] = getAnchorCommandOdd(rc, i);
+        }
+        return anchorLocations;
+    }
+
+    public static void setAttackCommandEven(RobotController rc, MapLocation loc, RobotType type){}
+
+    public static Attack getAttackCommandEven(RobotController rc, int index){return null;}
+
+    public static Attack[] getAllAttackCommandsEven(RobotController rc){
+        Attack[] attacks = new Attack[AC_MAXCOUNT];
+        for(int i = 0; i < AC_MAXCOUNT; i++){
+            attacks[i] = getAttackCommandEven(rc, i);
+        }
+        return attacks;
+    }
+
+    public static void setAttackCommandOdd(RobotController rc, MapLocation loc, RobotType type){}
+
+    public static Attack getAttackCommandOdd(RobotController rc, int index){return null;}
+
+    public static Attack[] getAllAttackCommandsOdd(RobotController rc){
+        Attack[] attacks = new Attack[AC_MAXCOUNT];
+        for(int i = 0; i < AC_MAXCOUNT; i++){
+            attacks[i] = getAttackCommandOdd(rc, i);
+        }
+        return attacks;
     }
 
     /**
