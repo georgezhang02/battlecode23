@@ -17,13 +17,13 @@ public class Comms {
     private static final int WELL_PERM_OFFSET = 20;
     private static final int WELL_REPORT_OFFSET = 28;
     private static final int ISLAND_OFFSET = 32;
-    private static final int ISLAND_REP_OFFSET = 40;
+    private static final int ISLAND_REPORT_OFFSET = 40;
     private static final int ANCHOR_OFFSET_EVEN = 44;
 
     private static final int ANCHOR_OFFSET_ODD = 44;
-    private static final int AC_EVEN_OFFSET = 48;
+    private static final int ATTACK_OFFSET_EVEN= 48;
 
-    private static final int AC_ODD_OFFSET = 56;
+    private static final int ATTACK_OFFSET_ODD = 56;
 
     private static final int ALLY_HQ_MAXCOUNT = 4;
     private static final int ENEMY_HQ_MAXCOUNT = 4;
@@ -34,7 +34,7 @@ public class Comms {
     private static final int ISLAND_MAXCOUNT = 8;
     private static final int ISLAND_REP_MAXCOUNT = 4;
     private static final int ANCHOR_MAXCOUNT = 2;
-    private static final int AC_MAXCOUNT = 8;
+    private static final int ATTACK_MAXCOUNT = 8;
 
     // Team Count
     /**
@@ -90,7 +90,7 @@ public class Comms {
     /**
      * @return Number of Well Reports
      */
-    public static int getNumWellRep(RobotController rc) throws GameActionException {
+    public static int getNumWellsRep(RobotController rc) throws GameActionException {
         return decode(rc.readSharedArray(COUNT_OFFSET_2), 2);
     }
 
@@ -121,7 +121,7 @@ public class Comms {
     /**
      * @return Number of Island Reports
      */
-    public static int getNumIslandRep(RobotController rc) throws GameActionException {
+    public static int getNumIslandReps(RobotController rc) throws GameActionException {
         return decode(rc.readSharedArray(COUNT_OFFSET_3), 2);
     }
 
@@ -307,20 +307,22 @@ public class Comms {
     public static void clearHQCommand(RobotController rc, int HQIndex) throws GameActionException {
         rc.writeSharedArray(HQIndex + HQ_COMM_OFFSET, encode(0, 0, 0));
     }
-    public static void setWellCommand(RobotController rc, MapLocation loc, ResourceType type) throws GameActionException {
+    public static boolean setWellCommand(RobotController rc, MapLocation loc, ResourceType type) throws GameActionException {
         int[] count2 = getAllCount2(rc);
         int wellCommCount = count2[0];
 
         if(wellCommCount < WELL_COMM_MAXCOUNT){
             for(int i = 0; i<wellCommCount; i++){
                 if(getWellCommand(rc, i).location.equals(loc)){
-                    return;
+                    return false;
                 }
             }
             rc.writeSharedArray(wellCommCount+ WELL_COMM_OFFSET,
                     encode(loc.x, loc.y, type.resourceID));
             rc.writeSharedArray(COUNT_OFFSET_2, encode(wellCommCount+1, count2[1], count2[2]));
+            return true;
         }
+        return false;
     }
 
     public static Well getWellCommand(RobotController rc, int index) throws GameActionException {
@@ -347,6 +349,19 @@ public class Comms {
      * NEED TO IMPLEMENT; check getWellPerm and getAllWellPerm
      */
     public static void setWellPerm(RobotController rc, MapLocation loc, ResourceType type) throws GameActionException {
+        int[] count2 = getAllCount2(rc);
+        int wellPermCount = count2[1];
+
+        if(wellPermCount < WELL_COMM_MAXCOUNT){
+            for(int i = 0; i<wellPermCount; i++){
+                if(getWellCommand(rc, i).location.equals(loc)){
+                    return;
+                }
+            }
+            rc.writeSharedArray(wellPermCount+ WELL_PERM_OFFSET,
+                    encode(loc.x, loc.y, type.ordinal()));
+            rc.writeSharedArray(COUNT_OFFSET_2, encode(count2[0], wellPermCount+1, count2[2]));
+        }
     }
     public static Well getWellPerm(RobotController rc, int index) throws GameActionException {
         int val = rc.readSharedArray(WELL_PERM_OFFSET+index);
@@ -357,48 +372,48 @@ public class Comms {
     }
 
     public static Well[] getAllWellPerm(RobotController rc) throws GameActionException{
-        Well[] allPerm = new Well[WELL_PERM_MAXCOUNT];
-        for (int i = 0; i < WELL_PERM_MAXCOUNT; i ++) {
+        int num = getNumWellsPerm(rc);
+        Well[] allPerm = new Well[num];
+        for (int i = 0; i < num; i ++) {
             allPerm[i] = getWellPerm(rc, i);
         }
         return allPerm;
     }
 
     public static boolean reportWellLocation(RobotController rc, int index, WellInfo well) throws GameActionException {
-        int value = rc.readSharedArray(index + WELL_REPORT_OFFSET);
-        if (decode(value, 2) == 0) {
-            MapLocation loc = well.getMapLocation();
-            int wellType = 0;
-            switch (well.getResourceType()) {
-                case ADAMANTIUM:
-                    wellType = 1;
-                    break;
-                case MANA:
-                    wellType = 2;
-                    break;
-                case ELIXIR:
-                    wellType = 3;
-                    break;
+        int[] count2 = getAllCount2(rc);
+        int repCount = getNumWellsRep(rc);
+        if (repCount < WELL_REP_MAXCOUNT) {
+            for(int i = 0; i<repCount; i++){
+                if(readWellReport(rc, i).location.equals(well.getMapLocation())){
+                    return false;
+                }
             }
-            rc.writeSharedArray(index + WELL_REPORT_OFFSET, encode(loc.x, loc.y, wellType));
+            MapLocation loc = well.getMapLocation();
+            rc.writeSharedArray(index + WELL_REPORT_OFFSET, encode(loc.x, loc.y, well.getResourceType().resourceID));
+            rc.writeSharedArray(COUNT_OFFSET_2, encode(count2[0], count2[1], repCount+1));
             return true;
         }
         return false;
     }
 
-    public static int[] readWellReport(RobotController rc, int index) throws GameActionException {
+    public static Well readWellReport(RobotController rc, int index) throws GameActionException {
         int value = rc.readSharedArray(index + WELL_REPORT_OFFSET);
-        int[] report = new int[3];
-        report[0] = decode(value, 0);
-        report[1] = decode(value, 1);
         int type = decode(value, 2);
-        if (type == 0) {
-            return null;
-        }
-        report[2] = type;
+        Well report = new Well(new MapLocation(decode(value, 0),  decode(value, 1)),
+                ResourceType.values()[type]);
+
         return report;
     }
 
+    public static Well[] getAllWellReports(RobotController rc) throws GameActionException {
+        int count = getNumWellsRep(rc);
+        Well[] allWells = new Well[count];
+        for (int i = 0; i < count; i ++) {
+            allWells[i] = readWellReport(rc, i);
+        }
+        return allWells;
+    }
     public static void clearWellReport(RobotController rc, int index) throws GameActionException {
         rc.writeSharedArray(index + WELL_REPORT_OFFSET, encode(0, 0, 0));
     }
@@ -407,30 +422,120 @@ public class Comms {
         int val = rc.readSharedArray(ISLAND_OFFSET+index);
         int x = decode(val, 0);
         int y = decode(val, 1);
-        //Island size?
-        return new Island(new MapLocation(x, y), 1);
+        return new Island(new MapLocation(x, y));
     }
 
-    public static Island[] getIslandLocations(RobotController rc) throws GameActionException{
-        Island[] islands = new Island[ISLAND_MAXCOUNT];
-        for (int i = 0; i < ISLAND_MAXCOUNT; i ++) {
+    public static Island[] getAllIslandLocations(RobotController rc) throws GameActionException{
+        int islandCount = getNumIslands(rc);
+        Island[] islands = new Island[islandCount];
+        for (int i = 0; i < islandCount; i ++) {
             islands[i] = getIslandLocation(rc, i);
         }
         return islands;
     }
 
-    public static void setIslandLocation(RobotController rc, MapLocation loc){}
+    /**
+     * Pass in null for team if no team currently owns it
+     * @param rc
+     * @param loc
+     * @param team
+     * @throws GameActionException
+     */
+    public static void setIslandLocation(RobotController rc, MapLocation loc, Team team) throws GameActionException {
+        int[] count3 = getAllCount3(rc);
+        int islandCount = count3[0];
 
 
-    public static boolean reportIslandLocation(){return false;}
+        int teamVal;
+        if (team == null){
+            teamVal = 0;
+        }
+        else if(team.equals(rc.getTeam())){
+            teamVal = 1;
+        } else {
+            teamVal = 2;
+        }
 
-    public static int[] readIslandReport(){return null;}
+        if(islandCount < ISLAND_MAXCOUNT){
+            for(int i = 0; i<islandCount; i++){
+                if(getIslandLocation(rc, i).location.distanceSquaredTo(loc) <=8){
+                    return;
+                }
+            }
 
+            rc.writeSharedArray(islandCount+ ISLAND_OFFSET,
+                    encode(loc.x, loc.y, teamVal));
+            rc.writeSharedArray(COUNT_OFFSET_3, encode(count3[0], count3[1] +1, count3[2]));
+        }
+    }
     public static void clearIslandReport(RobotController rc, int index) throws GameActionException {
-        rc.writeSharedArray(index + ISLAND_REP_OFFSET, encode(0, 0, 0));
+        rc.writeSharedArray(index + ISLAND_REPORT_OFFSET, encode(0, 0, 0));
     }
 
-    public static void setAnchorCommandEven(RobotController rc, MapLocation loc, ResourceType type) throws GameActionException {}
+
+    public static Island readIslandReport(RobotController rc, int index) throws GameActionException {
+        int value = rc.readSharedArray(index + ISLAND_REPORT_OFFSET);
+        int team = decode(value, 2);
+
+        Team owner = null;
+
+        switch(team)
+        {
+            case 1:
+                owner = rc.getTeam();
+                break;
+            case 2:
+                owner = rc.getTeam().opponent();
+                break;
+            default:
+                break;
+        }
+
+        return new Island(new MapLocation(decode(value, 0),  decode(value, 1)), owner);
+    }
+
+    public static Island[] getAllIslandReports(RobotController rc) throws GameActionException {
+        int count = getNumIslandReps(rc);
+        Island[] allReps = new Island[count];
+        for (int i = 0; i < count; i ++) {
+            allReps[i] = readIslandReport(rc, i);
+        }
+        return allReps;
+    }
+
+    /**
+     * Pass in null for team if no team currently owns it
+     * @param rc
+     * @param loc
+     * @param owner
+     * @throws GameActionException
+     */
+    public static boolean reportIslandLocation(RobotController rc, MapLocation loc, Team owner) throws GameActionException{
+        int[] count3 = getAllCount3(rc);
+        int repCount = getNumWellsRep(rc);
+        if (repCount < ISLAND_REP_MAXCOUNT) {
+            for(int i = 0; i<repCount; i++){
+                if(readWellReport(rc, i).location.distanceSquaredTo(loc) <= 8){
+                    return false;
+                }
+            }
+
+            int teamVal;
+            if (owner == null){
+                teamVal = 0;
+            }
+            else if(owner.equals(rc.getTeam())){
+                teamVal = 1;
+            } else {
+                teamVal = 2;
+            }
+
+            rc.writeSharedArray(repCount + ISLAND_REPORT_OFFSET, encode(loc.x, loc.y, teamVal));
+            rc.writeSharedArray(COUNT_OFFSET_3, encode(count3[0], count3[1], repCount+1));
+            return true;
+        }
+        return false;
+    }
 
     public static MapLocation getAnchorCommandEven(RobotController rc, int index) throws GameActionException {
         int val = rc.readSharedArray(ANCHOR_OFFSET_EVEN+index);
@@ -439,15 +544,6 @@ public class Comms {
         return new MapLocation(x, y);
     }
 
-    public static MapLocation[] getAllAnchorCommandEven(RobotController rc) throws GameActionException{
-        MapLocation[] anchorLocations = new MapLocation[ANCHOR_MAXCOUNT];
-        for(int i = 0; i < ANCHOR_MAXCOUNT; i++){
-            anchorLocations[i] = getAnchorCommandEven(rc, i);
-        }
-        return anchorLocations;
-    }
-    public static void setAnchorCommandOdd(RobotController rc, MapLocation loc, ResourceType type) throws GameActionException {}
-
     public static MapLocation getAnchorCommandOdd(RobotController rc, int index) throws GameActionException {
         int val = rc.readSharedArray(ANCHOR_OFFSET_ODD+index);
         int x = decode(val, 0);
@@ -455,37 +551,221 @@ public class Comms {
         return new MapLocation(x, y);
     }
 
-    public static MapLocation[] getAllAnchorCommandOdd(RobotController rc) throws GameActionException{
-        MapLocation[] anchorLocations = new MapLocation[ANCHOR_MAXCOUNT];
-        for(int i = 0; i < ANCHOR_MAXCOUNT; i++){
-            anchorLocations[i] = getAnchorCommandOdd(rc, i);
+    public static MapLocation[] getAllAnchorCommands(RobotController rc) throws GameActionException{
+        MapLocation[] anchorLocations;
+        if(readEven(rc)){
+            int numAnchorCommands = getNumAnchorEven(rc);
+            anchorLocations = new MapLocation[numAnchorCommands];
+            for(int i = 0; i < numAnchorCommands; i++){
+                anchorLocations[i] = getAnchorCommandEven(rc, i);
+            }
+        } else{
+            int numAnchorCommands = getNumAnchorOdd(rc);
+            anchorLocations = new MapLocation[numAnchorCommands];
+            for(int i = 0; i < numAnchorCommands; i++){
+                anchorLocations[i] = getAnchorCommandOdd(rc, i);
+            }
         }
+
         return anchorLocations;
     }
 
-    public static void setAttackCommandEven(RobotController rc, MapLocation loc, RobotType type){}
+    public static boolean setAnchorCommand(RobotController rc, MapLocation loc) throws GameActionException {
+        if(writeEven(rc)){
+            // write evens
+            int[] count4 = getAllCount4(rc);
+            int anchorCount = count4[0];
+            if (anchorCount < ANCHOR_MAXCOUNT) {
+                for(int i = 0; i<anchorCount; i++){
+                    if(getAnchorCommandEven(rc, i).distanceSquaredTo(loc) <=8){
+                        return false;
+                    }
+                }
+                rc.writeSharedArray(anchorCount + ANCHOR_OFFSET_EVEN, encode(loc.x, loc.y, 0));
+                rc.writeSharedArray(COUNT_OFFSET_4, encode(anchorCount+1, count4[1], count4[2]));
+                return true;
+            }
+            return false;
 
-    public static Attack getAttackCommandEven(RobotController rc, int index){return null;}
-
-    public static Attack[] getAllAttackCommandsEven(RobotController rc){
-        Attack[] attacks = new Attack[AC_MAXCOUNT];
-        for(int i = 0; i < AC_MAXCOUNT; i++){
-            attacks[i] = getAttackCommandEven(rc, i);
+        } else{
+            //write odds
+            int[] count4 = getAllCount4(rc);
+            int anchorCount = count4[1];
+            if (anchorCount < ANCHOR_MAXCOUNT) {
+                for(int i = 0; i<anchorCount; i++){
+                    if(getAnchorCommandOdd(rc, i).distanceSquaredTo(loc) <=8){
+                        return false;
+                    }
+                }
+                rc.writeSharedArray(anchorCount + ANCHOR_OFFSET_ODD, encode(loc.x, loc.y, 0));
+                rc.writeSharedArray(COUNT_OFFSET_4, encode(count4[0], anchorCount+1, count4[2]));
+                return true;
+            }
+            return false;
         }
-        return attacks;
     }
 
-    public static void setAttackCommandOdd(RobotController rc, MapLocation loc, RobotType type){}
 
-    public static Attack getAttackCommandOdd(RobotController rc, int index){return null;}
 
-    public static Attack[] getAllAttackCommandsOdd(RobotController rc){
-        Attack[] attacks = new Attack[AC_MAXCOUNT];
-        for(int i = 0; i < AC_MAXCOUNT; i++){
-            attacks[i] = getAttackCommandOdd(rc, i);
-        }
-        return attacks;
+    public static Attack getAttackCommandEven(RobotController rc, int index) throws GameActionException {
+        int val = rc.readSharedArray(ATTACK_OFFSET_EVEN+index);
+        int x = decode(val, 0);
+        int y = decode(val, 1);
+        int type = decode(val, 2);
+        return new Attack(new MapLocation(x, y), RobotType.values()[type]);
     }
+
+    public static Attack getAttackCommandOdd(RobotController rc, int index) throws GameActionException {
+        int val = rc.readSharedArray(ATTACK_OFFSET_ODD+index);
+        int x = decode(val, 0);
+        int y = decode(val, 1);
+        int type = decode(val, 2);
+        return new Attack(new MapLocation(x, y), RobotType.values()[type]);
+    }
+
+    public static Attack[] getAllAttackCommands(RobotController rc) throws GameActionException {
+        Attack[] attackCommands;
+        if(readEven(rc)){
+            int numAttackCommands = getNumACEven(rc);
+            attackCommands = new Attack[numAttackCommands];
+            for(int i = 0; i < numAttackCommands; i++){
+                attackCommands[i] = getAttackCommandEven(rc, i);
+            }
+        } else{
+            int numAttackCommands = getNumACOdd(rc);
+            attackCommands = new Attack[numAttackCommands];
+            for(int i = 0; i < numAttackCommands; i++){
+                attackCommands[i] = getAttackCommandOdd(rc, i);
+            }
+        }
+
+        return attackCommands;
+    }
+
+    public static boolean setAttackCommand(RobotController rc, MapLocation loc, RobotType type) throws GameActionException {
+        if(writeEven(rc)){
+            // write evens
+            int[] count1 = getAllCount1(rc);
+            int attackCount = count1[1];
+            if (attackCount < ATTACK_MAXCOUNT) {
+                for(int i = 0; i<attackCount; i++){
+                    Attack attack = getAttackCommandEven(rc, i);
+                    if(attack.location.distanceSquaredTo(loc) <=8
+                            && attack.type.equals(type)){
+                        return false;
+                    }
+                }
+                rc.writeSharedArray(attackCount + ATTACK_OFFSET_EVEN, encode(loc.x, loc.y, type.ordinal()));
+                rc.writeSharedArray(COUNT_OFFSET_1, encode(count1[0], attackCount+1, count1[2]));
+                return true;
+            }
+            return false;
+
+        } else{
+            //write odds
+            int[] count1 = getAllCount1(rc);
+            int attackCount = count1[2];
+            if (attackCount < ATTACK_MAXCOUNT) {
+                for(int i = 0; i<attackCount; i++){
+                    Attack attack = getAttackCommandOdd(rc, i);
+                    if(attack.location.distanceSquaredTo(loc) <=8
+                            && attack.type.equals(type)){
+                        return false;
+                    }
+                }
+                rc.writeSharedArray(attackCount + ATTACK_OFFSET_ODD, encode(loc.x, loc.y, type.ordinal()));
+                rc.writeSharedArray(COUNT_OFFSET_1, encode(count1[0], count1[1], attackCount+1));
+                return true;
+            }
+            return false;
+        }
+    }
+
+    public static boolean readEven(RobotController rc){
+        return rc.getRoundNum()%2 != 0;
+    }
+
+    public static boolean writeEven(RobotController rc){
+        return rc.getRoundNum()%2 == 0;
+    }
+
+    //non-garbage collecting version
+    public static void wipeComms(RobotController rc) throws GameActionException{
+        int[] count1 = getAllCount1(rc);
+        int[] count2 = getAllCount2(rc);
+        int[] count3 = getAllCount2(rc);
+        int[] count4 = getAllCount4(rc);
+        //wipe last round Attacks and Anchors
+        if(readEven(rc)){
+            // if we're now reading from evens, wipe odds
+            count1[2] = 0;
+            count4[1] = 0;
+
+        } else{
+            // if we're now reading from odds, wipe evens
+            count1[1] = 0;
+            count4[0] = 0;
+        }
+        // wipe reports
+        count2[2] = 0; // well reports
+        count3[2] = 0; // island reports
+
+
+        rc.writeSharedArray(COUNT_OFFSET_1, encode(count1[0], count1[1], count1[2]));
+        rc.writeSharedArray(COUNT_OFFSET_2, encode(count2[0], count2[1], count2[2]));
+        rc.writeSharedArray(COUNT_OFFSET_3, encode(count3[0], count3[1], count3[2]));
+        rc.writeSharedArray(COUNT_OFFSET_4, encode(count4[0], count4[1], count4[2]));
+
+        setCommsCleaned(rc);
+
+
+    }
+    //non-garbage collecting version
+
+    /**
+     * wipes the given sections in addition to updates if booleans set to true
+     * @param rc
+     * @param wellComms
+     * @param permaWells
+     * @param teamIslands
+     * @throws GameActionException
+     */
+    public static void wipeComms(RobotController rc, boolean wellComms, boolean permaWells, boolean teamIslands)
+            throws GameActionException{
+
+        int[] count1 = getAllCount1(rc);
+        int[] count2 = getAllCount2(rc);
+        int[] count3 = getAllCount2(rc);
+        int[] count4 = getAllCount4(rc);
+        //wipe last round Attacks and Anchors
+        if(readEven(rc)){
+            // if we're now reading from evens, wipe odds
+            count1[2] = 0;
+            count4[1] = 0;
+
+        } else{
+            // if we're now reading from odds, wipe evens
+            count1[1] = 0;
+            count4[0] = 0;
+        }
+        // wipe reports
+        count2[2] = 0;
+        count3[2] = 0;
+
+        if(wellComms) count2[0] = 0;
+        if(permaWells) count2[1] = 0;
+        if(teamIslands) count3[1] = 0;
+
+        rc.writeSharedArray(COUNT_OFFSET_1, encode(count1[0], count1[1], count1[2]));
+        rc.writeSharedArray(COUNT_OFFSET_2, encode(count2[0], count2[1], count2[2]));
+        rc.writeSharedArray(COUNT_OFFSET_3, encode(count3[0], count3[1], count3[2]));
+        rc.writeSharedArray(COUNT_OFFSET_4, encode(count4[0], count4[1], count4[2]));
+
+        setCommsCleaned(rc);
+
+    }
+
+
 
     /**
      * Decodes one array value at an index 0, 1, or 2
@@ -564,36 +844,27 @@ public class Comms {
 
     public static class Island{
         public MapLocation location;
-        public int id;
         public Team owner; // note: null equals no team owned
-        public Anchor anchorType;
 
-        public Island(MapLocation location, int id){
+        public Island(MapLocation location){
             this.location = location;
-            this.id = id;
             owner = null;
-            anchorType = Anchor.STANDARD;
         }
 
-        public Island(MapLocation location, int id, Anchor anchorType){
+        public Island(MapLocation location, int team, RobotController rc){
             this.location = location;
-            this.id = id;
-            owner = null;
-            this.anchorType = anchorType;
+            if(team == 1){
+                owner = rc.getTeam();
+            } else if (team == 2){
+                owner = rc.getTeam().opponent();
+            } else{
+                owner = null;
+            }
         }
 
-        public Island(MapLocation location, int id, Team owner){
+        public Island(MapLocation location, Team team){
             this.location = location;
-            this.id = id;
-            this.owner = owner;
-            anchorType = Anchor.STANDARD;
-        }
-
-        public Island(MapLocation location, int id, Team owner, Anchor anchorType){
-            this.location = location;
-            this.id = id;
-            this.owner = owner;
-            this.anchorType = anchorType;
+            this.owner = team;
         }
 
         @Override
@@ -601,12 +872,12 @@ public class Comms {
             if (o == null)
                 return false;
             Island island = (Island) o;
-            return location.equals(island.location) && id == island.id;
+            return location.equals(island.location) && owner.equals(island.owner);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(location, id);
+            return Objects.hash(location, owner);
         }
 
     }
