@@ -1,6 +1,5 @@
 package CB_first;
 
-import CB_basicelxrunits.Pathfinder;
 import battlecode.common.*;
 
 public strictfp class Destabilizer {
@@ -182,7 +181,7 @@ public strictfp class Destabilizer {
 
     //Hover around the nearest ally
     static void hover(RobotController rc) throws GameActionException{
-        Direction dir = CB_basicelxrunits.Pathfinder.pathBug(rc, nearestAllyMil.getLocation());
+        Direction dir = Pathfinder.pathBug(rc, nearestAllyMil.getLocation());
         if(rc.canMove(dir)){
             rc.move(dir);
         }
@@ -218,9 +217,9 @@ public strictfp class Destabilizer {
             // no action available, run from enemies; you're a destablizier not much you can do
             rc.setIndicatorString("no actions, run");
             if(nearestEnemyMil != null){
-                return CB_basicelxrunits.Pathfinder.pathAwayFrom(rc, nearestEnemyMil.getLocation());
+                return Pathfinder.pathAwayFrom(rc, nearestEnemyMil.getLocation());
             }
-            return CB_basicelxrunits.Pathfinder.pathAwayFrom(rc,enemies[0].getLocation());
+            return Pathfinder.pathAwayFrom(rc,enemies[0].getLocation());
         } else{
             // action ready
             //rc.setIndicatorString(attackRobot+"");
@@ -232,7 +231,7 @@ public strictfp class Destabilizer {
                     // if attack already in radius, attack and kite
                     rc.setIndicatorString("attack and kite");
                     rc.attack(attackLoc);
-                    return CB_basicelxrunits.Pathfinder.pathAwayFrom(rc, nearestEnemyMil.getLocation());
+                    return Pathfinder.pathAwayFrom(rc, nearestEnemyMil.getLocation());
                 } else {
                     // attack not in radius
                     // only move forward to hit if the enemy is killable or you have nearby allies
@@ -245,7 +244,7 @@ public strictfp class Destabilizer {
                         }
                         if(alliesCanSee > 2){
                             moveFirst = true;
-                            return CB_basicelxrunits.Pathfinder.pathBug(rc, attackLoc);
+                            return Pathfinder.pathBug(rc, attackLoc);
                         }
                     }
                 }
