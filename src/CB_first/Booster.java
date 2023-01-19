@@ -1,6 +1,5 @@
 package CB_first;
 
-import CB_basicelxrunits.Pathfinder;
 import battlecode.common.*;
 
 public strictfp class Booster {
@@ -165,14 +164,14 @@ public strictfp class Booster {
     
     //Hover around the nearest ally
     static void hover(RobotController rc) throws GameActionException{
-        Direction dir = CB_basicelxrunits.Pathfinder.pathBug(rc, nearestAllyMil.getLocation());
+        Direction dir = Pathfinder.pathBug(rc, nearestAllyMil.getLocation());
         if(rc.canMove(dir)){
             rc.move(dir);
         }
     }
 
     static void explore(RobotController rc) throws GameActionException{
-        Direction dir = CB_basicelxrunits.Pathfinder.pathToExploreHQ(rc);
+        Direction dir = Pathfinder.pathToExploreHQ(rc);
         if(rc.canMove(dir)){
             rc.move(dir);
         }
@@ -189,7 +188,7 @@ public strictfp class Booster {
     static Direction findMovementCombat(RobotController rc) throws GameActionException {
         //As a booster, you just kite no matter what the situation is
         if (nearestEnemyMil != null) {
-            return CB_basicelxrunits.Pathfinder.pathAwayFrom(rc, nearestEnemyMil.getLocation());
+            return Pathfinder.pathAwayFrom(rc, nearestEnemyMil.getLocation());
         }
         return Pathfinder.pathAwayFrom(rc, enemies[0].getLocation());
     }
