@@ -6,7 +6,7 @@ public strictfp class Launcher {
 
     static final int ATTACKDMG = 30;
     public enum LauncherState {
-        Combat, Pursuing, Exploring
+        Combat, Pursuing, Exploring, Fallback
     }
 
     static RobotInfo[] enemies;
@@ -14,6 +14,10 @@ public strictfp class Launcher {
     static RobotInfo nearestEnemyMil;
     static RobotInfo[] allies;
     static WellInfo[]wells;
+
+    static int[]islands;
+
+    static MapLocation fallbackIsland;
     static boolean initialized = false;
 
     static int combatCD = 0;
@@ -114,6 +118,9 @@ public strictfp class Launcher {
             case Exploring:
                 explore(rc);
                 break;
+            case Fallback:
+                fallback(rc);
+                break;
         }
 
 
@@ -140,6 +147,16 @@ public strictfp class Launcher {
         wells = rc.senseNearbyWells();
 
         allies = rc.senseNearbyRobots(RobotType.LAUNCHER.visionRadiusSquared, rc.getTeam());
+
+        islands  = rc.senseNearbyIslands();
+        String debug = "";
+        for(int i = 0; i < islands.length; i++){
+            if(rc.senseTeamOccupyingIsland(islands[i]) == rc.getTeam()){
+                fallbackIsland = rc.senseNearbyIslandLocations(islands[i])[0];;
+            }
+            debug += islands[i] + " ";
+        }
+        rc.setIndicatorString(debug);
         numEnemyMil = 0;
         nearestEnemyMil = null;
         for(RobotInfo enemy: enemies){
@@ -214,13 +231,20 @@ public strictfp class Launcher {
                 enemiesFound = true;
 
             }
-
         }
-        if (enemiesFound){
+        if(state == LauncherState.Fallback){
+            if(rc.getHealth() == RobotType.LAUNCHER.getMaxHealth()){
+                state = LauncherState.Exploring;
+            }
+            rc.setIndicatorString("fallingback");
+        } else if (enemiesFound){
             pursuitLocation = null;
             combatCD =5;
             state = LauncherState.Combat;
-        } else if( combatCD >0 && pursuitLocation!=null &&
+        } else if (fallbackIsland != null && rc.getHealth() <= RobotType.LAUNCHER.getMaxHealth() / 2 ){
+            state = LauncherState.Fallback;
+        }
+        else if( combatCD >0 && pursuitLocation!=null &&
                 rc.getLocation().distanceSquaredTo(pursuitLocation) > 5 ){
             state = LauncherState.Pursuing;
         }else{
@@ -228,11 +252,14 @@ public strictfp class Launcher {
             pursuitLocation = null;
             state = LauncherState.Exploring;
         }
-
-
-
     }
 
+    static void fallback(RobotController rc) throws GameActionException{
+        Direction dir = Pathfinder.pathBug(rc, fallbackIsland);
+        if(canMoveToExplore(rc, dir)) {
+            rc.move(dir);
+        }
+    }
     static void combat(RobotController rc) throws GameActionException{
         RobotInfo attackRobot = findAttack(rc);
         Direction moveDir = findMovementCombat(rc, attackRobot);
@@ -540,7 +567,6 @@ public strictfp class Launcher {
         }
 
     }
-
 
     static boolean canMove(RobotController rc, Direction dir) throws GameActionException{
         return dir != null && rc.canMove(dir);
