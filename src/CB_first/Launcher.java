@@ -6,7 +6,7 @@ public strictfp class Launcher {
 
     static final int ATTACKDMG = 30;
     public enum LauncherState {
-        Combat, Pursuing, Exploring
+        Combat, Pursuing, Exploring, FollowingCommand
     }
 
     static RobotInfo[] enemies;
@@ -32,29 +32,16 @@ public strictfp class Launcher {
     static RobotInfo[] nearbyAllyMil = new RobotInfo[10];
 
     static RobotInfo nearestAllyMil;
-
     static RobotInfo furthestAllyMil;
-
     static RobotInfo[] alliesPrevious = new RobotInfo[10];;
-
     static int numAlliesPrevious =0;
-
     static boolean movementChange;
-
     static RobotInfo followBot;
-
     static RobotInfo nearestNonAdjacentAllyMil;
-
     static boolean canExplore = false;
-
     static int cooldownTurn = 0;
-
     static int detachCD = 0;
-
-
-
-    static String allyString;
-
+    static Comms.Attack attackCommand;
     static final Direction[] directions = {
             Direction.NORTH,
             Direction.NORTHEAST,
@@ -111,6 +98,9 @@ public strictfp class Launcher {
             case Pursuing:
                 pursue(rc);
                 break;
+            case FollowingCommand:
+                followCommand(rc);
+                break;
             case Exploring:
                 explore(rc);
                 break;
@@ -131,6 +121,18 @@ public strictfp class Launcher {
     }
 
     static void readComms(RobotController rc)throws GameActionException{
+        Comms.Attack[] attackCommands = Comms.getAllAttackCommands(rc);
+        int maxPrio = (attackCommand==null) ? 0 : Comms.getCommPrio(attackCommand.type);
+
+        for(int i = 0; i< attackCommands.length; i++){
+            MapLocation loc = attackCommands[i].location;
+            int prio = Comms.getCommPrio(attackCommands[i].type);
+            if(prio > maxPrio){
+                attackCommand = attackCommands[i];
+                maxPrio = prio;
+            }
+        }
+
 
     }
 
@@ -212,25 +214,24 @@ public strictfp class Launcher {
             }
             if(i != enemies.length){
                 enemiesFound = true;
-
             }
-
         }
         if (enemiesFound){
+            attackCommand.type = null;
             pursuitLocation = null;
             combatCD =5;
             state = LauncherState.Combat;
         } else if( combatCD >0 && pursuitLocation!=null &&
                 rc.getLocation().distanceSquaredTo(pursuitLocation) > 5 ){
             state = LauncherState.Pursuing;
-        }else{
+        } else if(attackCommand != null){
+            state = LauncherState.FollowingCommand;
+            pursuitLocation = null;
+        } else{
             combatCD = 0;
             pursuitLocation = null;
             state = LauncherState.Exploring;
         }
-
-
-
     }
 
     static void combat(RobotController rc) throws GameActionException{
@@ -464,6 +465,26 @@ public strictfp class Launcher {
                         rc.attack(enemy.getLocation());
                     }
                 }
+            }
+        }
+    }
+
+    static void followCommand(RobotController rc) throws GameActionException{
+        MapLocation target= attackCommand.location;
+        if(rc.canSenseLocation(target) && rc.getLocation().distanceSquaredTo(target) >= 16){
+            if(rc.isMovementReady()){
+                Direction moveDir = Pathfinder.pathBug(rc, target);
+                if(canMove(rc, moveDir)){
+                    rc.move(moveDir);
+                }
+                sense(rc);
+                if(enemies.length > 0){
+                    RobotInfo enemy = findAttack(rc);
+                    if(enemy!= null && rc.canAttack(enemy.getLocation())){
+                        rc.attack(enemy.getLocation());
+                    }
+                }
+
             }
         }
     }
