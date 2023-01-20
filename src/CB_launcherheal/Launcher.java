@@ -1,7 +1,6 @@
-package CB_resourceTest;
+package CB_launcherheal;
 
 import battlecode.common.*;
-
 public strictfp class Launcher {
 
     static final int ATTACKDMG = 30;
@@ -18,6 +17,7 @@ public strictfp class Launcher {
     static int[]islands;
 
     static MapLocation fallbackIsland;
+
     static boolean initialized = false;
 
     static int combatCD = 0;
@@ -122,7 +122,12 @@ public strictfp class Launcher {
                 fallback(rc);
                 break;
         }
-
+        if(fallbackIsland != null){
+            rc.setIndicatorString(fallbackIsland.toString());
+        }
+        else{
+            rc.setIndicatorString("I cant run");
+        }
 
     }
 
@@ -140,7 +145,6 @@ public strictfp class Launcher {
     static void readComms(RobotController rc)throws GameActionException{
 
     }
-
     static void sense(RobotController rc) throws GameActionException{
         int minRange = RobotType.LAUNCHER.visionRadiusSquared+1;
         enemies = rc.senseNearbyRobots(RobotType.LAUNCHER.visionRadiusSquared, rc.getTeam().opponent());
@@ -149,14 +153,11 @@ public strictfp class Launcher {
         allies = rc.senseNearbyRobots(RobotType.LAUNCHER.visionRadiusSquared, rc.getTeam());
 
         islands  = rc.senseNearbyIslands();
-        String debug = "";
         for(int i = 0; i < islands.length; i++){
             if(rc.senseTeamOccupyingIsland(islands[i]) == rc.getTeam()){
                 fallbackIsland = rc.senseNearbyIslandLocations(islands[i])[0];;
             }
-            debug += islands[i] + " ";
         }
-        rc.setIndicatorString(debug);
         numEnemyMil = 0;
         nearestEnemyMil = null;
         for(RobotInfo enemy: enemies){
@@ -216,7 +217,6 @@ public strictfp class Launcher {
         }
     }
 
-
     static void selectState(RobotController rc) throws GameActionException{
         // select combat state if you see an enemy robot that is not HQ
         // combatCD will be necessary in the future for avoiding high-cd multiplier squares
@@ -233,15 +233,22 @@ public strictfp class Launcher {
             }
         }
         if(state == LauncherState.Fallback){
+            if(rc.getLocation().distanceSquaredTo(fallbackIsland) <= RobotType.LAUNCHER.visionRadiusSquared){
+                if(rc.canSenseLocation(fallbackIsland)){
+                    if(rc.senseTeamOccupyingIsland(rc.senseIsland(fallbackIsland)) != rc.getTeam()){
+                        fallbackIsland = null;
+                        state = LauncherState.Exploring;
+                    }
+                }
+            }
             if(rc.getHealth() == RobotType.LAUNCHER.getMaxHealth()){
                 state = LauncherState.Exploring;
             }
-            rc.setIndicatorString("fallingback");
         } else if (enemiesFound){
             pursuitLocation = null;
             combatCD =5;
             state = LauncherState.Combat;
-        } else if (fallbackIsland != null && rc.getHealth() <= RobotType.LAUNCHER.getMaxHealth() / 2 ){
+        } else if (fallbackIsland != null && rc.getHealth() < RobotType.LAUNCHER.getMaxHealth()){
             state = LauncherState.Fallback;
         }
         else if( combatCD >0 && pursuitLocation!=null &&
@@ -255,6 +262,22 @@ public strictfp class Launcher {
     }
 
     static void fallback(RobotController rc) throws GameActionException{
+
+        //if its on an island tile, just stay there, otherwise if its close to an island tile but its occupied,
+        //path to an open spot
+        if(rc.senseIsland(rc.getLocation()) > 0){
+            fallbackIsland = rc.getLocation();
+        } else if(rc.getLocation().isWithinDistanceSquared(fallbackIsland, 2)
+                && rc.isLocationOccupied(fallbackIsland)){
+            MapLocation[] possibleLocations = rc.senseNearbyIslandLocations(rc.senseIsland(fallbackIsland));
+            for(int i = 0; i < possibleLocations.length; i++){
+                if(!rc.isLocationOccupied(possibleLocations[i])){
+                    fallbackIsland = possibleLocations[i];
+                    break;
+                }
+            }
+        }
+        //move towards the fallbackIsland spot
         Direction dir = Pathfinder.pathBug(rc, fallbackIsland);
         if(canMoveToExplore(rc, dir)) {
             rc.move(dir);
@@ -341,7 +364,7 @@ public strictfp class Launcher {
                                     int range = ally.getLocation().distanceSquaredTo(attackLoc);
                                     if(range <= ally.getType().visionRadiusSquared ||
                                             (rc.senseMapInfo(ally.getLocation()).getCooldownMultiplier(rc.getTeam()) >= 1 && range <= 4)){
-                                            alliesCanSee++;
+                                        alliesCanSee++;
 
                                     }
                                 }
@@ -546,7 +569,7 @@ public strictfp class Launcher {
             }
             if((movementChange || detachCD > 0)  && numNearbyAllyMil < 5){
 
-                    dir = Pathfinder.pathBug(rc, followBot.getLocation());
+                dir = Pathfinder.pathBug(rc, followBot.getLocation());
                 //rc.setIndicatorString("following "+followBot.getLocation());
 
             } else{
@@ -576,7 +599,4 @@ public strictfp class Launcher {
         return dir != null && rc.canMove(dir) &&
                 (rc.getRoundNum()%2 ==0 || rc.senseMapInfo(rc.getLocation()).getCooldownMultiplier(rc.getTeam()) != 1);
     }
-
-
-
 }

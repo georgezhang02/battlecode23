@@ -1,4 +1,4 @@
-package CB_resourceTest;
+package CB_launcherheal;
 
 import battlecode.common.*;
 
@@ -8,12 +8,11 @@ import java.util.Set;
 
 public strictfp class Carrier {
 
-    static boolean initialized = false;
+    static boolean initialized  = false;
 
     private enum CarrierState {
         None, Exploring, Returning, Anchoring, Gathering, Runaway
     }
-
     static CarrierState state = CarrierState.None;
 
     static MapLocation location;
@@ -33,7 +32,7 @@ public strictfp class Carrier {
 
     static void run(RobotController rc) throws GameActionException {
         sense(rc);
-        if (!initialized) {
+        if(!initialized){
             onUnitInit(rc); // first time starting the bot, do some setup
             initialized = true;
         }
@@ -41,10 +40,10 @@ public strictfp class Carrier {
         updateState(rc);
         runState(rc);
         previousCommand = newCommand;
-        //rc.setIndicatorString(String.valueOf(state));
+        rc.setIndicatorString(String.valueOf(state));
     }
 
-    static void sense(RobotController rc) throws GameActionException {
+    static void sense(RobotController rc) throws GameActionException{
         location = rc.getLocation();
         allies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam());
         adAmount = rc.getResourceAmount(ResourceType.ADAMANTIUM);
@@ -91,13 +90,13 @@ public strictfp class Carrier {
 
     static void updateState(RobotController rc) throws GameActionException {
         // Check enemies
-        if (enemiesFound(rc)) {
+        if(enemiesFound(rc)){
             state = CarrierState.Returning;
         } else {
             // Update states
             switch (state) {
                 case Gathering:
-                    gatherUpdate(rc);
+                    gatherUpdate();
                     break;
                 case Exploring:
                     exploreUpdate(rc);
@@ -137,22 +136,15 @@ public strictfp class Carrier {
         }
     }
 
-    static void gatherUpdate(RobotController rc) throws GameActionException{
-        if (assignedWell.distanceSquaredTo(location) > 2 && assignedWell.distanceSquaredTo(location) <= 4) {
-            if(wellOverflow(rc)){
-                rc.setIndicatorString("overflow");
-                state = CarrierState.Exploring;
-                assignedWell = null;
-            }
-        }
+    static void gatherUpdate() {
         //if a carrier cannot get anymore resources, return to base
-        if (adAmount + manaAmount + elixirAmount == 40) {
+        if(adAmount + manaAmount + elixirAmount == 40){
             state = CarrierState.Returning;
         }
     }
 
     static void gather(RobotController rc) throws GameActionException {
-        if (assignedWell.distanceSquaredTo(location) <= 2) {
+        if(assignedWell.distanceSquaredTo(location) <= 2){
             if (rc.canCollectResource(assignedWell, -1)) {
                 rc.collectResource(assignedWell, -1);
             }
@@ -168,7 +160,7 @@ public strictfp class Carrier {
             MapLocation loc = well.getMapLocation();
             int newValue = Comms.encode(loc.x, loc.y);
             boolean alreadyKnew = false;
-            for (int knownValue : knownWells) {
+            for (int knownValue: knownWells) {
                 if (newValue == knownValue) {
                     alreadyKnew = true;
                     break;
@@ -187,7 +179,7 @@ public strictfp class Carrier {
         }
     }
 
-    static void explore(RobotController rc) throws GameActionException {
+    static void explore(RobotController rc) throws GameActionException{
         pathExplore(rc);
     }
 
@@ -213,9 +205,9 @@ public strictfp class Carrier {
         }
     }
 
-    static void returnToHQ(RobotController rc) throws GameActionException {
+    static void returnToHQ(RobotController rc) throws GameActionException{
         // If lower than maxHealth and can throw, throw
-        if (rc.getHealth() < RobotType.CARRIER.getMaxHealth()) {
+        if(rc.getHealth() < RobotType.CARRIER.getMaxHealth()) {
             for (RobotInfo enemy : enemies) {
                 if (rc.canAttack(enemy.getLocation())) {
                     rc.attack(enemy.getLocation());
@@ -225,18 +217,20 @@ public strictfp class Carrier {
         }
 
         //move back to HQ
-        if (HQ_LOCATION.distanceSquaredTo(location) > 2) {
+        if(HQ_LOCATION.distanceSquaredTo(location) > 2){
             pathTowards(rc, HQ_LOCATION);
         }
 
         //If the hq location is in action range, deposit resources to HQ
-        if (HQ_LOCATION.distanceSquaredTo(location) <= 2) {
-            if (rc.canTransferResource(HQ_LOCATION, ResourceType.ELIXIR, elixirAmount) && elixirAmount != 0) {
-                rc.transferResource(HQ_LOCATION, ResourceType.ELIXIR, elixirAmount);
-            } else if (rc.canTransferResource(HQ_LOCATION, ResourceType.MANA, manaAmount) && manaAmount != 0) {
-                rc.transferResource(HQ_LOCATION, ResourceType.MANA, manaAmount);
-            } else if (rc.canTransferResource(HQ_LOCATION, ResourceType.ADAMANTIUM, adAmount) && adAmount != 0) {
-                rc.transferResource(HQ_LOCATION, ResourceType.ADAMANTIUM, adAmount);
+        if (HQ_LOCATION.distanceSquaredTo(location) <= 2){
+            if(rc.canTransferResource(HQ_LOCATION, ResourceType.ELIXIR, elixirAmount) && elixirAmount != 0){
+                rc.transferResource(HQ_LOCATION,ResourceType.ELIXIR, elixirAmount);
+            }
+            else if(rc.canTransferResource(HQ_LOCATION, ResourceType.MANA, manaAmount) && manaAmount != 0){
+                rc.transferResource(HQ_LOCATION,ResourceType.MANA, manaAmount);
+            }
+            else if(rc.canTransferResource(HQ_LOCATION, ResourceType.ADAMANTIUM, adAmount) && adAmount != 0){
+                rc.transferResource(HQ_LOCATION,ResourceType.ADAMANTIUM, adAmount);
             }
         }
 
@@ -255,7 +249,7 @@ public strictfp class Carrier {
             for (WellInfo well : wells) {
                 MapLocation loc = well.getMapLocation();
                 int newValue = Comms.encode(loc.x, loc.y);
-                for (int knownValue : knownWells) {
+                for (int knownValue: knownWells) {
                     if (newValue != knownValue) {
                         discoveredWell = well;
                         break;
@@ -272,20 +266,20 @@ public strictfp class Carrier {
         }
     }
 
-    static void anchor(RobotController rc) throws GameActionException {
+    static void anchor(RobotController rc) throws GameActionException{
 
         // If I have an anchor singularly focus on getting it to the first island I see
         int[] islands = rc.senseNearbyIslands();
         int inc = 0;
         for (int id : islands) {
-            if (rc.senseTeamOccupyingIsland(id) == rc.getTeam()) {
+            if(rc.senseTeamOccupyingIsland(id) == rc.getTeam()){
                 inc += 1;
             }
         }
         Set<MapLocation> islandLocs = new HashSet<>();
         if (islands.length - inc > 0) {
             for (int id : islands) {
-                if (rc.senseTeamOccupyingIsland(id) != rc.getTeam()) {
+                if(rc.senseTeamOccupyingIsland(id) != rc.getTeam()){
                     MapLocation[] thisIslandLocs = rc.senseNearbyIslandLocations(id);
                     islandLocs.addAll(Arrays.asList(thisIslandLocs));
                 }
@@ -306,7 +300,7 @@ public strictfp class Carrier {
         }
 
         //Otherwise, Explore until you find an island
-        else {
+        else{
             pathExplore(rc);
         }
     }
@@ -331,35 +325,21 @@ public strictfp class Carrier {
     }
 
     static void pathTowards(RobotController rc, MapLocation target) throws GameActionException {
-        if (rc.isMovementReady()) {
+        if(rc.isMovementReady()) {
             Direction moveDir = Pathfinder.pathBF(rc, target);
-            if (moveDir != null && rc.canMove(moveDir)) {
+            if(moveDir != null && rc.canMove(moveDir)){
                 rc.move(moveDir);
             }
         }
-        if (enemiesFound(rc)) {
+        if(enemiesFound(rc)){
             state = CarrierState.Returning;
             target = HQ_LOCATION;
         }
-        if (rc.isMovementReady()) {
+        if(rc.isMovementReady()) {
             Direction moveDir = Pathfinder.pathBug(rc, target);
-            if (moveDir != null && rc.canMove(moveDir)) {
+            if(moveDir != null && rc.canMove(moveDir)){
                 rc.move(moveDir);
             }
         }
-    }
-
-    static boolean wellOverflow(RobotController rc) throws GameActionException {
-        int counter = 0;
-        int slots = 9;
-        for (int i = 0; i < allies.length; i++) {
-            if (assignedWell.isWithinDistanceSquared(allies[i].getLocation(), 2)) {
-                counter++;
-            }
-        }
-        if (counter >= 8) {
-            return true;
-        }
-        return false;
     }
 }

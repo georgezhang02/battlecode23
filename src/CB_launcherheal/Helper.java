@@ -1,4 +1,4 @@
-package CB_resourceTest;
+package CB_launcherheal;
 
 import battlecode.common.Direction;
 

@@ -1,4 +1,4 @@
-package CB_resourceTest;
+package CB_launcherheal;
 
 import battlecode.common.*;
 
@@ -15,7 +15,7 @@ public strictfp class HQ {
     static MapLocation center;
     static String indicatorString = "";
 
-    static int[] PERWELL = {9, 9, 9}; // {AD, MN, EX}
+    static int[] PERWELL = {3, 3, 3}; // {AD, MN, EX}
     static MapLocation[] wellsDiscoveredNearby = new MapLocation[288];
     static int wellsDiscoveredCount = 0;
     static int[] wellsDiscoveredType = new int[288]; // 0 = AD, 1 = MN, 2 = EX
@@ -53,10 +53,7 @@ public strictfp class HQ {
         think(rc);
 
         //act part should be triggered by think part, see methods below
-        for(int i = 0; i < 5; i++){
-            build(rc);
-        }
-
+        build(rc);
 
         // prints the indicator string
         debug(rc);
@@ -259,8 +256,8 @@ public strictfp class HQ {
         // If not currently assigning and there are wells available to be assigned, assign
         if (!assigning) {
             int unassignedIndex = getUnassignedWell();
-            if (unassignedIndex == -1 && PERWELL[1] == 9) {
-                PERWELL[1] = 9;
+            if (unassignedIndex == -1 && PERWELL[1] == 3) {
+                PERWELL[1] = 6;
                 unassignedIndex = getUnassignedWell();
             }
             if (unassignedIndex != -1){
