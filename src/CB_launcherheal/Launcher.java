@@ -1,5 +1,6 @@
 package CB_launcherheal;
 
+import CB_first.Comms;
 import battlecode.common.*;
 public strictfp class Launcher {
 
@@ -143,7 +144,22 @@ public strictfp class Launcher {
     }
 
     static void readComms(RobotController rc)throws GameActionException{
+        Comms.Attack[] attackCommands = Comms.getAllAttackCommands(rc);
+        int maxPrio = (attackCommand==null) ? 0 : Comms.getCommPrio(attackCommand.type);
 
+        for(int i = 0; i< attackCommands.length; i++){
+            MapLocation loc = attackCommands[i].location;
+            int prio = Comms.getCommPrio(attackCommands[i].type);
+            if(prio > maxPrio){
+                attackCommand = attackCommands[i];
+                maxPrio = prio;
+            }
+        }
+
+        //if you dont have a fallback, find the island through comms
+        if(fallbackIsland == null){
+            fallbackIsland = getFallback(rc);
+        }
     }
     static void sense(RobotController rc) throws GameActionException{
         int minRange = RobotType.LAUNCHER.visionRadiusSquared+1;
@@ -236,7 +252,7 @@ public strictfp class Launcher {
             if(rc.getLocation().distanceSquaredTo(fallbackIsland) <= RobotType.LAUNCHER.visionRadiusSquared){
                 if(rc.canSenseLocation(fallbackIsland)){
                     if(rc.senseTeamOccupyingIsland(rc.senseIsland(fallbackIsland)) != rc.getTeam()){
-                        fallbackIsland = null;
+                        fallbackIsland = getFallback(rc);
                         state = LauncherState.Exploring;
                     }
                 }
@@ -598,5 +614,18 @@ public strictfp class Launcher {
     static boolean canMoveToExplore(RobotController rc, Direction dir) throws GameActionException{
         return dir != null && rc.canMove(dir) &&
                 (rc.getRoundNum()%2 ==0 || rc.senseMapInfo(rc.getLocation()).getCooldownMultiplier(rc.getTeam()) != 1);
+    }
+
+    //Find closest capped island
+    static MapLocation getFallback(RobotController rc) throws GameActionException{
+        CB_first.Comms.Island[] islands = Comms.getAllIslands(rc);
+        int min = Integer.MAX_VALUE;
+        for(int i = 0; i < islands.length; i++){
+            int dist = rc.getLocation().distanceSquaredTo(islands[i].location);
+            if(dist < min){
+                fallbackIsland = islands[i].location;
+            }
+        }
+        return fallbackIsland;
     }
 }
