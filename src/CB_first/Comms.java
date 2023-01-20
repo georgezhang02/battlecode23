@@ -289,18 +289,16 @@ public class Comms {
         return allEnemyHQs;
     }
 
-    public static MapLocation getHQCommand(RobotController rc, int HQIndex) throws GameActionException {
+    public static Command getHQCommand(RobotController rc, int HQIndex) throws GameActionException {
         int value = rc.readSharedArray(HQ_COMM_OFFSET + HQIndex);
         int x = decode(value, 0);
         int y = decode(value, 1);
-        int assigned = decode(value, 2);
-        if (assigned == 1) {
-            return new MapLocation(x, y);
-        }
-        return null;
+        int num = decode(value, 2);
+
+        return new Command(new MapLocation(x, y), num);
     }
-    public static void writeHQCommand(RobotController rc, int HQIndex, MapLocation well) throws GameActionException {
-        rc.writeSharedArray(HQIndex + HQ_COMM_OFFSET, encode(well.x, well.y, 1));
+    public static void writeHQCommand(RobotController rc, int HQIndex, MapLocation loc, int num) throws GameActionException {
+        rc.writeSharedArray(HQIndex + HQ_COMM_OFFSET, encode(loc.x, loc.y, num));
     }
     public static void clearHQCommand(RobotController rc, int HQIndex) throws GameActionException {
         rc.writeSharedArray(HQIndex + HQ_COMM_OFFSET, encode(0, 0, 0));
