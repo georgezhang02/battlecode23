@@ -361,18 +361,18 @@ public class Comms {
             rc.writeSharedArray(COUNT_OFFSET_2, encode(count2[0], wellPermCount+1, count2[2]));
         }
     }
-    public static Well getWellPerm(RobotController rc, int index) throws GameActionException {
+    public static Well getWell(RobotController rc, int index) throws GameActionException {
         int val = rc.readSharedArray(WELL_OFFSET +index);
         int x = decode(val, 0);
         int y = decode(val, 1);
         ResourceType type = ResourceType.values()[decode(val, 2)];
         return new Well(new MapLocation(x, y), type);
     }
-    public static Well[] getAllWellPerm(RobotController rc) throws GameActionException{
+    public static Well[] getAllWells(RobotController rc) throws GameActionException{
         int num = getNumWellsPerm(rc);
         Well[] allPerm = new Well[num];
         for (int i = 0; i < num; i ++) {
-            allPerm[i] = getWellPerm(rc, i);
+            allPerm[i] = getWell(rc, i);
         }
         return allPerm;
     }
