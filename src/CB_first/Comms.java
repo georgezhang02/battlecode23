@@ -26,13 +26,13 @@ public class Comms {
 
     private static final int ALLY_HQ_MAXCOUNT = 4;
     private static final int ENEMY_HQ_MAXCOUNT = 4;
-    private static final int WELL_COMM_MAXCOUNT = 4;
-    private static final int WELL_MAXCOUNT = 8;
+    private static final int WELL_COMM_MAXCOUNT = 2;
+    private static final int WELL_MAXCOUNT = 16;
     //private static final int WELL_REP_MAXCOUNT = 4;
     private static final int ISLAND_MAXCOUNT = 8;
     private static final int ISLAND_REP_MAXCOUNT = 4;
     private static final int ANCHOR_MAXCOUNT = 2;
-    private static final int ATTACK_MAXCOUNT = 8;
+    private static final int ATTACK_MAXCOUNT = 6;
 
     // Team Count
     /**
