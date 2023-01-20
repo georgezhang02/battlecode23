@@ -350,7 +350,7 @@ public class Comms {
 
         if(wellPermCount < WELL_MAXCOUNT){
             for(int i = 0; i<wellPermCount; i++){
-                if(getWellCommand(rc, i).location.equals(loc)){
+                if(getWell(rc, i).location.equals(loc)){
                     return;
                 }
             }
@@ -412,18 +412,18 @@ public class Comms {
         rc.writeSharedArray(index + WELL_REPORT_OFFSET, encode(0, 0, 0));
     }*/
 
-    public static Island getIslandLocation(RobotController rc, int index) throws GameActionException{
+    public static Island getIsland(RobotController rc, int index) throws GameActionException{
         int val = rc.readSharedArray(ISLAND_OFFSET+index);
         int x = decode(val, 0);
         int y = decode(val, 1);
         return new Island(new MapLocation(x, y));
     }
 
-    public static Island[] getAllIslandLocations(RobotController rc) throws GameActionException{
+    public static Island[] getAllIslands(RobotController rc) throws GameActionException{
         int islandCount = getNumIslands(rc);
         Island[] islands = new Island[islandCount];
         for (int i = 0; i < islandCount; i ++) {
-            islands[i] = getIslandLocation(rc, i);
+            islands[i] = getIsland(rc, i);
         }
         return islands;
     }
@@ -435,7 +435,7 @@ public class Comms {
      * @param team
      * @throws GameActionException
      */
-    public static void setIslandLocation(RobotController rc, MapLocation loc, Team team) throws GameActionException {
+    public static void setIsland(RobotController rc, MapLocation loc, Team team) throws GameActionException {
         int[] count3 = getAllCount3(rc);
         int islandCount = count3[0];
 
@@ -452,7 +452,7 @@ public class Comms {
 
         if(islandCount < ISLAND_MAXCOUNT){
             for(int i = 0; i<islandCount; i++){
-                if(getIslandLocation(rc, i).location.distanceSquaredTo(loc) <=8){
+                if(getIsland(rc, i).location.distanceSquaredTo(loc) <=8){
                     return;
                 }
             }
@@ -465,7 +465,6 @@ public class Comms {
     public static void clearIslandReport(RobotController rc, int index) throws GameActionException {
         rc.writeSharedArray(index + ISLAND_REPORT_OFFSET, encode(0, 0, 0));
     }
-
 
     public static Island readIslandReport(RobotController rc, int index) throws GameActionException {
         int value = rc.readSharedArray(index + ISLAND_REPORT_OFFSET);
@@ -509,7 +508,7 @@ public class Comms {
         int repCount = getNumWellsRep(rc);
         if (repCount < ISLAND_REP_MAXCOUNT) {
             for(int i = 0; i<repCount; i++){
-                if(readWellReport(rc, i).location.distanceSquaredTo(loc) <= 8){
+                if(readIslandReport(rc, i).location.distanceSquaredTo(loc) <= 8){
                     return false;
                 }
             }
