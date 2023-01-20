@@ -345,30 +345,32 @@ public class Comms {
     /**
      * NEED TO IMPLEMENT; check getWellPerm and getAllWellPerm
      */
-    public static void setADWell(RobotController rc, MapLocation loc) throws GameActionException {
+    public static boolean setADWell(RobotController rc, MapLocation loc) throws GameActionException {
         int[] count2 = getAllCount2(rc);
         int adWellCount = count2[1];
 
         if(adWellCount < WELL_MAXCOUNT){
             for(int i = 0; i<adWellCount; i++){
-                if(getADWell(rc, i).location.equals(loc)){
-                    return;
+                if(getADWell(rc, i).equals(loc)){
+                    return false;
                 }
             }
             rc.writeSharedArray(adWellCount+ AD_WELL_OFFSET,
                     encode(loc.x, loc.y, 0));
             rc.writeSharedArray(COUNT_OFFSET_2, encode(count2[0], adWellCount+1, count2[2]));
+            return true;
         }
+        return false;
     }
-    public static Well getADWell(RobotController rc, int index) throws GameActionException {
+    public static MapLocation getADWell(RobotController rc, int index) throws GameActionException {
         int val = rc.readSharedArray(AD_WELL_OFFSET +index);
         int x = decode(val, 0);
         int y = decode(val, 1);
-        return new Well(new MapLocation(x, y), ResourceType.ADAMANTIUM);
+        return new MapLocation(x, y);
     }
-    public static Well[] getAllADWells(RobotController rc) throws GameActionException{
+    public static MapLocation[] getAllADWells(RobotController rc) throws GameActionException{
         int num = getNumADWells(rc);
-        Well[] allWells= new Well[num];
+        MapLocation[] allWells= new MapLocation[num];
         for (int i = 0; i < num; i ++) {
             allWells[i] = getADWell(rc, i);
         }
@@ -376,31 +378,33 @@ public class Comms {
     }
 
 
-    public static void setManaWell(RobotController rc, MapLocation loc) throws GameActionException {
+    public static boolean setManaWell(RobotController rc, MapLocation loc) throws GameActionException {
         int[] count2 = getAllCount2(rc);
         int manaWellCount = count2[2];
 
         if(manaWellCount < WELL_MAXCOUNT){
             for(int i = 0; i<manaWellCount; i++){
-                if(getManaWell(rc, i).location.equals(loc)){
-                    return;
+                if(getManaWell(rc, i).equals(loc)){
+                    return false;
                 }
             }
             rc.writeSharedArray(manaWellCount+MANA_WELL_OFFSET,
                     encode(loc.x, loc.y, 0));
             rc.writeSharedArray(COUNT_OFFSET_2, encode(count2[0], count2[1], manaWellCount+1));
+            return true;
         }
+        return false;
     }
-    public static Well getManaWell(RobotController rc, int index) throws GameActionException {
+    public static MapLocation getManaWell(RobotController rc, int index) throws GameActionException {
         int val = rc.readSharedArray(MANA_WELL_OFFSET +index);
         int x = decode(val, 0);
         int y = decode(val, 1);
         ResourceType type = ResourceType.values()[decode(val, 2)];
-        return new Well(new MapLocation(x, y), ResourceType.MANA);
+        return new MapLocation(x, y);
     }
-    public static Well[] getAllManaWells(RobotController rc) throws GameActionException{
+    public static MapLocation[] getAllManaWells(RobotController rc) throws GameActionException{
         int num = getNumManaWells(rc);
-        Well[] allWells= new Well[num];
+        MapLocation[] allWells= new MapLocation[num];
         for (int i = 0; i < num; i ++) {
             allWells[i] = getManaWell(rc, i);
         }
