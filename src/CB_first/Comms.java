@@ -898,7 +898,7 @@ public class Comms {
         }
 
     };
-    private static int getCommPrio(RobotType type) {
+    public static int getCommPrio(RobotType type) {
         if (type == null) {
             return 0;
         }
