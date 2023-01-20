@@ -9,28 +9,26 @@ public class Comms {
     private static final int COUNT_OFFSET_2 = 1;
     private static final int COUNT_OFFSET_3 = 2;
     private static final int COUNT_OFFSET_4 = 3;
-    private static final int ALLY_HQ_OFFSET = 4;
-    private static final int ENEMY_HQ_OFFSET = 8;
+    private static final int ALLY_HQ_OFFSET = 6;
+    private static final int ENEMY_HQ_OFFSET = 12;
 
-    private static final int HQ_COMM_OFFSET = 12;
-    private static final int WELL_COMM_OFFSET = 16;
-    private static final int WELL_PERM_OFFSET = 20;
-    private static final int WELL_REPORT_OFFSET = 28;
-    private static final int ISLAND_OFFSET = 32;
-    private static final int ISLAND_REPORT_OFFSET = 40;
-    private static final int ANCHOR_OFFSET_EVEN = 44;
+    private static final int HQ_COMM_OFFSET = 14;
+    private static final int WELL_COMM_OFFSET = 18;
+    private static final int WELL_OFFSET = 20;
+    //private static final int WELL_REPORT_OFFSET = 28;
+    private static final int ISLAND_OFFSET = 36;
+    private static final int ISLAND_REPORT_OFFSET = 44;
+    private static final int ANCHOR_OFFSET_EVEN = 48;
 
-    private static final int ANCHOR_OFFSET_ODD = 44;
-    private static final int ATTACK_OFFSET_EVEN= 48;
-
+    private static final int ANCHOR_OFFSET_ODD = 50;
+    private static final int ATTACK_OFFSET_EVEN= 52;
     private static final int ATTACK_OFFSET_ODD = 56;
 
     private static final int ALLY_HQ_MAXCOUNT = 4;
     private static final int ENEMY_HQ_MAXCOUNT = 4;
-
     private static final int WELL_COMM_MAXCOUNT = 4;
-    private static final int WELL_PERM_MAXCOUNT = 8;
-    private static final int WELL_REP_MAXCOUNT = 4;
+    private static final int WELL_MAXCOUNT = 8;
+    //private static final int WELL_REP_MAXCOUNT = 4;
     private static final int ISLAND_MAXCOUNT = 8;
     private static final int ISLAND_REP_MAXCOUNT = 4;
     private static final int ANCHOR_MAXCOUNT = 2;
@@ -348,29 +346,28 @@ public class Comms {
     /**
      * NEED TO IMPLEMENT; check getWellPerm and getAllWellPerm
      */
-    public static void setWellPerm(RobotController rc, MapLocation loc, ResourceType type) throws GameActionException {
+    public static void setWell(RobotController rc, MapLocation loc, ResourceType type) throws GameActionException {
         int[] count2 = getAllCount2(rc);
         int wellPermCount = count2[1];
 
-        if(wellPermCount < WELL_COMM_MAXCOUNT){
+        if(wellPermCount < WELL_MAXCOUNT){
             for(int i = 0; i<wellPermCount; i++){
                 if(getWellCommand(rc, i).location.equals(loc)){
                     return;
                 }
             }
-            rc.writeSharedArray(wellPermCount+ WELL_PERM_OFFSET,
+            rc.writeSharedArray(wellPermCount+ WELL_OFFSET,
                     encode(loc.x, loc.y, type.ordinal()));
             rc.writeSharedArray(COUNT_OFFSET_2, encode(count2[0], wellPermCount+1, count2[2]));
         }
     }
     public static Well getWellPerm(RobotController rc, int index) throws GameActionException {
-        int val = rc.readSharedArray(WELL_PERM_OFFSET+index);
+        int val = rc.readSharedArray(WELL_OFFSET +index);
         int x = decode(val, 0);
         int y = decode(val, 1);
         ResourceType type = ResourceType.values()[decode(val, 2)];
         return new Well(new MapLocation(x, y), type);
     }
-
     public static Well[] getAllWellPerm(RobotController rc) throws GameActionException{
         int num = getNumWellsPerm(rc);
         Well[] allPerm = new Well[num];
@@ -379,8 +376,7 @@ public class Comms {
         }
         return allPerm;
     }
-
-    public static boolean reportWellLocation(RobotController rc, int index, WellInfo well) throws GameActionException {
+   /* public static boolean reportWellLocation(RobotController rc, int index, WellInfo well) throws GameActionException {
         int[] count2 = getAllCount2(rc);
         int repCount = getNumWellsRep(rc);
         if (repCount < WELL_REP_MAXCOUNT) {
@@ -416,7 +412,7 @@ public class Comms {
     }
     public static void clearWellReport(RobotController rc, int index) throws GameActionException {
         rc.writeSharedArray(index + WELL_REPORT_OFFSET, encode(0, 0, 0));
-    }
+    }*/
 
     public static Island getIslandLocation(RobotController rc, int index) throws GameActionException{
         int val = rc.readSharedArray(ISLAND_OFFSET+index);
