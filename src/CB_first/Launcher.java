@@ -238,6 +238,9 @@ public strictfp class Launcher {
         Direction moveDir = findMovementCombat(rc, attackRobot);
 
         if(attackRobot!=null){
+            if(rc.canWriteSharedArray(0, 0)){
+                Comms.setAttackCommand(rc, attackRobot.getLocation(), attackRobot.getType());
+            }
 
             if(moveFirst){
                 if(canMove(rc, moveDir)){
@@ -249,9 +252,15 @@ public strictfp class Launcher {
                     }
                 }
             }
-            if(attackRobot!= null &&  rc.canAttack(attackRobot.getLocation())){
-                rc.attack(attackRobot.getLocation());
+            if(rc.isActionReady() && attackRobot!= null){
+                if(rc.canAttack(attackRobot.getLocation()) || // can attack at location
+                        (rc.senseMapInfo(rc.getLocation()).hasCloud() && // or in cloud and you are in range to attack
+                                rc.getLocation().distanceSquaredTo(attackRobot.getLocation())
+                                        <= RobotType.LAUNCHER.actionRadiusSquared)  ) {
+                    rc.attack(attackRobot.getLocation());
+                }
             }
+
 
             if(!moveFirst){
                 if(canMove(rc, moveDir)){
