@@ -1,11 +1,12 @@
 package CB_first;
 
-import battlecode.common.Direction;
+import battlecode.common.*;
 
 import java.util.Random;
 
 public class Helper {
     static final Random rng = new Random(6147);
+
 
     static final Direction[] directions = {
             Direction.NORTH,
