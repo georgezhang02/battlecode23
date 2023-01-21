@@ -31,8 +31,12 @@ public strictfp class Carrier {
     static WellInfo[] discoveredWells = new WellInfo[288];
     static int discoveredWellCount = 0;
     static int reportedWellCount = 0;
-    static Comms.Command command;
     static int exploreCounter = 0;
+    static boolean smallMap;
+    static MapLocation closestAD;
+    static boolean ADInRange;
+    static MapLocation closestMN;
+    static boolean MNInRange;
 
     static void run(RobotController rc) throws GameActionException {
         if(!initialized){
@@ -43,41 +47,7 @@ public strictfp class Carrier {
         sense(rc);
         updateState(rc);
         runState(rc);
-        rc.setIndicatorString(String.valueOf(state));
-    }
-
-    static void comms(RobotController rc) throws GameActionException {
-        knownADWells = Comms.getAllADWells(rc);
-        knownMNWells = Comms.getAllManaWells(rc);
-        command = Comms.getHQCommand(rc, HQIndex);
-    }
-    static void sense(RobotController rc) throws GameActionException{
-        location = rc.getLocation();
-        allies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam());
-        adAmount = rc.getResourceAmount(ResourceType.ADAMANTIUM);
-        manaAmount = rc.getResourceAmount(ResourceType.MANA);
-        elixirAmount = rc.getResourceAmount(ResourceType.ELIXIR);
-        for (WellInfo well : rc.senseNearbyWells()) {
-            boolean known = false;
-            MapLocation wellLocation = well.getMapLocation();
-            for (MapLocation adWell : knownADWells) {
-                if (adWell.equals(wellLocation)) {
-                    known = true;
-                    break;
-                }
-            }
-            if (!known) {
-                for (MapLocation adWell : knownMNWells) {
-                    if (adWell.equals(wellLocation)) {
-                        known = true;
-                        break;
-                    }
-                }
-            }
-            if (!known) {
-                discoveredWells[discoveredWellCount++] = well;
-            }
-        }
+        rc.setIndicatorString(state + " " + discoveredWellCount);
     }
 
     static void onUnitInit(RobotController rc) throws GameActionException {
@@ -86,13 +56,93 @@ public strictfp class Carrier {
             if (ally.getType() == RobotType.HEADQUARTERS) {
                 HQ_LOCATION = ally.getLocation();
                 HQIndex = Comms.getHQIndexByID(rc, ally.getID());
-                command = Comms.getHQCommand(rc, HQIndex);
-                if (command.num == 0) {
-                    state = CarrierState.Exploring;
-                } else if (command.num == 1) {
-                    state = CarrierState.Gathering;
-                    assignedWell = command.location;
+            }
+        }
+
+        knownADWells = Comms.getAllADWells(rc);
+        closestAD = Helper.getClosest(knownADWells, HQ_LOCATION);
+        knownMNWells = Comms.getAllManaWells(rc);
+        closestMN = Helper.getClosest(knownMNWells, HQ_LOCATION);
+
+        // Don't see any ad wells, explore
+        boolean ADInRange = closestAD != null && closestAD.isWithinDistanceSquared(HQ_LOCATION, 34);
+        boolean MNInRange = closestMN != null && closestMN.isWithinDistanceSquared(HQ_LOCATION, 34);
+
+        if (!ADInRange && !MNInRange) {
+            state = CarrierState.Exploring;
+        }
+        // Only see mana
+        else if (!ADInRange) {
+            // Go to mana
+            state = CarrierState.Gathering;
+            assignedWell = closestMN;
+        }
+        // Only see ad
+        else if (!MNInRange) {
+            // Explore on small map
+            if (smallMap) {
+                state = CarrierState.Exploring;
+            }
+            // Go ad on big maps
+            else {
+                state = CarrierState.Gathering;
+                assignedWell = closestAD;
+            }
+        }
+        // See both wells
+        else {
+            state = CarrierState.Gathering;
+            // Go mn on small maps
+            if (smallMap) {
+                assignedWell = closestMN;
+            }
+            // Go ad on big maps
+            else {
+                assignedWell = closestAD;
+            }
+        }
+    }
+
+    static void comms(RobotController rc) throws GameActionException {
+        knownADWells = Comms.getAllADWells(rc);
+        knownMNWells = Comms.getAllManaWells(rc);
+    }
+
+    static void sense(RobotController rc) throws GameActionException{
+        location = rc.getLocation();
+        allies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam());
+        adAmount = rc.getResourceAmount(ResourceType.ADAMANTIUM);
+        manaAmount = rc.getResourceAmount(ResourceType.MANA);
+        elixirAmount = rc.getResourceAmount(ResourceType.ELIXIR);
+        smallMap = rc.getMapWidth() <= 30 && rc.getMapHeight() <= 30;
+
+        for (WellInfo well : rc.senseNearbyWells()) {
+            boolean known = false;
+            MapLocation wellLocation = well.getMapLocation();
+            for (MapLocation ADWell : knownADWells) {
+                if (ADWell.equals(wellLocation)) {
+                    known = true;
+                    break;
                 }
+            }
+            if (!known) {
+                for (MapLocation MNWell : knownMNWells) {
+                    if (MNWell.equals(wellLocation)) {
+                        known = true;
+                        break;
+                    }
+                }
+            }
+            if (!known) {
+                for (int i = 0; i < discoveredWellCount; i++) {
+                    if (discoveredWells[i].getMapLocation().equals(wellLocation)) {
+                        known = true;
+                        break;
+                    }
+                }
+            }
+            if (!known) {
+                discoveredWells[discoveredWellCount++] = well;
             }
         }
     }
@@ -177,8 +227,24 @@ public strictfp class Carrier {
     static void exploreUpdate(RobotController rc) {
         if (discoveredWellCount > 0) {
             state = CarrierState.Returning;
-        } else if (command.num == 1){
-
+        } else {
+            closestAD = Helper.getClosest(knownADWells, HQ_LOCATION);
+            closestMN = Helper.getClosest(knownMNWells, HQ_LOCATION);
+            ADInRange = closestAD != null && closestAD.isWithinDistanceSquared(HQ_LOCATION, 50);
+            MNInRange = closestMN != null && closestMN.isWithinDistanceSquared(HQ_LOCATION, 50);
+            if (smallMap && MNInRange){
+                state = CarrierState.Gathering;
+                assignedWell = closestMN;
+            } else if (!smallMap & ADInRange) {
+                state = CarrierState.Gathering;
+                assignedWell = closestAD;
+            } else if (MNInRange) {
+                state = CarrierState.Gathering;
+                assignedWell = closestMN;
+            } else if (ADInRange) {
+                state = CarrierState.Gathering;
+                assignedWell = closestAD;
+            }
         }
     }
 
@@ -200,15 +266,28 @@ public strictfp class Carrier {
     static void returnUpdate(RobotController rc) throws GameActionException {
         //HQ_LOCATION.distanceSquaredTo(location) <= 2 &&
         if (reportedWellCount == discoveredWellCount && adAmount == 0 && manaAmount == 0 && elixirAmount == 0) {
-            // Get command or anchor if available
-            if (command.num == 1) {
-                assignedWell = command.location;
-                state = CarrierState.Gathering;
-            } else if (rc.canTakeAnchor(HQ_LOCATION, Anchor.STANDARD)) {
+            // Get anchor if available
+            if (rc.canTakeAnchor(HQ_LOCATION, Anchor.STANDARD)) {
                 rc.takeAnchor(HQ_LOCATION, Anchor.STANDARD);
                 state = CarrierState.Anchoring;
             } else {
-                state = CarrierState.Exploring;
+                closestAD = Helper.getClosest(knownADWells, HQ_LOCATION);
+                closestMN = Helper.getClosest(knownMNWells, HQ_LOCATION);
+                ADInRange = closestAD != null && closestAD.isWithinDistanceSquared(HQ_LOCATION, 50);
+                MNInRange = closestMN != null && closestMN.isWithinDistanceSquared(HQ_LOCATION, 50);
+                if (smallMap && MNInRange){
+                    state = CarrierState.Gathering;
+                    assignedWell = closestMN;
+                } else if (!smallMap & ADInRange) {
+                    state = CarrierState.Gathering;
+                    assignedWell = closestAD;
+                } else if (MNInRange) {
+                    state = CarrierState.Gathering;
+                    assignedWell = closestMN;
+                } else if (ADInRange) {
+                    state = CarrierState.Gathering;
+                    assignedWell = closestAD;
+                }
             }
         }
     }

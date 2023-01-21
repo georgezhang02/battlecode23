@@ -88,9 +88,9 @@ public strictfp class HQ {
         }
 
         MapLocation[] ADWells = Comms.getAllADWells(rc);
-        MapLocation closestAD = getClosest(ADWells, location);
+        MapLocation closestAD = Helper.getClosest(ADWells, location);
         MapLocation[] MNWells = Comms.getAllManaWells(rc);
-        MapLocation closestMN = getClosest(MNWells, location);
+        MapLocation closestMN = Helper.getClosest(MNWells, location);
 
         // Don't see any ad wells, explore
         boolean ADInRange = closestAD != null && closestAD.isWithinDistanceSquared(location, 34);
@@ -101,14 +101,8 @@ public strictfp class HQ {
         }
         // Only see mana
         else if (!ADInRange) {
-            // Go to mana on small map
-            if (smallMap) {
-                carrierBuildTarget = closestMN;
-            }
-            // Explore on big maps
-            else {
-                buildExplore = true;
-            }
+            // Go to mana
+            carrierBuildTarget = closestMN;
         }
         // Only see ad
         else if (!MNInRange) {
@@ -134,7 +128,6 @@ public strictfp class HQ {
             }
             carrierBuildTarget = closestWell;
         }
-        indicatorString = String.valueOf(carrierBuildTarget);
     }
 
     static void sense(RobotController rc) throws GameActionException {
@@ -163,9 +156,12 @@ public strictfp class HQ {
                 rc.buildRobot(RobotType.CARRIER, buildTowards(rc, carrierBuildTarget));
             }
         } else if (rc.getRoundNum() == 2) {
+            /*
             rc.buildRobot(RobotType.LAUNCHER, buildTowards(rc, center));
             rc.buildRobot(RobotType.LAUNCHER, buildTowards(rc, center));
             rc.buildRobot(RobotType.LAUNCHER, buildTowards(rc, center));
+
+             */
         } else {
             MapLocation centerBuildLoc = buildTowards(rc, center);
             MapLocation carrierBuildLoc = buildTowards(rc, center);
@@ -177,10 +173,10 @@ public strictfp class HQ {
                 } else if (rc.canBuildRobot(RobotType.CARRIER, carrierBuildLoc)) {
                     rc.buildRobot(RobotType.CARRIER, carrierBuildLoc);
                 } else if (rc.canBuildRobot(RobotType.LAUNCHER, centerBuildLoc)) {
-                    rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);
+                    //rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);
                 }
             } else if (rc.canBuildRobot(RobotType.LAUNCHER, centerBuildLoc)) {
-                rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);
+                //rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);
             }
         }
     }
@@ -201,19 +197,6 @@ public strictfp class HQ {
             }
         }
         return buildSquare;
-    }
-
-    static MapLocation getClosest(MapLocation[] options, MapLocation location) {
-        int lowestDist = 10000;
-        MapLocation closest = null;
-        for (MapLocation option: options) {
-            int distance = location.distanceSquaredTo(option);
-            if (distance < lowestDist) {
-                lowestDist = distance;
-                closest = new MapLocation(option.x, option.y);
-            }
-        }
-        return closest;
     }
 
     /*
