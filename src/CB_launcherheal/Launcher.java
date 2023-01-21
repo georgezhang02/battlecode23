@@ -57,8 +57,6 @@ public strictfp class Launcher {
 
     static Comms.Attack attackCommand;
 
-
-
     static String allyString;
 
     static final Direction[] directions = {
