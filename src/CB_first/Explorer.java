@@ -23,57 +23,58 @@ public class Explorer {
     static MapLocation target;
 
 
-    public static void getHQExploreTarget(RobotController rc) throws GameActionException {
 
-        if(!HQInit){
-            int numHQs = Comms.getNumHQs(rc);
-            HQLoc1 = Comms.getTeamHQLocation(rc, 0);
-            if(numHQs <= 2)  HQLoc2 = Comms.getTeamHQLocation(rc, 1);
-            if(numHQs <= 3)  HQLoc3 = Comms.getTeamHQLocation(rc, 2);
-            if(numHQs <= 4)  HQLoc4 = Comms.getTeamHQLocation(rc, 3);
-        }
-
-        if(numExplorationTargets == 0){
-            numExplorationTargets = Comms.getNumExploration(rc);
-            HQsExplored = new boolean[numExplorationTargets];
-        }
-        int maxRange = 100000;
-        target = null;
-        for(int i = 0; i<numExplorationTargets; i++){
-            MapLocation enemyHQLoc = Comms.getExplorationTarget(rc, i);
-            int range = rc.getLocation().distanceSquaredTo(enemyHQLoc);
-
-            if(!HQsExplored[i]){
-                if(rc.getLocation().distanceSquaredTo(enemyHQLoc) > rc.getType().visionRadiusSquared){
-                    // check not in vision
-                 /*   if(targetNotHQ(HQLoc1) &&
-                            (numHQs>=2 || targetNotHQ(HQLoc2)) &&
-                            (numHQs>=3 || targetNotHQ(HQLoc3)) &&
-                            (numHQs>=4 || targetNotHQ(HQLoc4))
-                    ) {*/
-                        //check not in HQ range
-                        if(range < maxRange){
-                            maxRange = range;
-                            target = enemyHQLoc;
-                            curHQExploreIndex = i;
-                        }
-                    } else{
-                        // inside ally HQ range
-                        HQsExplored[i] = true;
-                    }
-                /*}else  {
-                    //inside vision range
-                    HQsExplored[i] = true;
-                }*/
-            }
-
-
-        }
-
-        if(target == null){
-            getExploreTargetRandom(rc, rc.getMapWidth(), rc.getMapHeight());
-        }
-    }
+//    public static void getHQExploreTarget(RobotController rc) throws GameActionException {
+//
+//        if(!HQInit){
+//            int numHQs = Comms.getNumHQs(rc);
+//            HQLoc1 = Comms.getTeamHQLocation(rc, 0);
+//            if(numHQs <= 2)  HQLoc2 = Comms.getTeamHQLocation(rc, 1);
+//            if(numHQs <= 3)  HQLoc3 = Comms.getTeamHQLocation(rc, 2);
+//            if(numHQs <= 4)  HQLoc4 = Comms.getTeamHQLocation(rc, 3);
+//        }
+//
+//        if(numExplorationTargets == 0){
+//            numExplorationTargets = Comms.getNumExploration(rc);
+//            HQsExplored = new boolean[numExplorationTargets];
+//        }
+//        int maxRange = 100000;
+//        target = null;
+//        for(int i = 0; i<numExplorationTargets; i++){
+//            MapLocation enemyHQLoc = Comms.getExplorationTarget(rc, i);
+//            int range = rc.getLocation().distanceSquaredTo(enemyHQLoc);
+//
+//            if(!HQsExplored[i]){
+//                if(rc.getLocation().distanceSquaredTo(enemyHQLoc) > rc.getType().visionRadiusSquared){
+//                    // check not in vision
+//                 /*   if(targetNotHQ(HQLoc1) &&
+//                            (numHQs>=2 || targetNotHQ(HQLoc2)) &&
+//                            (numHQs>=3 || targetNotHQ(HQLoc3)) &&
+//                            (numHQs>=4 || targetNotHQ(HQLoc4))
+//                    ) {*/
+//                        //check not in HQ range
+//                        if(range < maxRange){
+//                            maxRange = range;
+//                            target = enemyHQLoc;
+//                            curHQExploreIndex = i;
+//                        }
+//                    } else{
+//                        // inside ally HQ range
+//                        HQsExplored[i] = true;
+//                    }
+//                /*}else  {
+//                    //inside vision range
+//                    HQsExplored[i] = true;
+//                }*/
+//            }
+//
+//
+//        }
+//
+//        if(target == null){
+//            getExploreTargetRandom(rc, rc.getMapWidth(), rc.getMapHeight());
+//        }
+//    }
 
     // Choose random unvisited location through visited array, if can't find in tries moves
     //chooses random on radius
