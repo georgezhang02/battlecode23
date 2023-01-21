@@ -20,13 +20,11 @@ public strictfp class Amplifier {
 
     static int numAllyMil;
 
-    static int numNearbyAllyMil;
-
-    static RobotInfo[] nearbyAllyMil = new RobotInfo[10];
-
     static RobotInfo furthestAllyMil;
 
+    static MapLocation closestAmp;
 
+    static boolean ampInRange;
     static AmpState state;
 
     static void run(RobotController rc) throws GameActionException {
@@ -79,13 +77,13 @@ public strictfp class Amplifier {
         int minRange = 21;
         enemies = rc.senseNearbyRobots(RobotType.AMPLIFIER.visionRadiusSquared, rc.getTeam().opponent());
         allies = rc.senseNearbyRobots(RobotType.AMPLIFIER.visionRadiusSquared, rc.getTeam());
-
+        MapLocation loc = rc.getLocation();
         nearestEnemyMil = null;
         for(RobotInfo enemy: enemies){
             if(enemy.getType() == RobotType.LAUNCHER || enemy.getType() == RobotType.DESTABILIZER){
                 numEnemyMil++;
 
-                int range = rc.getLocation().distanceSquaredTo(enemy.getLocation());
+                int range = loc.distanceSquaredTo(enemy.getLocation());
                 if(range < minRange){
                     nearestEnemyMil = enemy;
                     minRange = range;
@@ -93,30 +91,25 @@ public strictfp class Amplifier {
             }
         }
 
-        minRange = RobotType.AMPLIFIER.visionRadiusSquared+1;
         int maxRange = 0;
         numAllyMil = 0;
-        numNearbyAllyMil = 0;
         furthestAllyMil = null;
-
+        closestAmp = null;
+        ampInRange = false;
         for(RobotInfo ally: allies){
             if(ally.getType() == RobotType.LAUNCHER || ally.getType() == RobotType.DESTABILIZER){
-                int range = rc.getLocation().distanceSquaredTo(ally.getLocation());
+                int range = loc.distanceSquaredTo(ally.getLocation());
                 if(range > maxRange){
                     furthestAllyMil = ally;
                     maxRange = range;
                 }
-
-                if(range < minRange){
-                    minRange = range;
-                }
-
-                if(range<=8 && numNearbyAllyMil < 10){
-                    nearbyAllyMil[numNearbyAllyMil] = ally;
-                    numNearbyAllyMil++;
-                }
                 numAllyMil++;
-
+            }
+            if(ally.getType() == RobotType.AMPLIFIER && loc.isWithinDistanceSquared(ally.getLocation(),16)){
+                ampInRange = true;
+                if(closestAmp == null || loc.distanceSquaredTo(closestAmp) > loc.distanceSquaredTo(ally.getLocation())){
+                    closestAmp = ally.getLocation();
+                }
             }
         }
     }
@@ -139,7 +132,9 @@ public strictfp class Amplifier {
         // combatCD will be necessary in the future for avoiding high-cd multiplier squares
         if(enemiesFound(rc)){
             state = AmpState.Combat;
-        }else{
+        }else if(numAllyMil > 0){
+            state = AmpState.Following;
+        } else{
             state = AmpState.Exploring;
         }
 
@@ -160,14 +155,25 @@ public strictfp class Amplifier {
         }
     }
 
-
     static void follow(RobotController rc) throws GameActionException{
-
+        Direction dir;
+        if(ampInRange){
+            dir = Pathfinder.pathAwayFrom(rc, closestAmp);
+        } else{
+            dir = Pathfinder.pathBug(rc,furthestAllyMil.getLocation());
+        }
+        if (rc.canMove(dir)) {
+            rc.move(dir);
+        }
     }
 
     static void explore(RobotController rc) throws GameActionException{
-
-        Direction dir = Pathfinder.pathToExploreBug(rc);
+        Direction dir;
+        if(ampInRange){
+            dir = Pathfinder.pathAwayFrom(rc, closestAmp);
+        } else{
+            dir = Pathfinder.pathToExploreBug(rc);
+        }
         if (rc.canMove(dir)) {
             rc.move(dir);
         }
