@@ -5,7 +5,7 @@ import battlecode.common.*;
 public strictfp class Amplifier {
 
     public enum AmpState {
-        Combat, Following, Exploring
+        Combat, Following, FollowingCommand, Exploring
     }
 
     static RobotInfo[] enemies;
@@ -26,6 +26,8 @@ public strictfp class Amplifier {
 
     static boolean ampInRange;
     static AmpState state;
+
+    static Comms.Attack attackCommand;
 
     static void run(RobotController rc) throws GameActionException {
         if(!initialized){
@@ -53,6 +55,9 @@ public strictfp class Amplifier {
             case Following:
                 follow(rc);
                 break;
+            case FollowingCommand:
+                followingCommand(rc);
+                break;
             case Exploring:
                 explore(rc);
                 break;
@@ -66,11 +71,21 @@ public strictfp class Amplifier {
     }
 
     static void onTurnStart(RobotController rc) throws GameActionException{
-
+        attackCommand = null;
     }
 
-    static void readComms(RobotController rc)throws GameActionException{
+    static void readComms(RobotController rc)throws GameActionException {
+        Comms.Attack[] attackCommands = Comms.getAllAttackCommands(rc);
+        int maxPrio = (attackCommand==null) ? 0 : Comms.getCommPrio(attackCommand.type);
 
+        for(int i = 0; i< attackCommands.length; i++){
+            MapLocation loc = attackCommands[i].location;
+            int prio = Comms.getCommPrio(attackCommands[i].type);
+            if(prio > maxPrio){
+                attackCommand = attackCommands[i];
+                maxPrio = prio;
+            }
+        }
     }
 
     static void sense(RobotController rc) throws GameActionException{
@@ -132,7 +147,9 @@ public strictfp class Amplifier {
         // combatCD will be necessary in the future for avoiding high-cd multiplier squares
         if(enemiesFound(rc)){
             state = AmpState.Combat;
-        }else if(numAllyMil > 0){
+        }else if (attackCommand != null){
+            state = AmpState.FollowingCommand;
+        } else if(numAllyMil > 0){
             state = AmpState.Following;
         } else{
             state = AmpState.Exploring;
@@ -161,6 +178,19 @@ public strictfp class Amplifier {
             dir = Pathfinder.pathAwayFrom(rc, closestAmp);
         } else{
             dir = Pathfinder.pathBug(rc,furthestAllyMil.getLocation());
+        }
+        if (rc.canMove(dir)) {
+            rc.move(dir);
+        }
+    }
+
+    static void followingCommand(RobotController rc) throws GameActionException{
+        MapLocation target= attackCommand.location;
+        Direction dir;
+        if(ampInRange){
+            dir = Pathfinder.pathAwayFrom(rc, closestAmp);
+        } else{
+            dir = Pathfinder.pathBug(rc,target);
         }
         if (rc.canMove(dir)) {
             rc.move(dir);
