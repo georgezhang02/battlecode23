@@ -277,17 +277,12 @@ public class Database {
     public static void addEnemyHQ(RobotController rc, RobotInfo info) throws GameActionException{
         MapLocation loc = info.getLocation();
         if(!globalKnownLocations.contains(loc) && !localKnownLocations.contains(loc)){
-
             if(rc.canWriteSharedArray(0,0)){
-
                 boolean added = Comms.setEnemyHQLocation(rc, info.getLocation(), info.getID());
                 if(added){
                     globalEnemyHQs[numGlobalEnemyHQs] = info.getLocation();
                     globalKnownLocations.add(info.getLocation());
                     numGlobalEnemyHQs++;
-
-
-
                 }
             } else{
                 localKnownLocations.add(info.getLocation());
@@ -295,10 +290,8 @@ public class Database {
                 if(index != -1){
                     localEnemyHQs[index] = info;
                     localKnownLocations.add(info.getLocation());
-
                 }
             }
-
             uncheckedEnemyHQs[numUncheckedHQs] = info.getLocation();
             numUncheckedHQs++;
         }

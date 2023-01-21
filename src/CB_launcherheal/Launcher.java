@@ -56,6 +56,8 @@ public strictfp class Launcher {
 
     static int detachCD = 0;
 
+    static Comms.Attack attackCommand;
+
 
 
     static String allyString;
