@@ -10,7 +10,7 @@ public class Comms {
     private static final int COUNT_OFFSET_3 = 2;
     private static final int COUNT_OFFSET_4 = 3;
     private static final int ALLY_HQ_OFFSET = 6;
-    private static final int ENEMY_HQ_OFFSET = 12;
+    private static final int ENEMY_HQ_OFFSET = 10;
 
     private static final int HQ_COMM_OFFSET = 14;
     private static final int WELL_COMM_OFFSET = 18;
@@ -23,7 +23,7 @@ public class Comms {
 
     private static final int ANCHOR_OFFSET_ODD = 50;
     private static final int ATTACK_OFFSET_EVEN= 52;
-    private static final int ATTACK_OFFSET_ODD = 56;
+    private static final int ATTACK_OFFSET_ODD = 58;
 
     private static final int ALLY_HQ_MAXCOUNT = 4;
     private static final int ENEMY_HQ_MAXCOUNT = 4;
@@ -159,13 +159,13 @@ public class Comms {
         return new boolean[]{rotational, horizontal, vertical};
     }
     public static void setSymmetries(RobotController rc, boolean rotational,
-                                          boolean horizontal, boolean vertical) throws GameActionException{
+                                     boolean horizontal, boolean vertical) throws GameActionException{
         int[]count4 = getAllCount4(rc);
         int val = count4[2];
-        int bits = val/8; // extract commscleaned
-        if(rotational) bits += 4;
-        if(horizontal) bits += 2;
-        if(vertical) bits += 1;
+        int bits = (val/8) *8; // extract commscleaned
+        if(!rotational) bits += 4;
+        if(!horizontal) bits += 2;
+        if(!vertical) bits += 1;
 
         rc.writeSharedArray(COUNT_OFFSET_4, encode(count4[0], count4[1], bits));
     }
@@ -175,15 +175,14 @@ public class Comms {
      */
     public static boolean isCommsCleaned(RobotController rc) throws GameActionException{
         int val = decode(rc.readSharedArray(COUNT_OFFSET_4), 2);
-        return val/8 == rc.getRoundNum() % 2;
+        return (val/8) == (rc.getRoundNum() % 2);
     }
 
 
     public static void setCommsCleaned(RobotController rc) throws GameActionException{
         int[]count4 = getAllCount4(rc);
         int val = count4[2];
-        val = val-(val/8);
-        val = val + (rc.getRoundNum() % 2) * 8;
+        val = (val %8) + (rc.getRoundNum() % 2) * 8;
         rc.writeSharedArray(COUNT_OFFSET_4, encode(count4[0], count4[1], val));
     }
 
@@ -724,7 +723,7 @@ public class Comms {
     public static void wipeComms(RobotController rc) throws GameActionException{
         int[] count1 = getAllCount1(rc);
         int[] count2 = getAllCount2(rc);
-        int[] count3 = getAllCount2(rc);
+        int[] count3 = getAllCount3(rc);
         int[] count4 = getAllCount4(rc);
         //wipe last round Attacks and Anchors
         if(readEven(rc)){
@@ -738,7 +737,6 @@ public class Comms {
             count4[0] = 0;
         }
         // wipe reports
-        count2[2] = 0; // well reports
         count3[2] = 0; // island reports
 
 
@@ -766,7 +764,7 @@ public class Comms {
 
         int[] count1 = getAllCount1(rc);
         int[] count2 = getAllCount2(rc);
-        int[] count3 = getAllCount2(rc);
+        int[] count3 = getAllCount3(rc);
         int[] count4 = getAllCount4(rc);
         //wipe last round Attacks and Anchors
         if(readEven(rc)){
@@ -780,7 +778,6 @@ public class Comms {
             count4[0] = 0;
         }
         // wipe reports
-        count2[2] = 0;
         count3[2] = 0;
 
         if(wellComms) count2[0] = 0;
