@@ -2,6 +2,8 @@ package CB_first;
 
 import battlecode.common.*;
 
+import java.awt.*;
+
 public class Database {
 
     static boolean rotational; // available symmetries
@@ -23,7 +25,9 @@ public class Database {
 
     static int rotationalManaWellsCount = 0;
     static SymmetryCheck[]horizontalManaWells = new SymmetryCheck[16];
+    static int horizontalManaWellsCount = 0;
     static SymmetryCheck[]verticalManaWells= new SymmetryCheck[16];
+    static int verticalManaWellsCount = 0;
     static MapLocation[]unprocessedManaWells = new MapLocation[16];
     static MapLocation[]allyHQs; // HQ locations
     static MapLocation[]globalEnemyHQs;
@@ -31,12 +35,7 @@ public class Database {
     static MapLocation[]rotationalEnemyHQs;
     static MapLocation[]horizontalEnemyHQs;
     static MapLocation[]verticalEnemyHQs;
-    static boolean[] rotationalHQExplored = new boolean[4];
-    static boolean[] horizontalHQExplored = new boolean[4];
-    static boolean[] verticalHQExplored = new boolean[4];
-
     static MapLocation[] uncheckedEnemyHQs = new MapLocation[4];
-
     static int numUncheckedHQs = 0;
 
     static int numGlobalEnemyHQs = 0;
@@ -51,6 +50,8 @@ public class Database {
     static int genManaSymmetries = 0;
     static boolean symmetryUpload = false;
     static boolean symmetryFound = false;
+
+    static int globalSymmetryCount = 3;
     static HashSet<MapLocation> globalKnownLocations;
     static HashSet<MapLocation> localKnownLocations;
 
@@ -109,36 +110,36 @@ public class Database {
     public static void downloadSymmetry(RobotController rc) throws GameActionException {
         boolean[]symmetries = Comms.getSymmetries(rc);
 
-        int globalCount = 0;
-        if(symmetries[0])globalCount ++;
-        if(symmetries[1])globalCount ++;
-        if(symmetries[2])globalCount ++;
 
-        int newCount =0;
+        if(symmetries[0])globalSymmetryCount ++;
+        if(symmetries[1])globalSymmetryCount ++;
+        if(symmetries[2])globalSymmetryCount ++;
+
         rotational =  symmetries[0] && rotational;
         horizontal =  symmetries[1] && horizontal;
         vertical =  symmetries[2] && vertical;
 
+        checkSymmetryFound();
+
+
+    }
+
+    static void checkSymmetryFound(){
+        int newCount = 0;
         if(rotational)newCount ++;
         if(horizontal)newCount ++;
         if(vertical)newCount ++;
 
-        if(newCount < globalCount){
+        if(newCount < globalSymmetryCount){
             symmetryUpload = true;
         }
-
-        if(newCount ==1 && !symmetryFound){
+        if(newCount ==1 && !symmetryFound) {
             symmetryFound = true; // could perform some actions on symmetry found
-            onSymmetryFound();
         }
-    }
-
-    static void onSymmetryFound(){
-
     }
 
     public static void uploadSymmetry(RobotController rc) throws GameActionException {
-        if(rc.canWriteSharedArray(0,0) && symmetryUpload) {
+        if(symmetryUpload && rc.canWriteSharedArray(0,0)) {
             Comms.setSymmetries(rc, rotational, horizontal, vertical);
         }
     }
@@ -318,33 +319,115 @@ public class Database {
 
     public static void processWellSymmetries(){
 
-        for(int i = genADSymmetries; i>=0; i--){
+        for(; genADSymmetries>0; genADSymmetries--){
+            rotationalADWells[rotationalADWellsCount] = new SymmetryCheck(rotate(unprocessedADWells[genADSymmetries-1]));
+            rotationalADWellsCount++;
 
+            horizontalADWells[horizontalADWellsCount] = new SymmetryCheck(reflectAcrossHorizontal(unprocessedADWells[genADSymmetries-1]));
+            horizontalADWellsCount++;
+
+            verticalADWells[verticalADWellsCount] = new SymmetryCheck(reflectAcrossVertical(unprocessedADWells[genADSymmetries-1]));
+            verticalADWellsCount++;
         }
-        for(int i = genManaSymmetries; i>=0; i--){
 
+        for(; genManaSymmetries>0; genManaSymmetries--){
+            rotationalManaWells[rotationalManaWellsCount] = new SymmetryCheck(rotate(unprocessedManaWells[genManaSymmetries-1]));
+            rotationalManaWellsCount++;
+
+            horizontalManaWells[horizontalManaWellsCount] = new SymmetryCheck(reflectAcrossHorizontal(unprocessedManaWells[genManaSymmetries-1]));
+            horizontalManaWellsCount++;
+
+            verticalManaWells[verticalManaWellsCount] = new SymmetryCheck(reflectAcrossVertical(unprocessedManaWells[genManaSymmetries-1]));
+            verticalManaWellsCount++;
         }
     }
 
-    public static void checkSymmetries() throws GameActionException{
-        if(numUncheckedHQs >0){
-
+    public static void checkSymmetries(RobotController rc) throws GameActionException{
+        if(!symmetryFound && numUncheckedHQs >0){
+            for(;numUncheckedHQs>0; numUncheckedHQs--){
+                MapLocation loc = uncheckedEnemyHQs[numUncheckedHQs-1];
+                if(rotational){
+                    rotational = false;
+                    for(int i = 0; i<rotationalEnemyHQs.length; i++){
+                        if(rotationalEnemyHQs[i].equals(loc)){
+                            rotational = true;
+                            break;
+                        }
+                    }
+                }
+                if(horizontal){
+                    horizontal = false;
+                    for(int i = 0; i<horizontalEnemyHQs.length; i++){
+                        if(horizontalEnemyHQs[i].equals(loc)){
+                            horizontal = true;
+                            break;
+                        }
+                    }
+                }
+                if(vertical){
+                    vertical = false;
+                    for(int i = 0; i<verticalEnemyHQs.length; i++){
+                        if(verticalEnemyHQs[i].equals(loc)){
+                            vertical = true;
+                            break;
+                        }
+                    }
+                }
+            }
         }
-        if(rotational){
-
+        checkSymmetryFound();
+        if(!symmetryFound && rotational){
+            rotational = checkWellSymmetry(rc, rotationalADWells, rotationalManaWells);
         }
-        if(horizontal){
-
+        if(!symmetryFound && horizontal){
+            horizontal = checkWellSymmetry(rc, horizontalADWells, horizontalManaWells);
         }
-        if(vertical){
-
+        if(!symmetryFound && vertical){
+            vertical = checkWellSymmetry(rc, verticalADWells, verticalManaWells);
         }
+        checkSymmetryFound();
 
     }
 
-    private static void checkSymmetries(MapLocation[]enemyHQs, MapLocation[]ADWells, MapLocation[]manaWells ){
+    static boolean checkWellSymmetry(RobotController rc, SymmetryCheck[]adWells, SymmetryCheck[]manaWells) throws GameActionException {
+        for(int i = 0; i<adWells.length; i++){
+            if(adWells[i] == null){
+                break;
+            }
+            if(!adWells[i].checked){
+                if(rc.canSenseLocation(adWells[i].location)){
+                    WellInfo info = rc.senseWell(adWells[i].location);
+                    if(info == null ||
+                            !(info.getResourceType().equals(ResourceType.ADAMANTIUM) || info.getResourceType().equals(ResourceType.ELIXIR)) ){
+                        return false;
+                    }
+                    else{
+                        adWells[i].checked = true;
+                    }
+                }
+            }
+        }
 
+        for(int i = 0; i<manaWells.length; i++){
+            if(manaWells[i] == null){
+                break;
+            }
+            if(manaWells[i].checked){
+                if(rc.canSenseLocation(manaWells[i].location)){
+                    WellInfo info = rc.senseWell(manaWells[i].location);
+                    if(info == null ||
+                            !(info.getResourceType().equals(ResourceType.MANA) || info.getResourceType().equals(ResourceType.ELIXIR)) ){
+                        return false;
+                    }
+                    else{
+                        manaWells[i].checked = true;
+                    }
+                }
+            }
+        }
+        return true;
     }
+
 
     private static MapLocation rotate(MapLocation loc) {
         return new MapLocation(width - loc.x - 1, height - loc.y - 1);
@@ -363,9 +446,9 @@ public class Database {
     static class SymmetryCheck{
         public MapLocation location;
         public boolean checked;
-        public SymmetryCheck(MapLocation location, boolean checked){
+        public SymmetryCheck(MapLocation location){
             this.location = location;
-            this.checked = checked;
+            this.checked = false;
         }
     }
 
