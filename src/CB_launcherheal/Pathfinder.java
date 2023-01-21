@@ -74,7 +74,8 @@ public strictfp class Pathfinder {
             if(Explorer.HQsExplored != null){
                 Explorer.HQsExplored[Explorer.curHQExploreIndex] = true;
             }
-            Explorer.getHQExploreTarget(rc);
+            //temporary
+            //Explorer.getHQExploreTarget(rc);
         }
         //rc.setIndicatorString(Explorer.target+"");
         Direction dir = pathBug(rc, Explorer.target);

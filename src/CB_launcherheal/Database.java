@@ -1,8 +1,6 @@
-package CB_first;
+package CB_launcherheal;
 
 import battlecode.common.*;
-
-import java.awt.*;
 
 public class Database {
 

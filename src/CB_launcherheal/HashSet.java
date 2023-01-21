@@ -1,4 +1,4 @@
-package CB_first;
+package CB_launcherheal;
 
 public class HashSet<E> {
 
@@ -76,7 +76,7 @@ public class HashSet<E> {
      * @param key   the key to add
      * @return null if the key was not already in the map. If it was in the map,
      *         return the old value associated with it
-     * @throws java.lang.IllegalArgumentException if key or value is null
+     * @throws IllegalArgumentException if key or value is null
      */
     public void add(E key) {
         if (key == null) {
@@ -127,7 +127,7 @@ public class HashSet<E> {
      *
      * @param key the key to remove
      * @return the value previously associated with the key
-     * @throws java.lang.IllegalArgumentException if key is null
+     * @throws IllegalArgumentException if key is null
      * @throws java.util.NoSuchElementException   if the key is not in the map
      */
     public void remove(E key) {
@@ -156,7 +156,7 @@ public class HashSet<E> {
      *
      * @param key the key to search for in the map
      * @return true if the key is contained within the map, false otherwise
-     * @throws java.lang.IllegalArgumentException if key is null
+     * @throws IllegalArgumentException if key is null
      */
     public boolean contains(E key) {
         if (key == null) {
@@ -198,7 +198,7 @@ public class HashSet<E> {
      * Hint: You cannot just simply copy the entries over to the new array.
      *
      * @param length new length of the backing table
-     * @throws java.lang.IllegalArgumentException if length is less than the
+     * @throws IllegalArgumentException if length is less than the
      *                                            number of items in the hash
      *                                            map
      */

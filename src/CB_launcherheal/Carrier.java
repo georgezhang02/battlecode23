@@ -24,11 +24,20 @@ public strictfp class Carrier {
 
     static MapLocation HQ_LOCATION = null;
     static int HQIndex;
-    static MapLocation assignedWell = null;
-    static int[] knownWells;
+
+    //assignedWell used to be a location, now it's a Well object
+    //going to comment this out for now and replace it with a Comms.Well version
+    //static MapLocation assignedWell = null;
+    static Comms.Well assignedWell = null;
+    //make this a list of well objects instead of a list of ints, if it's a list of ints then it's just the encoded information
+    static Comms.Well[] knownWells;
     static WellInfo discoveredWell = null;
-    static MapLocation previousCommand = null;
-    static MapLocation newCommand = null;
+
+    //going to do the same thing with these two
+    //static MapLocation previousCommand = null;
+    //static MapLocation newCommand = null;
+    static Comms.Well previousCommand = null;
+    static Comms.Well newCommand = null;
 
     static void run(RobotController rc) throws GameActionException {
         sense(rc);
@@ -58,7 +67,8 @@ public strictfp class Carrier {
                 HQIndex = Comms.getHQIndexByID(rc, ally.getID());
                 if (location.distanceSquaredTo(HQ_LOCATION) <= 9) {
                     assignedWell = Comms.getWellCommand(rc, HQIndex);
-                    Comms.clearWellCommand(rc, HQIndex);
+                    //well commands are now HQ commands
+                    Comms.clearHQCommand(rc, HQIndex);
                     if (assignedWell != null) {
                         state = CarrierState.Gathering;
                     } else {
@@ -72,7 +82,8 @@ public strictfp class Carrier {
     }
 
     static void comms(RobotController rc) throws GameActionException {
-        knownWells = Comms.getAllWellValues(rc);
+        //knownWells = Comms.getAllWellValues(rc);
+        knownWells = Comms.getAllWellCommands(rc);
         newCommand = Comms.getWellCommand(rc, HQIndex);
     }
 
@@ -144,12 +155,12 @@ public strictfp class Carrier {
     }
 
     static void gather(RobotController rc) throws GameActionException {
-        if(assignedWell.distanceSquaredTo(location) <= 2){
-            if (rc.canCollectResource(assignedWell, -1)) {
-                rc.collectResource(assignedWell, -1);
+        if(assignedWell.location.distanceSquaredTo(location) <= 2){
+            if (rc.canCollectResource(assignedWell.location, -1)) {
+                rc.collectResource(assignedWell.location, -1);
             }
         } else {
-            pathTowards(rc, assignedWell);
+            pathTowards(rc, assignedWell.location);
         }
     }
 
@@ -158,10 +169,10 @@ public strictfp class Carrier {
         WellInfo[] wells = rc.senseNearbyWells();
         for (WellInfo well : wells) {
             MapLocation loc = well.getMapLocation();
-            int newValue = Comms.encode(loc.x, loc.y);
+            //int newValue = Comms.encode(loc.x, loc.y);
             boolean alreadyKnew = false;
-            for (int knownValue: knownWells) {
-                if (newValue == knownValue) {
+            for (Comms.Well knownWell: knownWells) {
+                if (knownWell.location.equals(loc)) {
                     alreadyKnew = true;
                     break;
                 }
@@ -188,10 +199,10 @@ public strictfp class Carrier {
                 && adAmount == 0 && manaAmount == 0 && elixirAmount == 0) {
             // Get command or anchor if available
             if (assignedWell == null) {
-                MapLocation command = Comms.getWellCommand(rc, HQIndex);
+                Comms.Well command = Comms.getWellCommand(rc, HQIndex);
                 if (command != null) {
                     assignedWell = command;
-                    Comms.clearWellCommand(rc, HQIndex);
+                    Comms.clearHQCommand(rc, HQIndex);
                     state = CarrierState.Gathering;
                 } else if (rc.canTakeAnchor(HQ_LOCATION, Anchor.STANDARD)) {
                     rc.takeAnchor(HQ_LOCATION, Anchor.STANDARD);
@@ -236,9 +247,21 @@ public strictfp class Carrier {
 
         // If within comms range and has discovered well, report well.
         if (discoveredWell != null && rc.canWriteSharedArray(0, 0)) {
+            //AD ID = 1
+            if(discoveredWell.getResourceType().resourceID == 1){
+                Comms.setADWell(rc, discoveredWell.getMapLocation());
+            }
+            //MN ID = 2
+            if(discoveredWell.getResourceType().resourceID == 2){
+                Comms.setManaWell(rc, discoveredWell.getMapLocation());
+            }
+
+            /*
             if (Comms.reportWellLocation(rc, HQIndex, discoveredWell)) {
                 discoveredWell = null;
             }
+
+             */
         }
     }
 
@@ -247,6 +270,7 @@ public strictfp class Carrier {
         if (discoveredWell == null) {
             WellInfo[] wells = rc.senseNearbyWells();
             for (WellInfo well : wells) {
+            /*
                 MapLocation loc = well.getMapLocation();
                 int newValue = Comms.encode(loc.x, loc.y);
                 for (int knownValue: knownWells) {
@@ -255,6 +279,15 @@ public strictfp class Carrier {
                         break;
                     }
                 }
+            */
+                MapLocation loc = well.getMapLocation();
+                for (Comms.Well knownWell: knownWells) {
+                    if (!knownWell.location.equals(loc)) {
+                        discoveredWell = well;
+                        break;
+                    }
+                }
+
                 if (discoveredWell != null) {
                     break;
                 }

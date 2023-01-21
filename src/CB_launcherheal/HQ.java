@@ -13,27 +13,19 @@ public strictfp class HQ {
     static int width;
     static int height;
     static MapLocation center;
+    static boolean smallMap;
     static String indicatorString = "";
-
-    static int[] PERWELL = {3, 3, 3}; // {AD, MN, EX}
-    static MapLocation[] wellsDiscoveredNearby = new MapLocation[288];
-    static int wellsDiscoveredCount = 0;
-    static int[] wellsDiscoveredType = new int[288]; // 0 = AD, 1 = MN, 2 = EX
-    static int[] wellsAssigned = new int[288];
-    static boolean assigning = false;
-    static MapLocation carrierBuildTarget;
+    static boolean buildExplore = false;
+    static MapLocation carrierBuildTarget = null;
 
     static int totalAnchorCount = 0;
 
     static RobotInfo[] enemies;
     static boolean enemiesFound;
 
-    static MapLocation[] explorationTargets = new MapLocation[12];
-    static int targetCount = 0;
-
     public static void run(RobotController rc) throws GameActionException {
 
-        enemies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam().opponent());
+        checkEnemies(rc);
 
         if(!initialized){
             onUnitInit(rc); // first time starting the bot, do some setup
@@ -43,12 +35,12 @@ public strictfp class HQ {
         // sense part
         sense(rc);
 
-        // If first HQ and 2nd round, check map symmetries for exploration targets
-        if (HQIndex == 0 && rc.getRoundNum() == 2) {
-            findExplorationTargets(rc);
+        /*
+        // If first HQ check map symmetries for exploration targets
+        if (HQIndex == 0) {
+            //findExplorationTargets(rc);
         }
-
-        checkEnemies();
+        */
 
         think(rc);
 
@@ -59,12 +51,24 @@ public strictfp class HQ {
         debug(rc);
     }
 
+    static void checkEnemies(RobotController rc) throws GameActionException {
+        enemies = rc.senseNearbyRobots(RobotType.HEADQUARTERS.visionRadiusSquared, rc.getTeam().opponent());
+        enemiesFound = false;
+        for (RobotInfo enemy : enemies) {
+            if (!(enemy.getType() == RobotType.HEADQUARTERS || enemy.getType() == RobotType.CARRIER)) {
+                enemiesFound = true;
+                break;
+            }
+        }
+    }
+
     static void onUnitInit(RobotController rc) throws GameActionException {
         location = rc.getLocation();
         id = rc.getID();
         HQIndex = Comms.setTeamHQLocation(rc, location, id);
         width = rc.getMapWidth();
         height = rc.getMapHeight();
+        smallMap = width <= 30 && height <= 30;
         center = new MapLocation(width / 2, height / 2);  // Get map center
 
         // Find any enemy HQs
@@ -79,209 +83,90 @@ public strictfp class HQ {
         for (WellInfo well : wells) {
             if (well.getResourceType() == ResourceType.MANA) {
                 MapLocation loc = well.getMapLocation();
-                Comms.addWellLocation(rc, loc);
-                wellsDiscoveredNearby[wellsDiscoveredCount] = loc;
-                wellsDiscoveredType[wellsDiscoveredCount] = 1;
-                wellsDiscoveredCount++;
+                Comms.setManaWell(rc, loc);
             }
-        }
-        for (WellInfo well: wells) {
             if (well.getResourceType() == ResourceType.ADAMANTIUM) {
                 MapLocation loc = well.getMapLocation();
-                Comms.addWellLocation(rc, loc);
-                wellsDiscoveredNearby[wellsDiscoveredCount] = loc;
-                wellsDiscoveredType[wellsDiscoveredCount] = 0;
-                wellsDiscoveredCount++;
+                Comms.setADWell(rc, loc);
             }
-        }
-    }
-
-    static void findExplorationTargets(RobotController rc) throws GameActionException {
-        int HQCount = Comms.getNumHQs(rc);
-        int EnemyCount = Comms.getNumEnemyHQs(rc);
-        // If only 1 HQ
-        if (HQCount == 1) {
-            // If we see an enemy, set that as the exploration target
-            if (EnemyCount > 0) {
-                explorationTargets[targetCount++] = Comms.getEnemyHQLocation(rc, 0);
-            }
-            // Otherwise, assume rotational then reflectional symmetry
-            else {
-                explorationTargets[targetCount++] = rotate(location);
-                /*
-                explorationTargets[targetCount++] = reflectAcrossVertical(location);
-                explorationTargets[targetCount++] = reflectAcrossHorizontal(location);
-                 */
-            }
-        }
-        // If multiple HQs
-        else {
-            MapLocation[] allHQs = Comms.getAllHQs(rc);
-            MapLocation[] enemyHQs = Comms.getAllEnemyHQs(rc);
-            // If we see an enemy, find the symmetry
-            if (EnemyCount > 0) {
-                for (MapLocation HQ : allHQs) {
-                    if (HQ.equals(rotate(enemyHQs[0]))) {
-                        for (MapLocation loc: allHQs) {
-                            explorationTargets[targetCount++] = rotate(loc);
-                        }
-                        break;
-                    } else if (HQ.equals(reflectAcrossVertical(enemyHQs[0]))) {
-                        for (MapLocation loc: allHQs) {
-                            explorationTargets[targetCount++] = reflectAcrossVertical(loc);
-                        }
-                        break;
-                    } else if (HQ.equals(reflectAcrossHorizontal(enemyHQs[0]))) {
-                        for (MapLocation loc: allHQs) {
-                            explorationTargets[targetCount++] = reflectAcrossHorizontal(loc);
-                        }
-                        break;
-                    }
-                }
-            }
-
-            // Otherwise, if we're on the same side, assume rotational then reflectional symmetry
-            else {
-                boolean xLeft = false;
-                boolean xRight = false;
-                boolean yTop = false;
-                boolean yBottom = false;
-                for (MapLocation HQ : allHQs) {
-                    if (HQ.x < width / 2) {
-                        xLeft = true;
-                    } else {
-                        xRight = true;
-                    }
-                    if (HQ.y < height / 2) {
-                        yBottom = true;
-                    } else {
-                        yTop = true;
-                    }
-                }
-                boolean entireWidth = xLeft && xRight;
-                boolean entireHeight = yBottom && yTop;
-                if (entireWidth && !entireHeight) {
-                    for (MapLocation loc: allHQs) {
-                        explorationTargets[targetCount++] = rotate(loc);
-                    }
-                    for (MapLocation loc: allHQs) {
-                        explorationTargets[targetCount++] = reflectAcrossHorizontal(loc);
-                    }
-                    /*
-                    for (MapLocation loc: allHQs) {
-                        explorationTargets[targetCount++] = reflectAcrossVertical(loc);
-                    }
-                    */
-                } else if (entireHeight && !entireWidth) {
-                    for (MapLocation loc: allHQs) {
-                        explorationTargets[targetCount++] = rotate(loc);
-                    }
-                    for (MapLocation loc: allHQs) {
-                        explorationTargets[targetCount++] = reflectAcrossVertical(loc);
-                    }
-                    /*
-                    for (MapLocation loc: allHQs) {
-                        explorationTargets[targetCount++] = reflectAcrossHorizontal(loc);
-                    }*/
-                } else if (entireWidth && entireHeight) {
-                    for (MapLocation loc: allHQs) {
-                        explorationTargets[targetCount++] = reflectAcrossVertical(loc);
-                    }
-                    for (MapLocation loc: allHQs) {
-                        explorationTargets[targetCount++] = reflectAcrossHorizontal(loc);
-                    }
-                    /*
-                    for (MapLocation loc: allHQs) {
-                        explorationTargets[targetCount++] = rotate(loc);
-                    }
-                    */
-                } else {
-                    for (MapLocation loc: allHQs) {
-                        explorationTargets[targetCount++] = rotate(loc);
-                    }
-                    /*
-                    for (MapLocation loc: allHQs) {
-                        explorationTargets[targetCount++] = reflectAcrossVertical(loc);
-                    }
-                    for (MapLocation loc: allHQs) {
-                        explorationTargets[targetCount++] = reflectAcrossHorizontal(loc);
-                    }
-                     */
-                }
-            }
-        }
-        for (int i = 0; i < targetCount; i++) {
-            Comms.writeExplorationTarget(rc, explorationTargets[i]);
         }
     }
 
     static void sense(RobotController rc) throws GameActionException {
         totalAnchorCount = rc.senseRobot(id).getTotalAnchors();
+
     }
 
-    static void checkEnemies() {
-        enemiesFound = false;
-        for (RobotInfo enemy : enemies) {
-            if (!(enemy.getType() == RobotType.HEADQUARTERS || enemy.getType() == RobotType.CARRIER)) {
-                enemiesFound = true;
-                break;
-            }
-        }
-    }
 
     static void think(RobotController rc) throws GameActionException {
         // Take in report if available
-        int[] report = Comms.readWellReport(rc, HQIndex);
-        if (report != null) {
-            MapLocation loc = new MapLocation(report[0], report[1]);
-            boolean duplicate = false;
-            for (int i = 0; i < wellsDiscoveredCount; i++) {
-                if (loc.equals(wellsDiscoveredNearby[i])) {
-                    duplicate = true;
-                    break;
-                }
-            }
-            if (!duplicate) {
-                Comms.addWellLocation(rc, loc);
-                wellsDiscoveredNearby[wellsDiscoveredCount] = loc;
-                wellsDiscoveredType[wellsDiscoveredCount] = report[2] - 1;
-                wellsDiscoveredCount++;
-            }
-            Comms.clearWellReport(rc, HQIndex);
+        MapLocation[] ADWells = Comms.getAllADWells(rc);
+        MapLocation[] MNWells = Comms.getAllManaWells(rc);
+        // Don't see any ad wells, explore
+        if (ADWells.length == 0 && MNWells.length == 0) {
+            Comms.writeHQCommand(rc, HQIndex, new MapLocation(0, 0), 0);
+            buildExplore = true;
         }
-        // If currently has an assignment command out, and it's been taken, go back to assigning
-        if (assigning && Comms.getWellCommand(rc, HQIndex) == null) {
-            assigning = false;
+        // Only see mana
+        else if (ADWells.length == 0) {
+            // Go to mana on small map
+            if (smallMap) {
+                MapLocation closestWell = Helper.getClosest(MNWells, location);
+                Comms.writeHQCommand(rc, HQIndex, closestWell, 1);
+                carrierBuildTarget = closestWell;
+                buildExplore = false;
+            }
+            // Explore on big maps
+            else {
+                Comms.writeHQCommand(rc, HQIndex, new MapLocation(0, 0), 0);
+                buildExplore = true;
+            }
         }
-        // If not currently assigning and there are wells available to be assigned, assign
-        if (!assigning) {
-            int unassignedIndex = getUnassignedWell();
-            if (unassignedIndex == -1 && PERWELL[1] == 3) {
-                PERWELL[1] = 6;
-                unassignedIndex = getUnassignedWell();
+        // Only see ad
+        else if (MNWells.length == 0) {
+            // Explore on small map
+            if (smallMap) {
+                Comms.writeHQCommand(rc, HQIndex, new MapLocation(0, 0), 0);
+                buildExplore = true;
             }
-            if (unassignedIndex != -1){
-                Comms.writeWellCommand(rc, HQIndex, wellsDiscoveredNearby[unassignedIndex]);
-                wellsAssigned[unassignedIndex]++;
-                indicatorString = "Assigning towards: " + wellsDiscoveredNearby[unassignedIndex].x + ", "
-                        + wellsDiscoveredNearby[unassignedIndex].y
-                        + ", assigned: " + wellsAssigned[unassignedIndex];
-                assigning = true;
-                int newIndex = getUnassignedWell();
-                if (newIndex == -1) {
-                    carrierBuildTarget = center;
-                } else {
-                    carrierBuildTarget = wellsDiscoveredNearby[newIndex];
-                }
-            } else {
-                carrierBuildTarget = center;
+            // Go ad on big maps
+            else {
+                MapLocation closestWell = Helper.getClosest(ADWells, location);
+                Comms.writeHQCommand(rc, HQIndex, closestWell, 1);
+                carrierBuildTarget = closestWell;
+                buildExplore = false;
             }
+        }
+        // See both wells
+        else {
+            MapLocation closestWell;
+            // Mana first on small maps
+            if (smallMap) {
+                closestWell = Helper.getClosest(MNWells, location);
+                carrierBuildTarget = closestWell;
+                buildExplore = false;
+            }
+            // Ad first on big maps
+            else {
+                closestWell = Helper.getClosest(ADWells, location);
+                carrierBuildTarget = closestWell;
+                buildExplore = false;
+            }
+            Comms.writeHQCommand(rc, HQIndex, closestWell, 1);
         }
     }
 
     static void build(RobotController rc) throws GameActionException{
         MapLocation centerBuildLoc = buildTowards(rc, center);
-        MapLocation carrierBuildLoc = buildTowards(rc, carrierBuildTarget);
+        MapLocation carrierBuildLoc = null;
+        // Build in 4 diagonal directions
+        if (buildExplore) {
+
+        }
+        // Build towards a well
+        else {
+            carrierBuildLoc = buildTowards(rc, carrierBuildTarget);
+        }
         if (!enemiesFound) {
             if (totalAnchorCount == 0 && rc.getRobotCount() >= ANCHOR_BUILD_THRESHOLD) {
                 if (rc.canBuildAnchor(Anchor.STANDARD)) {
@@ -313,28 +198,5 @@ public strictfp class HQ {
             }
         }
         return buildSquare;
-    }
-
-    private static int getUnassignedWell() {
-        for (int i = 0; i < wellsDiscoveredCount; i++) {
-            if (wellsAssigned[i] < PERWELL[wellsDiscoveredType[i]]) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    private static MapLocation rotate(MapLocation loc) {
-        return new MapLocation(width - loc.x - 1, height - loc.y - 1);
-    }
-
-    private static MapLocation reflectAcrossVertical(MapLocation loc) {
-        int newX = width - loc.x - 1;
-        return new MapLocation(newX, loc.y);
-    }
-
-    private static MapLocation reflectAcrossHorizontal(MapLocation loc) {
-        int newY = height - loc.y - 1;
-        return new MapLocation(loc.x, newY);
     }
 }
