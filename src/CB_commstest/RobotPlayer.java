@@ -32,24 +32,17 @@ public strictfp class RobotPlayer {
             // Try/catch blocks stop unhandled exceptions, which cause your robot to explode.
             try {
                 String toPrint = "";
-                toPrint = toPrint + Comms.getAllCount4(rc)[2]/8+" ";
                 if(!Comms.isCommsCleaned(rc)){
                     Comms.wipeComms(rc);
                 }
-                 toPrint = toPrint+""+Comms.getNumACEven(rc)+" "+Comms.getNumACOdd(rc)+" ";
-                if(turnCount%2==1){
-                    Comms.setAttackCommand(rc, new MapLocation(10, 10), RobotType.CARRIER);
-                    Comms.setAttackCommand(rc, new MapLocation(30, 30), RobotType.CARRIER);
-                }  else{
-                    Comms.setAttackCommand(rc, new MapLocation(4, 4), RobotType.CARRIER);
+                if(turnCount==1){
+                    Comms.setSymmetries(rc, true, false, true);
                 }
-                toPrint = toPrint + Comms.getNumACEven(rc)+" "+Comms.getNumACOdd(rc)+" ";
                 if(turnCount>1){
-                   toPrint = toPrint + Comms.getAllAttackCommands(rc)[0].location;
+                    toPrint = toPrint + Comms.getSymmetries(rc)[0]+" ";
+                    toPrint = toPrint + Comms.getSymmetries(rc)[1]+" ";
+                    toPrint = toPrint + Comms.getSymmetries(rc)[2];
                 }
-
-
-
                 rc.setIndicatorString(toPrint);
 
 

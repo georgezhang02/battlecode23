@@ -496,7 +496,7 @@ public class Comms {
 
             rc.writeSharedArray(islandCount+ ISLAND_OFFSET,
                     encode(loc.x, loc.y, teamVal));
-            rc.writeSharedArray(COUNT_OFFSET_3, encode(count3[0], count3[1] +1, count3[2]));
+            rc.writeSharedArray(COUNT_OFFSET_3, encode(count3[0], islandCount +1, count3[2]));
         }
     }
     public static void clearIslandReport(RobotController rc, int index) throws GameActionException {

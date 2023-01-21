@@ -37,7 +37,6 @@ public class Database {
     static MapLocation[]verticalEnemyHQs;
     static MapLocation[] uncheckedEnemyHQs = new MapLocation[4];
     static int numUncheckedHQs = 0;
-
     static int numGlobalEnemyHQs = 0;
     static int numGlobalAD = 0;
     static int numGlobalMana = 0;
@@ -82,7 +81,6 @@ public class Database {
 
                 uncheckedEnemyHQs[numUncheckedHQs] = globalEnemyHQs[numGlobalEnemyHQs];
                 numUncheckedHQs++;
-
             }
         }
 
@@ -110,7 +108,6 @@ public class Database {
     public static void downloadSymmetry(RobotController rc) throws GameActionException {
         boolean[]symmetries = Comms.getSymmetries(rc);
 
-
         if(symmetries[0])globalSymmetryCount ++;
         if(symmetries[1])globalSymmetryCount ++;
         if(symmetries[2])globalSymmetryCount ++;
@@ -120,8 +117,6 @@ public class Database {
         vertical =  symmetries[2] && vertical;
 
         checkSymmetryFound();
-
-
     }
 
     static void checkSymmetryFound(){
