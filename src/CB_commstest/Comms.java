@@ -162,10 +162,10 @@ public class Comms {
                                           boolean horizontal, boolean vertical) throws GameActionException{
         int[]count4 = getAllCount4(rc);
         int val = count4[2];
-        int bits = val/8; // extract commscleaned
-        if(rotational) bits += 4;
-        if(horizontal) bits += 2;
-        if(vertical) bits += 1;
+        int bits = (val/8) *8; // extract commscleaned
+        if(!rotational) bits += 4;
+        if(!horizontal) bits += 2;
+        if(!vertical) bits += 1;
 
         rc.writeSharedArray(COUNT_OFFSET_4, encode(count4[0], count4[1], bits));
     }
@@ -474,7 +474,7 @@ public class Comms {
      */
     public static void setIsland(RobotController rc, MapLocation loc, Team team) throws GameActionException {
         int[] count3 = getAllCount3(rc);
-        int islandCount = count3[0];
+        int islandCount = count3[1];
 
 
         int teamVal;
@@ -737,7 +737,6 @@ public class Comms {
             count4[0] = 0;
         }
         // wipe reports
-        count2[2] = 0; // well reports
         count3[2] = 0; // island reports
 
 
@@ -779,7 +778,6 @@ public class Comms {
             count4[0] = 0;
         }
         // wipe reports
-        count2[2] = 0;
         count3[2] = 0;
 
         if(wellComms) count2[0] = 0;
