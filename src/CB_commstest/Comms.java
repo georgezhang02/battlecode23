@@ -723,7 +723,7 @@ public class Comms {
     public static void wipeComms(RobotController rc) throws GameActionException{
         int[] count1 = getAllCount1(rc);
         int[] count2 = getAllCount2(rc);
-        int[] count3 = getAllCount2(rc);
+        int[] count3 = getAllCount3(rc);
         int[] count4 = getAllCount4(rc);
         //wipe last round Attacks and Anchors
         if(readEven(rc)){
@@ -765,7 +765,7 @@ public class Comms {
 
         int[] count1 = getAllCount1(rc);
         int[] count2 = getAllCount2(rc);
-        int[] count3 = getAllCount2(rc);
+        int[] count3 = getAllCount3(rc);
         int[] count4 = getAllCount4(rc);
         //wipe last round Attacks and Anchors
         if(readEven(rc)){
