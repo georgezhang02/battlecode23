@@ -21,18 +21,7 @@ public class Helper {
     static int distanceTo(int x1, int y1, int x2, int y2) {
         return Math.max(Math.abs(x1 - x2), Math.abs(y1 - y2));
     }
-    static MapLocation getClosest(MapLocation[] options, MapLocation location) {
-        int lowestDist = 10000;
-        MapLocation closest = null;
-        for (MapLocation option : options) {
-            int distance = location.distanceSquaredTo(option);
-            if (distance < lowestDist) {
-                lowestDist = distance;
-                closest = new MapLocation(option.x, option.y);
-            }
-        }
-        return closest;
-    }
+
     /*
     private static MapLocation rotate(MapLocation loc) {
         return new MapLocation(width - loc.x - 1, height - loc.y - 1);

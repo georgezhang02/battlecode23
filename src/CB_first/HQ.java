@@ -15,8 +15,15 @@ public strictfp class HQ {
     static int width;
     static int height;
     static MapLocation center;
-    static boolean smallMap;
     static String indicatorString = "";
+
+
+    static boolean smallMap;
+    static MapLocation[] startingAD = new MapLocation[144];
+    static int startingADCount = 0;
+    static MapLocation[] startingMN = new MapLocation[144];
+    static int startingMNCount = 0;
+
     static boolean buildExplore = false;
     static MapLocation carrierBuildTarget = null;
 
@@ -36,13 +43,6 @@ public strictfp class HQ {
 
         // sense part
         sense(rc);
-
-        /*
-        // If first HQ check map symmetries for exploration targets
-        if (HQIndex == 0) {
-            //findExplorationTargets(rc);
-        }
-        */
 
         think(rc);
 
@@ -83,37 +83,28 @@ public strictfp class HQ {
         // Initialize all the wells within vision range
         WellInfo[] wells = rc.senseNearbyWells();
         for (WellInfo well : wells) {
-            if (well.getResourceType() == ResourceType.MANA) {
-                MapLocation loc = well.getMapLocation();
-                Comms.setManaWell(rc, loc);
-            }
             if (well.getResourceType() == ResourceType.ADAMANTIUM) {
                 MapLocation loc = well.getMapLocation();
                 Comms.setADWell(rc, loc);
+                startingAD[startingADCount++] = loc;
+            }
+            if (well.getResourceType() == ResourceType.MANA) {
+                MapLocation loc = well.getMapLocation();
+                Comms.setManaWell(rc, loc);
+                startingMN[startingMNCount++] = loc;
             }
         }
-    }
 
-    static void sense(RobotController rc) throws GameActionException {
-        totalAnchorCount = rc.senseRobot(id).getTotalAnchors();
-
-    }
-
-
-    static void think(RobotController rc) throws GameActionException {
-        // Take in report if available
-        MapLocation[] ADWells = Comms.getAllADWells(rc);
-        MapLocation[] MNWells = Comms.getAllManaWells(rc);
         // Don't see any ad wells, explore
-        if (ADWells.length == 0 && MNWells.length == 0) {
+        if (startingADCount == 0 && startingMNCount == 0) {
             Comms.writeHQCommand(rc, HQIndex, new MapLocation(0, 0), 0);
             buildExplore = true;
         }
         // Only see mana
-        else if (ADWells.length == 0) {
+        else if (startingADCount == 0) {
             // Go to mana on small map
             if (smallMap) {
-                MapLocation closestWell = Helper.getClosest(MNWells, location);
+                MapLocation closestWell = getClosest(startingMN, startingMNCount, location);
                 Comms.writeHQCommand(rc, HQIndex, closestWell, 1);
                 carrierBuildTarget = closestWell;
                 buildExplore = false;
@@ -125,7 +116,7 @@ public strictfp class HQ {
             }
         }
         // Only see ad
-        else if (MNWells.length == 0) {
+        else if (startingMNCount == 0) {
             // Explore on small map
             if (smallMap) {
                 Comms.writeHQCommand(rc, HQIndex, new MapLocation(0, 0), 0);
@@ -133,7 +124,7 @@ public strictfp class HQ {
             }
             // Go ad on big maps
             else {
-                MapLocation closestWell = Helper.getClosest(ADWells, location);
+                MapLocation closestWell = getClosest(startingAD, startingADCount, location);
                 Comms.writeHQCommand(rc, HQIndex, closestWell, 1);
                 carrierBuildTarget = closestWell;
                 buildExplore = false;
@@ -144,43 +135,63 @@ public strictfp class HQ {
             MapLocation closestWell;
             // Mana first on small maps
             if (smallMap) {
-                closestWell = Helper.getClosest(MNWells, location);
-                carrierBuildTarget = closestWell;
-                buildExplore = false;
+                closestWell = getClosest(startingMN, startingMNCount, location);
             }
             // Ad first on big maps
             else {
-                closestWell = Helper.getClosest(ADWells, location);
-                carrierBuildTarget = closestWell;
-                buildExplore = false;
+                closestWell = getClosest(startingAD, startingADCount, location);
             }
+            carrierBuildTarget = closestWell;
+            buildExplore = false;
             Comms.writeHQCommand(rc, HQIndex, closestWell, 1);
         }
     }
 
-    static void build(RobotController rc) throws GameActionException{
-        MapLocation centerBuildLoc = buildTowards(rc, center);
-        MapLocation carrierBuildLoc = null;
-        // Build in 4 diagonal directions
-        if (buildExplore) {
+    static void sense(RobotController rc) throws GameActionException {
+        totalAnchorCount = rc.senseRobot(id).getTotalAnchors();
+    }
 
-        }
-        // Build towards a well
-        else {
-            carrierBuildLoc = buildTowards(rc, carrierBuildTarget);
-        }
-        if (!enemiesFound) {
-            if (totalAnchorCount == 0 && rc.getRobotCount() >= ANCHOR_BUILD_THRESHOLD) {
-                if (rc.canBuildAnchor(Anchor.STANDARD)) {
-                    rc.buildAnchor(Anchor.STANDARD);
+
+    static void think(RobotController rc) throws GameActionException {
+
+    }
+
+    static void build(RobotController rc) throws GameActionException{
+        if (rc.getRoundNum() == 1) {
+            // Build in 4 diagonal directions
+            if (buildExplore) {
+                rc.buildRobot(RobotType.CARRIER, buildTowards(rc, new MapLocation(location.x - 2, location.y - 2)));
+                rc.buildRobot(RobotType.CARRIER, buildTowards(rc, new MapLocation(location.x - 2, location.y + 2)));
+                rc.buildRobot(RobotType.CARRIER, buildTowards(rc, new MapLocation(location.x + 2, location.y - 2)));
+                rc.buildRobot(RobotType.CARRIER, buildTowards(rc, new MapLocation(location.x + 2, location.y + 2)));
+            }
+            // Build towards a well
+            else {
+                rc.buildRobot(RobotType.CARRIER, buildTowards(rc, carrierBuildTarget));
+                rc.buildRobot(RobotType.CARRIER, buildTowards(rc, carrierBuildTarget));
+                rc.buildRobot(RobotType.CARRIER, buildTowards(rc, carrierBuildTarget));
+                rc.buildRobot(RobotType.CARRIER, buildTowards(rc, carrierBuildTarget));
+            }
+        } else if (rc.getRoundNum() == 2) {
+            rc.buildRobot(RobotType.LAUNCHER, buildTowards(rc, center));
+            rc.buildRobot(RobotType.LAUNCHER, buildTowards(rc, center));
+            rc.buildRobot(RobotType.LAUNCHER, buildTowards(rc, center));
+        } else {
+            MapLocation centerBuildLoc = buildTowards(rc, center);
+            MapLocation carrierBuildLoc = buildTowards(rc, center);
+            if (!enemiesFound) {
+                if (totalAnchorCount == 0 && rc.getRobotCount() >= ANCHOR_BUILD_THRESHOLD) {
+                    if (rc.canBuildAnchor(Anchor.STANDARD)) {
+                        rc.buildAnchor(Anchor.STANDARD);
+                    }
+                } else if (rc.canBuildRobot(RobotType.CARRIER, carrierBuildLoc)) {
+                    rc.buildRobot(RobotType.CARRIER, carrierBuildLoc);
+                } else if (rc.canBuildRobot(RobotType.LAUNCHER, centerBuildLoc)) {
+                    rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);
                 }
-            } else if (rc.canBuildRobot(RobotType.CARRIER, carrierBuildLoc)) {
-                rc.buildRobot(RobotType.CARRIER, carrierBuildLoc);
             } else if (rc.canBuildRobot(RobotType.LAUNCHER, centerBuildLoc)) {
                 rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);
             }
-        } else if (rc.canBuildRobot(RobotType.LAUNCHER, centerBuildLoc)) {
-            rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);
         }
     }
 
@@ -201,4 +212,28 @@ public strictfp class HQ {
         }
         return buildSquare;
     }
+
+    static MapLocation getClosest(MapLocation[] options, int count, MapLocation location) {
+        int lowestDist = 10000;
+        MapLocation closest = null;
+        for (int i = 0; i < count; i++) {
+            int distance = location.distanceSquaredTo(options[i]);
+            if (distance < lowestDist) {
+                lowestDist = distance;
+                closest = new MapLocation(options[i].x, options[i].y);
+            }
+        }
+        return closest;
+    }
+
+    /*
+    public static class BuildUnit {
+        MapLocation buildTarget;
+        RobotType type;
+        public BuildUnit(MapLocation buildTarget, RobotType type) {
+            this.buildTarget = buildTarget;
+            this.type = type;
+        }
+    }
+     */
 }
