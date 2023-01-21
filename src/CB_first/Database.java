@@ -43,7 +43,12 @@ public class Database {
     static boolean symmetryUpload = false;
     static boolean symmetryFound = false;
 
+    static HashSet<MapLocation> globalKnownLocations;
+    static HashSet<MapLocation> localKnownLocations;
+
     public static void init(RobotController rc) throws GameActionException {
+        globalKnownLocations = new HashSet<>();
+        localKnownLocations = new HashSet<>();
         allyHQs = Comms.getAllHQs(rc);
 
     }
@@ -55,18 +60,21 @@ public class Database {
         if(numCommEnemyHQ > numGlobalEnemyHQs){
             for(;numGlobalEnemyHQs < numCommEnemyHQ; numGlobalEnemyHQs++){
                 globalEnemyHQs[numGlobalEnemyHQs] = Comms.getEnemyHQLocation(rc, numGlobalEnemyHQs);
+                globalKnownLocations.add(globalEnemyHQs[numGlobalEnemyHQs] );
             }
         }
 
         if(numCommAD > numGlobalAD){
             for(;numGlobalAD < numCommAD; numGlobalAD++){
                 globalADWells[numGlobalAD] = Comms.getADWell(rc, numGlobalAD);
+                globalKnownLocations.add(globalADWells[numGlobalAD] );
             }
         }
 
         if(numCommMana > numGlobalMana){
             for(;numGlobalMana < numCommMana; numGlobalMana++){
                 globalManaWells[numGlobalMana] = Comms.getManaWell(rc, numGlobalMana);
+                globalKnownLocations.add(globalManaWells[numGlobalMana]);
             }
         }
     }
@@ -112,40 +120,139 @@ public class Database {
         if(numLocalHQs >0){
             for(int i = 0; i < 4; i++){
                 if(localEnemyHQs[i]!= null){
-                    boolean added = Comms.setEnemyHQLocation(rc, localEnemyHQs[i].getLocation(), localEnemyHQs[i].getID());
 
-                    if(added){
-                        globalEnemyHQs[numGlobalEnemyHQs] = localEnemyHQs[i].getLocation();
+                    if(globalKnownLocations.contains(localEnemyHQs[i].getLocation())){
                         localEnemyHQs[i] = null;
                         numLocalHQs--;
+                    } else{
+                        boolean added = Comms.setEnemyHQLocation(rc, localEnemyHQs[i].getLocation(), localEnemyHQs[i].getID());
+
+                        if(added){
+                            globalEnemyHQs[numGlobalEnemyHQs] = localEnemyHQs[i].getLocation();
+                            globalKnownLocations.add(localEnemyHQs[i].getLocation());
+                            localEnemyHQs[i] = null;
+                            numLocalHQs--;
+                            numGlobalEnemyHQs++;
+                        }
                     }
+
                 }
             }
         }
         if(numLocalADWells >0 ){
             for(int i = 0; i < 8; i++){
                 if(localADWells[i]!= null){
-                    boolean added = Comms.setADWell(rc, localADWells[i]);
-
-                    if(added){
-                        globalADWells[numGlobalAD] = localADWells[i];
-                        numGlobalAD++;
+                    if(globalKnownLocations.contains(localADWells[i])){
                         localADWells[i] = null;
                         numLocalADWells--;
+                    } else{
+                        boolean added = Comms.setADWell(rc, localADWells[i]);
+                        if(added){
+                            globalADWells[numGlobalAD] = localADWells[i];
+                            globalKnownLocations.add(localADWells[i]);
+                            localADWells[i] = null;
+                            numLocalADWells--;
+                            numGlobalAD++;
+                        }
                     }
+
                 }
             }
         }
         if(numLocalManaWells >0){
             for(int i = 0; i < 8; i++){
                 if(localManaWells[i]!= null){
-                    boolean added = Comms.setManaWell(rc, localManaWells[i]);
-
-                    if(added){
-                        globalManaWells[numGlobalMana] = localManaWells[i];
+                    if(globalKnownLocations.contains(localManaWells[i])){
                         localManaWells[i] = null;
                         numLocalManaWells--;
+                    } else{
+                        boolean added = Comms.setManaWell(rc, localManaWells[i]);
+
+                        if(added){
+                            globalManaWells[numGlobalMana] = localManaWells[i];
+                            globalKnownLocations.add(localManaWells[i]);
+                            localManaWells[i] = null;
+                            numLocalManaWells--;
+                            numGlobalMana++;
+                        }
                     }
+
+                }
+            }
+        }
+    }
+
+    public static void addWell(RobotController rc, WellInfo info) throws GameActionException{
+        MapLocation loc = info.getMapLocation();
+        if(!globalKnownLocations.contains(loc) && !localKnownLocations.contains(loc)){
+            if(rc.canWriteSharedArray(0,0)){
+                if(info.getResourceType().equals(ResourceType.ADAMANTIUM)){
+                    boolean added = Comms.setADWell(rc, info.getMapLocation());
+                    if(added){
+                        globalADWells[numGlobalAD] = info.getMapLocation();
+                        globalKnownLocations.add(info.getMapLocation());
+                        numGlobalAD++;
+                    }
+
+                } else if (info.getResourceType().equals(ResourceType.MANA)){
+                    boolean added = Comms.setManaWell(rc, info.getMapLocation());
+                    if(added){
+                        globalManaWells[numGlobalMana] = info.getMapLocation();
+                        globalKnownLocations.add(info.getMapLocation());
+                        numGlobalMana++;
+                    }
+
+                }
+            } else{
+
+                if(info.getResourceType().equals(ResourceType.ADAMANTIUM)){
+                    int index = findFirstNullLocation(localADWells);
+                    if(index != -1){
+                        localADWells[index] = info.getMapLocation();
+                        localKnownLocations.add(info.getMapLocation());
+                    }
+
+                } else{
+                    int index = findFirstNullLocation(localManaWells);
+                    if(index != -1){
+                        localManaWells[index] = info.getMapLocation();
+                        localKnownLocations.add(info.getMapLocation());
+                    }
+                }
+
+            }
+        }
+    }
+
+    public static int findFirstNullLocation(Object[]arr){
+        for(int i = 0; i< arr.length; i++){
+            if(arr[i] == null){
+                return i;
+            }
+        }
+        return -1;
+
+    }
+
+    public static void addEnemyHQ(RobotController rc, RobotInfo info) throws GameActionException{
+        MapLocation loc = info.getLocation();
+        if(!globalKnownLocations.contains(loc) && !localKnownLocations.contains(loc)){
+            if(rc.canWriteSharedArray(0,0)){
+
+                boolean added = Comms.setEnemyHQLocation(rc, info.getLocation(), info.getID());
+                if(added){
+                    globalEnemyHQs[numGlobalEnemyHQs] = info.getLocation();
+                    globalKnownLocations.add(info.getLocation());
+                    numGlobalEnemyHQs++;
+                }
+
+
+            } else{
+                localKnownLocations.add(info.getLocation());
+                int index = findFirstNullLocation(localEnemyHQs);
+                if(index != -1){
+                    localEnemyHQs[index] = info;
+                    localKnownLocations.add(info.getLocation());
                 }
             }
         }
