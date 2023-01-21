@@ -258,19 +258,21 @@ public class Comms {
         return closest;
     }
 
-    public static void setEnemyHQLocation(RobotController rc, MapLocation HQLocation, int id) throws GameActionException {
+    public static boolean setEnemyHQLocation(RobotController rc, MapLocation HQLocation, int id) throws GameActionException {
         int[] count3 = getAllCount3(rc);
         int enemyHQCount = count3[0];
 
         if(enemyHQCount < ENEMY_HQ_MAXCOUNT){
             for(int i = 0; i<enemyHQCount; i++){
                 if(getEnemyHQLocation(rc, i).equals(HQLocation)){
-                    return;
+                    return false;
                 }
             }
             rc.writeSharedArray(enemyHQCount + ENEMY_HQ_OFFSET, encode(HQLocation.x, HQLocation.y, id));
             rc.writeSharedArray(COUNT_OFFSET_3, encode(enemyHQCount+1, count3[1], count3[2]));
+            return true;
         }
+        return false;
 
     }
 

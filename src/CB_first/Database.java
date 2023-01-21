@@ -8,14 +8,14 @@ public class Database {
     static boolean horizontal;
     static boolean vertical;
     static MapLocation[]localADWells = new MapLocation[8]; // adamantium wells
-    static MapLocation[]globalADWells;
+    static MapLocation[]globalADWells = new MapLocation[8];
 
     static MapLocation[]unprocessedADWells = new MapLocation[16];
     static SymmetryCheck[]rotationalADWells = new SymmetryCheck[16];
     static SymmetryCheck[]horizontalADWells = new SymmetryCheck[16];
     static SymmetryCheck[]verticalADWells = new SymmetryCheck[16];
     static MapLocation[]localManaWells = new MapLocation[8];
-    static MapLocation[]globalManaWells;
+    static MapLocation[]globalManaWells = new MapLocation[8];
     static SymmetryCheck[]rotationalManaWells = new SymmetryCheck[16];
     static SymmetryCheck[]horizontalManaWells = new SymmetryCheck[16];
     static SymmetryCheck[]verticalManaWells= new SymmetryCheck[16];
@@ -23,7 +23,7 @@ public class Database {
     static MapLocation[]unprocessedManaWells = new MapLocation[16];
     static MapLocation[]allyHQs; // HQ locations
     static MapLocation[]globalEnemyHQs;
-    static MapLocation[]localEnemyHQs = new MapLocation[4];
+    static RobotInfo[]localEnemyHQs = new RobotInfo[4];
     static SymmetryCheck[]rotationalEnemyHQs = new SymmetryCheck[4];
     static SymmetryCheck[]horizontalEnemyHQs= new SymmetryCheck[4];
     static SymmetryCheck[]verticalEnemyHQs = new SymmetryCheck[4];
@@ -40,9 +40,7 @@ public class Database {
     static int numLocalADWells = 0;
     static int numLocalManaWells = 0;
     static int numLocalHQs = 0;
-
     static boolean symmetryUpload = false;
-
     static boolean symmetryFound = false;
 
     public static void init(RobotController rc) throws GameActionException {
@@ -110,18 +108,47 @@ public class Database {
         }
     }
 
-    public static void uploadLocations()throws GameActionException {
-        if(numLocalADWells >0 ){
+    public static void uploadLocations(RobotController rc) throws GameActionException {
+        if(numLocalHQs >0){
+            for(int i = 0; i < 4; i++){
+                if(localEnemyHQs[i]!= null){
+                    boolean added = Comms.setEnemyHQLocation(rc, localEnemyHQs[i].getLocation(), localEnemyHQs[i].getID());
 
+                    if(added){
+                        globalEnemyHQs[numGlobalEnemyHQs] = localEnemyHQs[i].getLocation();
+                        localEnemyHQs[i] = null;
+                        numLocalHQs--;
+                    }
+                }
+            }
+        }
+        if(numLocalADWells >0 ){
+            for(int i = 0; i < 8; i++){
+                if(localADWells[i]!= null){
+                    boolean added = Comms.setADWell(rc, localADWells[i]);
+
+                    if(added){
+                        globalADWells[numGlobalAD] = localADWells[i];
+                        numGlobalAD++;
+                        localADWells[i] = null;
+                        numLocalADWells--;
+                    }
+                }
+            }
         }
         if(numLocalManaWells >0){
+            for(int i = 0; i < 8; i++){
+                if(localManaWells[i]!= null){
+                    boolean added = Comms.setManaWell(rc, localManaWells[i]);
 
+                    if(added){
+                        globalManaWells[numGlobalMana] = localManaWells[i];
+                        localManaWells[i] = null;
+                        numLocalManaWells--;
+                    }
+                }
+            }
         }
-        if(numLocalHQs >0){
-
-        }
-
-
     }
 
     public static void checkSymmetries() throws GameActionException{
