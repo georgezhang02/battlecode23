@@ -323,6 +323,10 @@ public strictfp class Carrier {
 
                 if (rc.canPlaceAnchor()) {
                     rc.placeAnchor();
+
+                    if(rc.canWriteSharedArray(0, 0)){
+                        Comms.reportIslandLocation(rc, rc.getLocation(), rc.getTeam());
+                    }
                     if (discoveredWell != null) {
                         state = CarrierState.Returning;
                     } else {

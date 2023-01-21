@@ -32,6 +32,8 @@ public strictfp class HQ {
             initialized = true;
         }
 
+        readComms(rc);
+
         // sense part
         sense(rc);
 
@@ -60,6 +62,82 @@ public strictfp class HQ {
                 break;
             }
         }
+    }
+
+    static void readComms(RobotController rc) throws GameActionException {
+
+        // reading island comms section
+        Comms.Island[] teamIslands = Comms.getAllIslands(rc);
+
+        Comms.Island[]reports = Comms.getAllIslandReports(rc);
+
+        boolean removed = false;
+        boolean added = false;
+
+        for(int j = 0; j<reports.length; j++){
+            Comms.Island report = reports[j];
+            if(report.owner == null || !report.owner.equals(rc.getTeam())){
+                // the owner is not us
+                boolean toRemove = false;
+                for(int i = 0; i< teamIslands.length; i++){
+                    if(report.location.distanceSquaredTo(teamIslands[i].location) <= 5){
+                        teamIslands[i] = null;
+                        toRemove = true;
+                    }
+                }
+                if(toRemove) reports[j] = null;
+                removed = toRemove  || removed;
+                // check for removal of islands based off of losing reports
+            } else {
+                boolean toAdd = true;
+                for(int i = 0; i< teamIslands.length; i++){
+                    if(report.location.distanceSquaredTo(teamIslands[i].location) <= 5){
+                        toAdd = false;
+                        reports[j]  = null;
+                        break;
+                    }
+                }
+                added = added || toAdd;
+                // check for islands to add outside of already available team island locations
+            }
+        }
+
+        if(removed){
+            if(!Comms.isCommsCleaned(rc)){
+                Comms.wipeComms(rc, false, false, true);
+            }
+            //wipe team island comms
+
+            for(int i = 0; i< teamIslands.length; i++){
+                if(teamIslands[i]!= null){
+                    Comms.setIsland(rc, teamIslands[i].location, rc.getTeam());
+                }
+            } // original island array needs updating due to removals
+            for(int i = 0; i< reports.length; i++){
+                if(reports[i]!= null){
+                    Comms.setIsland(rc, reports[i].location, rc.getTeam());
+                }
+            } // add in all reports
+        } else if(added){
+            if(!Comms.isCommsCleaned(rc)){
+                Comms.wipeComms(rc);
+            }
+            //wipe comms regularly
+            for(int i = 0; i< reports.length; i++){
+                if(reports[i]!= null){
+                    Comms.setIsland(rc, reports[i].location, rc.getTeam());
+                }
+            } // add in team reports
+        } else{
+            if(!Comms.isCommsCleaned(rc)){
+                Comms.wipeComms(rc);
+            }
+            // wipe comms
+        }
+
+
+
+
     }
 
     static void onUnitInit(RobotController rc) throws GameActionException {

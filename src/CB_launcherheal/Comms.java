@@ -781,7 +781,10 @@ public class Comms {
         count3[2] = 0;
 
         if(wellComms) count2[0] = 0;
-        if(permaWells) count2[1] = 0;
+        if(permaWells){
+            count2[1] = 0;
+            count2[2] = 0;
+        }
         if(teamIslands) count3[1] = 0;
 
         rc.writeSharedArray(COUNT_OFFSET_1, encode(count1[0], count1[1], count1[2]));
