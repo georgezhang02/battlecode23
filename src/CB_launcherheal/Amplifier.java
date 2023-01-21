@@ -18,6 +18,13 @@ public strictfp class Amplifier {
 
     static int numEnemyMil;
 
+    static int numAllyMil;
+
+    static int numNearbyAllyMil;
+
+    static RobotInfo[] nearbyAllyMil = new RobotInfo[10];
+
+    static RobotInfo furthestAllyMil;
 
 
     static AmpState state;
@@ -83,6 +90,33 @@ public strictfp class Amplifier {
                     nearestEnemyMil = enemy;
                     minRange = range;
                 }
+            }
+        }
+
+        minRange = RobotType.AMPLIFIER.visionRadiusSquared+1;
+        int maxRange = 0;
+        numAllyMil = 0;
+        numNearbyAllyMil = 0;
+        furthestAllyMil = null;
+
+        for(RobotInfo ally: allies){
+            if(ally.getType() == RobotType.LAUNCHER || ally.getType() == RobotType.DESTABILIZER){
+                int range = rc.getLocation().distanceSquaredTo(ally.getLocation());
+                if(range > maxRange){
+                    furthestAllyMil = ally;
+                    maxRange = range;
+                }
+
+                if(range < minRange){
+                    minRange = range;
+                }
+
+                if(range<=8 && numNearbyAllyMil < 10){
+                    nearbyAllyMil[numNearbyAllyMil] = ally;
+                    numNearbyAllyMil++;
+                }
+                numAllyMil++;
+
             }
         }
     }

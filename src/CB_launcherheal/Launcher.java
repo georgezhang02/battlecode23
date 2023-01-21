@@ -1,6 +1,5 @@
 package CB_launcherheal;
 
-import CB_first.Comms;
 import battlecode.common.*;
 public strictfp class Launcher {
 
@@ -591,7 +590,7 @@ public strictfp class Launcher {
                 //rc.setIndicatorString("following "+followBot.getLocation());
 
             } else{
-                dir = Pathfinder.pathToExploreHQ(rc);
+                dir = Pathfinder.pathToExplore(rc);
                 //rc.setIndicatorString("pathing to explore" + Explorer.target);
             }
             if(canMoveToExplore(rc, dir)){
@@ -620,7 +619,7 @@ public strictfp class Launcher {
 
     //Find closest capped island
     static MapLocation getFallback(RobotController rc) throws GameActionException{
-        CB_first.Comms.Island[] islands = Comms.getAllIslands(rc);
+        Comms.Island[] islands = Comms.getAllIslands(rc);
         int min = Integer.MAX_VALUE;
         for(int i = 0; i < islands.length; i++){
             int dist = rc.getLocation().distanceSquaredTo(islands[i].location);
