@@ -10,7 +10,7 @@ public class Comms {
     private static final int COUNT_OFFSET_3 = 2;
     private static final int COUNT_OFFSET_4 = 3;
     private static final int ALLY_HQ_OFFSET = 6;
-    private static final int ENEMY_HQ_OFFSET = 12;
+    private static final int ENEMY_HQ_OFFSET = 10;
 
     private static final int HQ_COMM_OFFSET = 14;
     private static final int WELL_COMM_OFFSET = 18;
