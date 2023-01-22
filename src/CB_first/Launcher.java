@@ -106,6 +106,8 @@ public strictfp class Launcher {
                 break;
         }
 
+        ;
+
 
     }
 

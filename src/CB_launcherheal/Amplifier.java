@@ -27,6 +27,8 @@ public strictfp class Amplifier {
     static boolean ampInRange;
     static AmpState state;
 
+    static int[] islands;
+
     static Comms.Attack attackCommand;
 
     static void run(RobotController rc) throws GameActionException {
@@ -127,6 +129,15 @@ public strictfp class Amplifier {
                 }
             }
         }
+
+        islands  = rc.senseNearbyIslands();
+        boolean commandSent = false;
+        for(int i = 0; i < islands.length; i++){
+            if(numEnemyMil == 0 && !commandSent && rc.canWriteSharedArray(0,0)){
+                commandSent = true;
+                Comms.setAnchorCommand(rc, rc.senseNearbyIslandLocations(islands[i])[0]);
+            }
+        }
     }
     static boolean enemiesFound(RobotController rc) throws GameActionException {
         enemies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam().opponent());
@@ -160,6 +171,9 @@ public strictfp class Amplifier {
 
     static void combat(RobotController rc) throws GameActionException{
         if(nearestEnemyMil != null){
+            if(rc.canWriteSharedArray(0,0)){
+                Comms.setAttackCommand(rc, nearestEnemyMil.getLocation(), nearestEnemyMil.getType());
+            }
             if(rc.getLocation().distanceSquaredTo(nearestEnemyMil.getLocation()) <=
                     nearestEnemyMil.getType().visionRadiusSquared){
                 if(rc.isMovementReady()){

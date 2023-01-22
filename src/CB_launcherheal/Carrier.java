@@ -39,6 +39,8 @@ public strictfp class Carrier {
     static Comms.Well previousCommand = null;
     static Comms.Well newCommand = null;
 
+    static MapLocation anchorCommand = null;
+
     static void run(RobotController rc) throws GameActionException {
         sense(rc);
         if(!initialized){
@@ -300,7 +302,6 @@ public strictfp class Carrier {
     }
 
     static void anchor(RobotController rc) throws GameActionException{
-
         // If I have an anchor singularly focus on getting it to the first island I see
         int[] islands = rc.senseNearbyIslands();
         int inc = 0;
@@ -323,6 +324,7 @@ public strictfp class Carrier {
 
                 if (rc.canPlaceAnchor()) {
                     rc.placeAnchor();
+                    anchorCommand = null;
 
                     if(rc.canWriteSharedArray(0, 0)){
                         Comms.reportIslandLocation(rc, rc.getLocation(), rc.getTeam());
@@ -334,12 +336,32 @@ public strictfp class Carrier {
                     }
                 }
             }
+        } else if(anchorCommand != null || searchAnchorCommands(rc) != null){
+            if(rc.isMovementReady()){
+                Direction moveDir = Pathfinder.pathBug(rc, anchorCommand);
+                if(moveDir != null && rc.canMove(moveDir)){
+                    rc.move(moveDir);
+                }
+            }
         }
-
         //Otherwise, Explore until you find an island
         else{
             pathExplore(rc);
         }
+    }
+
+    static MapLocation searchAnchorCommands(RobotController rc) throws GameActionException {
+        MapLocation[] commands = Comms.getAllAnchorCommands(rc);
+        int minDist = 10000;
+
+        for(MapLocation command: commands){
+            if(rc.getLocation().distanceSquaredTo(anchorCommand) < minDist){
+                anchorCommand = command;
+                minDist = rc.getLocation().distanceSquaredTo(anchorCommand);
+            }
+        }
+
+        return anchorCommand;
     }
 
     /*

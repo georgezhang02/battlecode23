@@ -160,7 +160,8 @@ public strictfp class Launcher {
         }
 
         //if you dont have a fallback, find the island through comms
-        if(fallbackIsland == null || Math.sqrt(rc.getLocation().distanceSquaredTo(fallbackIsland)) <= diagonal/2){
+        if(fallbackIsland == null ||
+                (Math.sqrt(rc.getLocation().distanceSquaredTo(fallbackIsland)) > diagonal/2 && Math.sqrt(rc.getLocation().distanceSquaredTo(fallbackIsland)) >15)){
             fallbackIsland = getFallback(rc);
         }
     }
