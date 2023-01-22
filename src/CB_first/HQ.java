@@ -71,6 +71,7 @@ public strictfp class HQ {
         for (RobotInfo enemy : enemies) {
             if (enemy.getType() == RobotType.HEADQUARTERS) {
                 Comms.setEnemyHQLocation(rc, enemy.getLocation(), enemy.getID());
+                smallMap = true;
             }
         }
 
@@ -140,28 +141,21 @@ public strictfp class HQ {
     }
 
     static void build(RobotController rc) throws GameActionException{
+        MapLocation[] enemyHQs = Comms.getAllEnemyHQs(rc);
         if (rc.getRoundNum() == 1) {
-            // Build in 4 diagonal directions
-            if (buildExplore) {
-                rc.buildRobot(RobotType.CARRIER, buildTowards(rc, new MapLocation(location.x - 2, location.y - 2)));
-                rc.buildRobot(RobotType.CARRIER, buildTowards(rc, new MapLocation(location.x - 2, location.y + 2)));
-                rc.buildRobot(RobotType.CARRIER, buildTowards(rc, new MapLocation(location.x + 2, location.y - 2)));
-                rc.buildRobot(RobotType.CARRIER, buildTowards(rc, new MapLocation(location.x + 2, location.y + 2)));
+            if (enemyHQs.length > 0) {
+                //initialLauncherBuild(rc);
             }
-            // Build towards a well
             else {
-                rc.buildRobot(RobotType.CARRIER, buildTowards(rc, carrierBuildTarget));
-                rc.buildRobot(RobotType.CARRIER, buildTowards(rc, carrierBuildTarget));
-                rc.buildRobot(RobotType.CARRIER, buildTowards(rc, carrierBuildTarget));
-                rc.buildRobot(RobotType.CARRIER, buildTowards(rc, carrierBuildTarget));
+                initialCarrierBuild(rc);
             }
         } else if (rc.getRoundNum() == 2) {
-            /*
-            rc.buildRobot(RobotType.LAUNCHER, buildTowards(rc, center));
-            rc.buildRobot(RobotType.LAUNCHER, buildTowards(rc, center));
-            rc.buildRobot(RobotType.LAUNCHER, buildTowards(rc, center));
-
-             */
+            if (enemyHQs.length > 0) {
+                initialCarrierBuild(rc);
+            }
+            else {
+                //initialLauncherBuild(rc);
+            }
         } else {
             MapLocation centerBuildLoc = buildTowards(rc, center);
             MapLocation carrierBuildLoc = buildTowards(rc, center);
@@ -199,6 +193,28 @@ public strictfp class HQ {
         return buildSquare;
     }
 
+    private static void initialCarrierBuild(RobotController rc) throws GameActionException {
+        // Build in 4 diagonal directions
+        if (buildExplore) {
+            rc.buildRobot(RobotType.CARRIER, buildTowards(rc, new MapLocation(location.x - 2, location.y - 2)));
+            rc.buildRobot(RobotType.CARRIER, buildTowards(rc, new MapLocation(location.x - 2, location.y + 2)));
+            rc.buildRobot(RobotType.CARRIER, buildTowards(rc, new MapLocation(location.x + 2, location.y - 2)));
+            rc.buildRobot(RobotType.CARRIER, buildTowards(rc, new MapLocation(location.x + 2, location.y + 2)));
+        }
+        // Build towards a well
+        else {
+            rc.buildRobot(RobotType.CARRIER, buildTowards(rc, carrierBuildTarget));
+            rc.buildRobot(RobotType.CARRIER, buildTowards(rc, carrierBuildTarget));
+            rc.buildRobot(RobotType.CARRIER, buildTowards(rc, carrierBuildTarget));
+            rc.buildRobot(RobotType.CARRIER, buildTowards(rc, carrierBuildTarget));
+        }
+    }
+
+    private static void initialLauncherBuild(RobotController rc) throws GameActionException {
+        rc.buildRobot(RobotType.LAUNCHER, buildTowards(rc, center));
+        rc.buildRobot(RobotType.LAUNCHER, buildTowards(rc, center));
+        rc.buildRobot(RobotType.LAUNCHER, buildTowards(rc, center));
+    }
     /*
     public static class BuildUnit {
         MapLocation buildTarget;
