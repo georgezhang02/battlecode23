@@ -3,6 +3,7 @@ package CB_first;
 import battlecode.common.*;
 
 import java.util.Random;
+import java.util.Set;
 
 public class Helper {
     static final Random rng = new Random(6147);
@@ -30,6 +31,21 @@ public class Helper {
             if (distance < lowestDist) {
                 lowestDist = distance;
                 closest = new MapLocation(option.x, option.y);
+            }
+        }
+        return closest;
+    }
+
+    static MapLocation getClosest(MapLocation[] options, MapLocation location, Set<MapLocation> visitedWells) {
+        int lowestDist = 10000;
+        MapLocation closest = null;
+        for (MapLocation option: options) {
+            if (!visitedWells.contains(option)) {
+                int distance = location.distanceSquaredTo(option);
+                if (distance < lowestDist) {
+                    lowestDist = distance;
+                    closest = new MapLocation(option.x, option.y);
+                }
             }
         }
         return closest;

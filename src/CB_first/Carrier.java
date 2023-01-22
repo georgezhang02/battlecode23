@@ -3,8 +3,8 @@ package CB_first;
 import battlecode.common.*;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
+import java.util.HashSet;
 
 public strictfp class Carrier {
 
@@ -37,6 +37,8 @@ public strictfp class Carrier {
     static boolean ADInRange;
     static MapLocation closestMN;
     static boolean MNInRange;
+    static Set<MapLocation> visitedWells = new HashSet<MapLocation>();
+    static boolean doMana = true;
 
     static Direction away;
     static MapLocation firstStep;
@@ -121,30 +123,7 @@ public strictfp class Carrier {
         manaAmount = rc.getResourceAmount(ResourceType.MANA);
         elixirAmount = rc.getResourceAmount(ResourceType.ELIXIR);
 
-        //THIS SECTION IS INTENDED TO MAKE IT SO THAT THE CARRIERS SWITCH THE WELL THEY'RE ASSIGNED TO IF IT'S FULL
         WellInfo[] wells = rc.senseNearbyWells();
-        if(wells.length > 0 && allies.length > 8){
-            //if there is more than one known well (i.e. at least two wells)
-
-            if((knownADWells.length + knownMNWells.length) > 1){
-                MapLocation[] newTargets = new MapLocation[knownADWells.length + knownMNWells.length - 1];
-                int targetAddCounter = 0;
-                for(MapLocation loc : knownADWells){
-                    if(!loc.equals(assignedWell)){
-                        newTargets[targetAddCounter] = loc;
-                        targetAddCounter++;
-                    }
-                }
-                for(MapLocation loc : knownMNWells){
-                    if(!loc.equals(assignedWell)){
-                        newTargets[targetAddCounter] = loc;
-                        targetAddCounter++;
-                    }
-                }
-                assignedWell = Helper.getClosest(newTargets, location);
-            }
-        }
-
         for (WellInfo well : wells) {
             rc.setIndicatorDot(well.getMapLocation(), 255, 255, 255);
             boolean known = false;
@@ -205,7 +184,7 @@ public strictfp class Carrier {
             // Update states
             switch (state) {
                 case Gathering:
-                    gatherUpdate();
+                    gatherUpdate(rc);
                     break;
                 case Exploring:
                     exploreUpdate(rc);
@@ -245,10 +224,60 @@ public strictfp class Carrier {
         }
     }
 
-    static void gatherUpdate() {
+    static void gatherUpdate(RobotController rc) throws GameActionException {
         //if a carrier cannot get anymore resources, return to base
         if(adAmount + manaAmount + elixirAmount == 40){
             state = CarrierState.Returning;
+        } else if (location.distanceSquaredTo(assignedWell) <= 10){
+            //THIS SECTION IS INTENDED TO MAKE IT SO THAT THE CARRIERS SWITCH THE WELL THEY'RE ASSIGNED TO IF IT'S FULL
+            MapLocation[] aroundWell = rc.getAllLocationsWithinRadiusSquared(assignedWell, 2);
+            int limit = 4;
+            if (rc.getRoundNum() > 100) {
+                limit = 8;
+            }
+            int robotCount = 0;
+            int availableSquares = 0;
+            for (MapLocation loc : aroundWell) {
+                if (rc.canSenseRobotAtLocation(loc)) {
+                    RobotInfo bot = rc.senseRobotAtLocation(loc);
+                    if (bot.team == rc.getTeam() && bot.type == RobotType.CARRIER) {
+                        robotCount++;
+                    }
+                } else if (rc.canSenseLocation(loc) && rc.sensePassability(loc)) {
+                    availableSquares++;
+                }
+            }
+            if ((robotCount > limit || availableSquares <= 0) && location.distanceSquaredTo(assignedWell) > 2) {
+                if (doMana) {
+                    MapLocation nextWell = Helper.getClosest(knownMNWells, HQ_LOCATION, visitedWells);
+                    if (nextWell != null) {
+                        assignedWell = nextWell;
+                        doMana = false;
+                    } else {
+                        nextWell = Helper.getClosest(knownADWells, HQ_LOCATION, visitedWells);
+                        if (nextWell != null) {
+                            assignedWell = nextWell;
+                            doMana = true;
+                        } else {
+                            state = CarrierState.Exploring;
+                        }
+                    }
+                } else {
+                    MapLocation nextWell = Helper.getClosest(knownADWells, HQ_LOCATION, visitedWells);
+                    if (nextWell != null) {
+                        assignedWell = nextWell;
+                        doMana = true;
+                    } else {
+                        nextWell = Helper.getClosest(knownMNWells, HQ_LOCATION, visitedWells);
+                        if (nextWell != null) {
+                            assignedWell = nextWell;
+                            doMana = false;
+                        } else {
+                            state = CarrierState.Exploring;
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -257,13 +286,16 @@ public strictfp class Carrier {
             if (rc.canCollectResource(assignedWell, -1)) {
                 rc.collectResource(assignedWell, -1);
             }
+            pathWell(rc);
         } else {
             pathTowards(rc, assignedWell);
         }
     }
 
     static void exploreUpdate(RobotController rc) {
-        assignClosest(rc);
+        if (assignedWell == null) {
+            assignClosest(rc);
+        }
     }
 
     static void explore(RobotController rc) throws GameActionException{
@@ -291,8 +323,10 @@ public strictfp class Carrier {
             if (rc.canTakeAnchor(HQ_LOCATION, Anchor.STANDARD)) {
                 rc.takeAnchor(HQ_LOCATION, Anchor.STANDARD);
                 state = CarrierState.Anchoring;
-            } else {
+            } else if (assignedWell == null) {
                 assignClosest(rc);
+            } else {
+                state = CarrierState.Gathering;
             }
         }
     }
@@ -447,4 +481,45 @@ public strictfp class Carrier {
             assignedWell = closestAD;
         }
     }
+
+    private static void pathWell(RobotController rc) throws GameActionException {
+        if (!location.equals(assignedWell)) {
+            Direction toWell = location.directionTo(assignedWell);
+            if (rc.canMove(toWell)) {
+                rc.move(toWell);
+            } else {
+                Direction toMove = null;
+                switch (toWell) {
+                    case NORTH:
+                        toMove = Direction.WEST;
+                        break;
+                    case NORTHEAST:
+                        toMove = Direction.NORTH;
+                        break;
+                    case EAST:
+                        toMove = Direction.NORTH;
+                        break;
+                    case SOUTHEAST:
+                        toMove = Direction.EAST;
+                        break;
+                    case SOUTH:
+                        toMove = Direction.EAST;
+                        break;
+                    case SOUTHWEST:
+                        toMove = Direction.SOUTH;
+                        break;
+                    case WEST:
+                        toMove = Direction.SOUTH;
+                        break;
+                    case NORTHWEST:
+                        toMove = Direction.WEST;
+                        break;
+                }
+                if (toMove != null && rc.canMove(toMove)) {
+                    rc.move(toMove);
+                }
+            }
+        }
+    }
+
 }
