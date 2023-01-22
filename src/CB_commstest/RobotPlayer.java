@@ -1,7 +1,9 @@
 package CB_commstest;
 
-import CB_first.*;
 import battlecode.common.*;
+import battlecode.world.Inventory;
+
+import javax.xml.crypto.Data;
 
 /**
  * RobotPlayer is the class that describes your main robot strategy.
@@ -36,12 +38,29 @@ public strictfp class RobotPlayer {
                     Comms.wipeComms(rc);
                 }
                 if(turnCount==1){
-                    Comms.setSymmetries(rc, true, false, true);
+                    Database.init(rc);
+                    if(rc.getType().equals(RobotType.HEADQUARTERS)){
+                        Comms.setTeamHQLocation(rc, rc.getLocation(), rc.getID());
+                    }
                 }
+
                 if(turnCount>1){
-                    toPrint = toPrint + Comms.getSymmetries(rc)[0]+" ";
-                    toPrint = toPrint + Comms.getSymmetries(rc)[1]+" ";
-                    toPrint = toPrint + Comms.getSymmetries(rc)[2];
+                    Database.downloadLocations(rc);
+
+                    toPrint = toPrint + " "+Database.vertical;
+                    toPrint = toPrint + " "+Database.horizontal;
+                    toPrint = toPrint + " "+Database.rotational;
+
+                }
+
+                if(turnCount >1){
+                    RobotInfo[]enemies = rc.senseNearbyRobots(RobotType.HEADQUARTERS.visionRadiusSquared, rc.getTeam().opponent());
+
+                    for(RobotInfo enemy : enemies ){
+                        if(enemy.getType().equals(RobotType.HEADQUARTERS)){
+                            Database.addEnemyHQ(rc, enemy);
+                        }
+                    }
                 }
                 rc.setIndicatorString(toPrint);
 

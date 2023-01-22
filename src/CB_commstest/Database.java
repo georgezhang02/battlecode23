@@ -1,13 +1,14 @@
-package CB_launcherheal;
+package CB_commstest;
+
 
 import battlecode.common.*;
 
 public class Database {
 
     static final int BYTECODE_LIMIT = 500;
-    static boolean rotational; // available symmetries
-    static boolean horizontal;
-    static boolean vertical;
+    static boolean rotational = true; // available symmetries
+    static boolean horizontal = true;
+    static boolean vertical = true;
     static MapLocation[]localADWells = new MapLocation[8]; // adamantium wells
     static MapLocation[]globalADWells = new MapLocation[8];
     static MapLocation[]unprocessedADWells = new MapLocation[16];
@@ -29,11 +30,11 @@ public class Database {
     static int verticalManaWellsCount = 0;
     static MapLocation[]unprocessedManaWells = new MapLocation[16];
     static MapLocation[]allyHQs; // HQ locations
-    static MapLocation[]globalEnemyHQs;
+    static MapLocation[]globalEnemyHQs = new MapLocation[4];;
     static RobotInfo[]localEnemyHQs = new RobotInfo[4];
-    static MapLocation[]rotationalEnemyHQs;
-    static MapLocation[]horizontalEnemyHQs;
-    static MapLocation[]verticalEnemyHQs;
+    public static SymmetryCheck[]rotationalEnemyHQs;
+    public static SymmetryCheck[]horizontalEnemyHQs;
+    public static SymmetryCheck[]verticalEnemyHQs;
     static MapLocation[] uncheckedEnemyHQs = new MapLocation[4];
     static int numUncheckedHQs = 0;
     static int numGlobalEnemyHQs = 0;
@@ -56,17 +57,22 @@ public class Database {
     static int width;
     static int height;
 
+    static boolean initialized = false;
+
     public static void init(RobotController rc) throws GameActionException {
-        globalKnownLocations = new HashSet<>();
-        localKnownLocations = new HashSet<>();
-        allyHQs = Comms.getAllHQs(rc);
-        processHQSymmetries();
-        width = rc.getMapWidth();
-        height = rc.getMapHeight();
+        if(!initialized){
+            globalKnownLocations = new HashSet<>();
+            localKnownLocations = new HashSet<>();
+            allyHQs = Comms.getAllHQs(rc);
+            processHQSymmetries();
+            width = rc.getMapWidth();
+            height = rc.getMapHeight();
+            initialized = true;
+        }
 
     }
     public static void downloadLocations(RobotController rc) throws GameActionException {
-        if(allyHQs.length < Comms.getNumHQs(rc)){
+        if(allyHQs.length <Comms.getNumHQs(rc)){
             allyHQs = Comms.getAllHQs(rc);
             processHQSymmetries();
         }
@@ -136,6 +142,7 @@ public class Database {
     public static void uploadSymmetry(RobotController rc) throws GameActionException {
         if(symmetryUpload && rc.canWriteSharedArray(0,0)) {
             Comms.setSymmetries(rc, rotational, horizontal, vertical);
+            symmetryUpload = false;
         }
     }
 
@@ -285,7 +292,6 @@ public class Database {
                         numGlobalEnemyHQs++;
                     }
                 } else {
-                    localKnownLocations.add(info.getLocation());
                     int index = findFirstNullLocation(localEnemyHQs);
                     if (index != -1) {
                         localEnemyHQs[index] = info;
@@ -297,14 +303,14 @@ public class Database {
             }
         }
     }
-    public static void processHQSymmetries(){
-        rotationalEnemyHQs = new MapLocation[allyHQs.length];
-        horizontalEnemyHQs = new MapLocation[allyHQs.length];
-        verticalEnemyHQs = new MapLocation[allyHQs.length];
+    public static void processHQSymmetries(){ // checked
+        rotationalEnemyHQs = new SymmetryCheck[allyHQs.length];
+        horizontalEnemyHQs = new SymmetryCheck[allyHQs.length];
+        verticalEnemyHQs = new SymmetryCheck[allyHQs.length];
         for(int i = 0; i< allyHQs.length; i++){
-            rotationalEnemyHQs[i] = rotate(allyHQs[i]);
-            horizontalEnemyHQs[i] = reflectAcrossHorizontal(allyHQs[i]);
-            verticalEnemyHQs[i] = reflectAcrossVertical(allyHQs[i]);
+            rotationalEnemyHQs[i] = new SymmetryCheck(rotate(allyHQs[i]));
+            horizontalEnemyHQs[i] = new SymmetryCheck(reflectAcrossHorizontal(allyHQs[i]));
+            verticalEnemyHQs[i] = new SymmetryCheck(reflectAcrossVertical(allyHQs[i]));
         }
     }
 
@@ -334,39 +340,21 @@ public class Database {
     }
 
     public static void checkSymmetries(RobotController rc) throws GameActionException{
-        if(!symmetryFound && numUncheckedHQs >0){
-            for(;numUncheckedHQs>0 && Clock.getBytecodesLeft() >BYTECODE_LIMIT; numUncheckedHQs--){
-                MapLocation loc = uncheckedEnemyHQs[numUncheckedHQs-1];
-                if(rotational){
-                    rotational = false;
-                    for(int i = 0; i<rotationalEnemyHQs.length; i++){
-                        if(rotationalEnemyHQs[i].equals(loc)){
-                            rotational = true;
-                            break;
-                        }
-                    }
-                }
-                if(horizontal){
-                    horizontal = false;
-                    for(int i = 0; i<horizontalEnemyHQs.length; i++){
-                        if(horizontalEnemyHQs[i].equals(loc)){
-                            horizontal = true;
-                            break;
-                        }
-                    }
-                }
-                if(vertical){
-                    vertical = false;
-                    for(int i = 0; i<verticalEnemyHQs.length; i++){
-                        if(verticalEnemyHQs[i].equals(loc)){
-                            vertical = true;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
+         // if you've found unchecked Enemy HQs, run them through all other known HQs to make sure they fit
+        processHQSymmetries();
+        searchHQAllowed(rc);
         checkSymmetryFound();
+        if(!symmetryFound && rotational && Clock.getBytecodesLeft() >BYTECODE_LIMIT){
+            rotational = checkHQSymmetry(rc, rotationalEnemyHQs);
+        }
+        if(!symmetryFound && horizontal && Clock.getBytecodesLeft() >BYTECODE_LIMIT){
+            horizontal = checkHQSymmetry(rc, horizontalEnemyHQs);
+        }
+        if(!symmetryFound && vertical && Clock.getBytecodesLeft() >BYTECODE_LIMIT){
+            vertical = checkHQSymmetry(rc, verticalEnemyHQs);
+        } // do your enemy HQ checks first
+
+        processWellSymmetries();
         if(!symmetryFound && rotational && Clock.getBytecodesLeft() >BYTECODE_LIMIT){
             rotational = checkWellSymmetry(rc, rotationalADWells, rotationalManaWells);
         }
@@ -377,8 +365,68 @@ public class Database {
             vertical = checkWellSymmetry(rc, verticalADWells, verticalManaWells);
         }
         checkSymmetryFound();
+        uploadSymmetry(rc);
 
     }
+
+    public static void searchHQAllowed(RobotController rc){
+        if(!symmetryFound && numUncheckedHQs >0 && Clock.getBytecodesLeft()>BYTECODE_LIMIT
+                && rc.getRoundNum() >1){
+            for(;numUncheckedHQs>0 && Clock.getBytecodesLeft() >BYTECODE_LIMIT; numUncheckedHQs--){
+                MapLocation loc = uncheckedEnemyHQs[numUncheckedHQs-1];
+                if(rotational && rotationalEnemyHQs.length >0){
+                    rotational = false;
+                    for(int i = 0; i<rotationalEnemyHQs.length; i++){
+                        if(rotationalEnemyHQs[i].location.equals(loc)){
+                            rotational = true;
+                            break;
+                        }
+                    }
+                }
+                if(horizontal && horizontalEnemyHQs.length >0){
+                    horizontal = false;
+                    for(int i = 0; i<horizontalEnemyHQs.length; i++){
+                        if(horizontalEnemyHQs[i].location.equals(loc)){
+                            horizontal = true;
+                            break;
+                        }
+                    }
+                }
+                if(vertical  && verticalEnemyHQs.length >0){
+                    vertical = false;
+                    for(int i = 0; i<verticalEnemyHQs.length; i++){
+                        if(verticalEnemyHQs[i].location.equals(loc)){
+                            vertical = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    static boolean checkHQSymmetry(RobotController rc, SymmetryCheck[]enemyHQs) throws GameActionException {
+        if(rc.getRoundNum() >1) {
+            for (int i = 0; i < enemyHQs.length && Clock.getBytecodesLeft() > BYTECODE_LIMIT; i++) {
+                if (enemyHQs[i] == null) {
+                    break;
+                }
+                if (!enemyHQs[i].checked) {
+                    if (rc.canSenseLocation(enemyHQs[i].location)) {
+                        RobotInfo info = rc.senseRobotAtLocation(enemyHQs[i].location);
+                        if (info == null ||
+                                !(info.getType().equals(RobotType.HEADQUARTERS) || !(info.getTeam().equals(rc.getTeam().opponent())))) {
+                            return false;
+                        } else {
+                            enemyHQs[i].checked = true;
+                        }
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
 
     static boolean checkWellSymmetry(RobotController rc, SymmetryCheck[]adWells, SymmetryCheck[]manaWells) throws GameActionException {
         for(int i = 0; i<adWells.length && Clock.getBytecodesLeft() >BYTECODE_LIMIT; i++){
