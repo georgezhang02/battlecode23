@@ -58,9 +58,10 @@ public strictfp class Launcher {
 
     static Comms.Attack attackCommand;
 
-    static String allyString;
+    static MapLocation closestEnemyHQ;
 
     static float diagonal = 1000;
+
 
     static final Direction[] directions = {
             Direction.NORTH,
@@ -96,6 +97,7 @@ public strictfp class Launcher {
 
         }// sense if other bots have moved
 
+
         //select action based on state
         switch (state){
             case Combat:
@@ -113,12 +115,15 @@ public strictfp class Launcher {
             case FollowingCommand:
                 followCommand(rc);
                 break;
+            case Camping:
+                campHQ(rc);
+                break;
         }
         if(fallbackIsland != null){
-            rc.setIndicatorString(fallbackIsland.toString());
+           // rc.setIndicatorString(fallbackIsland.toString());
         }
         else{
-            rc.setIndicatorString("I cant run");
+          //  rc.setIndicatorString("I cant run");
         }
 
         //writeComms(rc);
@@ -164,6 +169,7 @@ public strictfp class Launcher {
 
         numEnemyMil = 0;
         nearestEnemyMil = null;
+        closestEnemyHQ = null;
         for(RobotInfo enemy: enemies){
             if(enemy.getType() == RobotType.LAUNCHER || enemy.getType() == RobotType.DESTABILIZER){
                 numEnemyMil++;
@@ -242,11 +248,11 @@ public strictfp class Launcher {
         if(enemies.length > 0){
             int i = 0;
             while(i< enemies.length && enemies[i].getType() == RobotType.HEADQUARTERS){
+                closestEnemyHQ = enemies[i].getLocation();
                 i++;
             }
             if(i != enemies.length){
                 enemiesFound = true;
-
             }
         }
 
@@ -279,7 +285,7 @@ public strictfp class Launcher {
             pursuitLocation = null;
             combatCD =5;
             state = LauncherState.Combat;
-        }  else if (fallbackIsland != null && rc.getHealth() < RobotType.LAUNCHER.getMaxHealth()
+        }  else if (fallbackIsland != null && rc.getHealth() < RobotType.LAUNCHER.getMaxHealth()/2
             && Math.sqrt(rc.getLocation().distanceSquaredTo(fallbackIsland)) <= diagonal/2){
             attackCommand = null;
             pursuitLocation = null;
@@ -303,7 +309,9 @@ public strictfp class Launcher {
             combatCD = 0;
             pursuitLocation = null;
             state = LauncherState.FollowingCommand;
-        } else{
+        } else if(closestEnemyHQ != null){
+            state = LauncherState.Camping;
+        }else{
             combatCD = 0;
             pursuitLocation = null;
             state = LauncherState.Exploring;
@@ -328,8 +336,15 @@ public strictfp class Launcher {
         }
         //move towards the fallbackIsland spot
         Direction dir = Pathfinder.pathBug(rc, fallbackIsland);
-        if(canMoveToExplore(rc, dir)) {
+        if(rc.canMove(dir)) {
             rc.move(dir);
+            sense(rc);
+            if(enemies.length > 0){
+                RobotInfo enemy = findAttack(rc);
+                if(enemy!= null && rc.canAttack(enemy.getLocation())){
+                    rc.attack(enemy.getLocation());
+                }
+            }
         }
     }
     static void combat(RobotController rc) throws GameActionException{
@@ -639,6 +654,25 @@ public strictfp class Launcher {
 
     }
 
+    static void campHQ(RobotController rc) throws GameActionException{
+        Direction dir = Pathfinder.pathBug(rc, closestEnemyHQ);
+        if(rc.getLocation().isWithinDistanceSquared(closestEnemyHQ,9)){
+            dir = Pathfinder.pathAwayFrom(rc,closestEnemyHQ);
+        }
+        if(rc.getLocation().distanceSquaredTo(closestEnemyHQ) > 16 || rc.getLocation().distanceSquaredTo(closestEnemyHQ) <= 9 ){
+            if(rc.canMove(dir)){
+                rc.move(dir);
+                sense(rc);
+                if(enemies.length > 0){
+                    RobotInfo enemy = findAttack(rc);
+                    if(enemy!= null && rc.canAttack(enemy.getLocation())){
+                        rc.attack(enemy.getLocation());
+                    }
+                }
+            }
+        }
+    }
+
     static void checkMovement(RobotController rc){
 
         String checked ="";
@@ -673,9 +707,6 @@ public strictfp class Launcher {
                 }
             }
         }
-
-
-
     }
 
     //Find closest capped island
