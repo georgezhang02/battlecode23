@@ -1,6 +1,7 @@
 package CB_merged;
 
 import battlecode.common.*;
+import jdk.nashorn.internal.runtime.regexp.joni.constants.internal.AnchorType;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -349,7 +350,10 @@ public strictfp class Carrier {
             if (rc.canTakeAnchor(HQ_LOCATION, Anchor.STANDARD)) {
                 rc.takeAnchor(HQ_LOCATION, Anchor.STANDARD);
                 state = CarrierState.Anchoring;
-            } else if (assignedWell == null) {
+            } else if (rc.getNumAnchors(Anchor.STANDARD) > 0) {
+                state = CarrierState.Anchoring;
+            }
+            else if (assignedWell == null) {
                 assignClosest(rc);
             } else {
                 state = CarrierState.Gathering;
