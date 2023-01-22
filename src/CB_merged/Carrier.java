@@ -469,7 +469,7 @@ public strictfp class Carrier {
         int minDist = 10000;
 
         for(MapLocation command: commands){
-            if(rc.getLocation().distanceSquaredTo(anchorCommand) < minDist){
+            if(rc.getLocation().distanceSquaredTo(command) < minDist){
                 anchorCommand = command;
                 minDist = rc.getLocation().distanceSquaredTo(anchorCommand);
             }
