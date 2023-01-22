@@ -121,7 +121,31 @@ public strictfp class Carrier {
         manaAmount = rc.getResourceAmount(ResourceType.MANA);
         elixirAmount = rc.getResourceAmount(ResourceType.ELIXIR);
 
-        for (WellInfo well : rc.senseNearbyWells()) {
+        //THIS SECTION IS INTENDED TO MAKE IT SO THAT THE CARRIERS SWITCH THE WELL THEY'RE ASSIGNED TO IF IT'S FULL
+        WellInfo[] wells = rc.senseNearbyWells();
+        if(wells.length > 0 && allies.length > 8){
+            //if there is more than one known well (i.e. at least two wells)
+
+            if((knownADWells.length + knownMNWells.length) > 1){
+                MapLocation[] newTargets = new MapLocation[knownADWells.length + knownMNWells.length - 1];
+                int targetAddCounter = 0;
+                for(MapLocation loc : knownADWells){
+                    if(!loc.equals(assignedWell)){
+                        newTargets[targetAddCounter] = loc;
+                        targetAddCounter++;
+                    }
+                }
+                for(MapLocation loc : knownMNWells){
+                    if(!loc.equals(assignedWell)){
+                        newTargets[targetAddCounter] = loc;
+                        targetAddCounter++;
+                    }
+                }
+                assignedWell = Helper.getClosest(newTargets, location);
+            }
+        }
+
+        for (WellInfo well : wells) {
             rc.setIndicatorDot(well.getMapLocation(), 255, 255, 255);
             boolean known = false;
             MapLocation wellLocation = well.getMapLocation();
@@ -131,6 +155,7 @@ public strictfp class Carrier {
                     break;
                 }
             }
+            //first, check through all known mana wells and set to true if it's a known place
             if (!known) {
                 for (MapLocation MNWell : knownMNWells) {
                     if (MNWell.equals(wellLocation)) {
@@ -139,6 +164,7 @@ public strictfp class Carrier {
                     }
                 }
             }
+            //if this is a well that was previously discovered by this unit, then break
             if (!known) {
                 for (int i = 0; i < discoveredWellCount; i++) {
                     if (discoveredWells[i].getMapLocation().equals(wellLocation)) {
@@ -147,6 +173,7 @@ public strictfp class Carrier {
                     }
                 }
             }
+            //otherwise, mark this as known and return to base
             if (!known) {
                 discoveredWells[discoveredWellCount++] = well;
             }
@@ -156,6 +183,7 @@ public strictfp class Carrier {
             state = CarrierState.Returning;
         }
     }
+
 
     static boolean enemiesFound(RobotController rc) throws GameActionException {
         enemies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam().opponent());
@@ -393,6 +421,7 @@ public strictfp class Carrier {
     private static void assignClosest(RobotController rc) {
         closestAD = Helper.getClosest(knownADWells, HQ_LOCATION);
         closestMN = Helper.getClosest(knownMNWells, HQ_LOCATION);
+
         int range;
         int round = rc.getRoundNum();
         if (round <= 4) {
