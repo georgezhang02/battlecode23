@@ -1,5 +1,6 @@
 package CB_launcherheal;
 
+import CB_commstest.Database;
 import battlecode.common.*;
 public strictfp class Launcher {
 
@@ -85,15 +86,6 @@ public strictfp class Launcher {
         // interpret overall macro state
         readComms(rc);
 
-        if(rc.getRoundNum()%2 == 0){
-            for(int i = 0; i< numNearbyAllyMil; i++){
-                alliesPrevious[i] = nearbyAllyMil[i];
-            }
-            numAlliesPrevious = numNearbyAllyMil;
-
-        }
-
-
         // sense part
         sense(rc);
 
@@ -103,7 +95,6 @@ public strictfp class Launcher {
             checkMovement(rc);
 
         }// sense if other bots have moved
-
 
         //select action based on state
         switch (state){
@@ -130,7 +121,8 @@ public strictfp class Launcher {
             rc.setIndicatorString("I cant run");
         }
 
-        writeComms(rc);
+        //writeComms(rc);
+        //Database.checkSymmetries(rc);
 
     }
 
@@ -144,20 +136,19 @@ public strictfp class Launcher {
         movementChange = false;
         combatCD--;
         detachCD--;
+
+        if(rc.getRoundNum()%2 == 0){
+            for(int i = 0; i< numNearbyAllyMil; i++){
+                alliesPrevious[i] = nearbyAllyMil[i];
+            }
+            numAlliesPrevious = numNearbyAllyMil;
+        }
     }
 
     static void readComms(RobotController rc)throws GameActionException{
-        Comms.Attack[] attackCommands = Comms.getAllAttackCommands(rc);
-        int maxPrio = (attackCommand==null) ? 0 : Comms.getCommPrio(attackCommand.type);
 
-        for(int i = 0; i< attackCommands.length; i++){
-            MapLocation loc = attackCommands[i].location;
-            int prio = Comms.getCommPrio(attackCommands[i].type);
-            if(prio > maxPrio){
-                attackCommand = attackCommands[i];
-                maxPrio = prio;
-            }
-        }
+        Database.downloadSymmetry(rc);
+        Database.downloadLocations(rc);
 
         //if you dont have a fallback, find the island through comms
         if(fallbackIsland == null ||
@@ -702,9 +693,22 @@ public strictfp class Launcher {
         return fallbackIsland;
     }
 
-    static void writeComms(RobotController rc){
-
+    static void writeComms(RobotController rc) throws GameActionException {
+        for(RobotInfo enemy: enemies){
+            if(enemy.getType().equals(RobotType.HEADQUARTERS)){
+                Database.addEnemyHQ(rc, enemy);
+            }
+        }
+        for(WellInfo well: wells){
+            Database.addWell(rc, well);
+        }
+        if(rc.canWriteSharedArray(0,0)){
+            Database.uploadSymmetry(rc);
+            Database.uploadLocations(rc);
+        }
     }
+
+
 
     static boolean canMove(RobotController rc, Direction dir) throws GameActionException{
         return dir != null && rc.canMove(dir);
