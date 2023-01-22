@@ -1,7 +1,6 @@
 package CB_merged;
 
 import battlecode.common.*;
-import jdk.nashorn.internal.runtime.regexp.joni.constants.internal.AnchorType;
 
 import java.util.Arrays;
 import java.util.HashSet;
