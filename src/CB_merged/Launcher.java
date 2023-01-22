@@ -100,7 +100,7 @@ public strictfp class Launcher {
         }// sense if other bots have moved
 
 
-        rc.setIndicatorString(state.name());
+
 
         //select action based on state
         switch (state){
@@ -586,7 +586,11 @@ public strictfp class Launcher {
 
 
     static void followCommand(RobotController rc) throws GameActionException{
+
+
         MapLocation target= attackCommand.location;
+
+        rc.setIndicatorString(Comms.getNumACEven(rc)+" "+Comms.getNumACOdd(rc));
         if(!rc.canSenseLocation(target) || rc.getLocation().distanceSquaredTo(target) > rc.getType().actionRadiusSquared){
             if(rc.isMovementReady()){
                 Direction moveDir = Pathfinder.pathBug(rc, target);

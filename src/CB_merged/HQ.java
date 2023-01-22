@@ -33,6 +33,8 @@ public strictfp class HQ {
     static MapLocation[] MNWells;
     static MapLocation closestMN;
 
+    static boolean buildAnchor = false;
+
     public static void run(RobotController rc) throws GameActionException {
 
         checkEnemies(rc);
@@ -149,6 +151,78 @@ public strictfp class HQ {
         closestAD = Helper.getClosest(ADWells, location);
         MNWells = Comms.getAllManaWells(rc);
         closestMN = Helper.getClosest(MNWells, location);
+
+        wipeComms(rc);
+
+    }
+
+    static void wipeComms(RobotController rc) throws GameActionException{
+        Comms.Island[] teamIslands = Comms.getAllIslands(rc);
+
+        Comms.Island[]reports = Comms.getAllIslandReports(rc);
+
+        boolean removed = false;
+        boolean added = false;
+
+        //reading island report comms
+        for(int j = 0; j<reports.length; j++){
+            Comms.Island report = reports[j];
+            if(report.owner == null || !report.owner.equals(rc.getTeam())){
+                // the owner is not us
+                boolean toRemove = false;
+                for(int i = 0; i< teamIslands.length; i++){
+                    if(report.location.distanceSquaredTo(teamIslands[i].location) <= 5){
+                        teamIslands[i] = null;
+                        removed = true;
+                        toRemove = true;
+                    }
+                }
+                if(toRemove) reports[j] = null;
+                // check for removal of islands based off of losing reports
+            } else {
+                for(int i = 0; i< teamIslands.length; i++){
+                    if(report.location.distanceSquaredTo(teamIslands[i].location) <= 5){
+                        reports[j]  = null;
+                    } else{
+                        added = true;
+                    }
+                }
+                // check for islands to add outside of already available team island locations
+            }
+        }
+
+        if(removed){
+            if(!Comms.isCommsCleaned(rc)){
+                Comms.wipeComms(rc, false, false, true);
+            }
+            //wipe team island comms
+
+            for(int i = 0; i< teamIslands.length; i++){
+                if(teamIslands[i]!= null){
+                    Comms.setIsland(rc, teamIslands[i].location, rc.getTeam());
+                }
+            } // original island array needs updating due to removals
+            for(int i = 0; i< reports.length; i++){
+                if(reports[i]!= null){
+                    Comms.setIsland(rc, reports[i].location, rc.getTeam());
+                }
+            } // add in all reports
+        } else if(added){
+            if(!Comms.isCommsCleaned(rc)){
+                Comms.wipeComms(rc);
+            }
+            //wipe comms regularly
+            for(int i = 0; i< reports.length; i++){
+                if(reports[i]!= null){
+                    Comms.setIsland(rc, reports[i].location, rc.getTeam());
+                }
+            } // add in team reports
+        } else{
+            if(!Comms.isCommsCleaned(rc)){
+                Comms.wipeComms(rc);
+            }
+            // wipe comms
+        }
     }
 
     static void build(RobotController rc) throws GameActionException{
@@ -174,29 +248,51 @@ public strictfp class HQ {
             } else {
                 carrierBuildTarget = closestAD;
             }
+
+            if(totalAnchorCount == 0 &&
+                    !buildAnchor  && rc.getRobotCount() > 5 * Comms.getNumHQs(rc) && anchorsBuilt < 20 * carriersBuilt){
+                buildAnchor = true;
+            }
+
             if (!enemiesFound) {
-                if (totalAnchorCount == 0 && rc.getRobotCount() > 5 * Comms.getNumHQs(rc)
-                        && anchorsBuilt < 20 * carriersBuilt) {
-                    if (rc.canBuildAnchor(Anchor.STANDARD)) {
+                if(buildAnchor){
+                    if(rc.canBuildAnchor(Anchor.STANDARD)){
                         rc.buildAnchor(Anchor.STANDARD);
-                        anchorsBuilt++;
+                        buildAnchor = false;
                     }
-                } else if (rc.getRobotCount() > 5 * Comms.getNumHQs(rc) && amplifiersBuilt < 10 * launchersBuilt) {
-                    if (rc.canBuildRobot(RobotType.AMPLIFIER, buildTowards(rc, center))) {
-                        rc.buildRobot(RobotType.AMPLIFIER, centerBuildLoc);
-                        amplifiersBuilt++;
-                    }
-                } else {
                     MapLocation carrierBuildLoc = buildTowards(rc, carrierBuildTarget);
-                    while (rc.canBuildRobot(RobotType.CARRIER, carrierBuildLoc)) {
+                    while (rc.getResourceAmount(ResourceType.ADAMANTIUM) > 150 &&
+                            rc.canBuildRobot(RobotType.CARRIER, carrierBuildLoc)) {
                         rc.buildRobot(RobotType.CARRIER, carrierBuildLoc);
                         carrierBuildLoc = buildTowards(rc, carrierBuildTarget);
                         carriersBuilt++;
                     }
-                    while (rc.canBuildRobot(RobotType.LAUNCHER, centerBuildLoc)) {
+
+                    MapLocation launcherBuildLoc = buildTowards(rc, carrierBuildTarget);
+                    while (rc.getResourceAmount(ResourceType.MANA) > 160 && rc.canBuildRobot(RobotType.LAUNCHER, centerBuildLoc)) {
                         rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);
                         centerBuildLoc = buildTowards(rc, center);
                         launchersBuilt++;
+                    }
+
+                } else{
+                     if (rc.getRobotCount() > 5 * Comms.getNumHQs(rc) && amplifiersBuilt < 10 * launchersBuilt) {
+                        if (rc.canBuildRobot(RobotType.AMPLIFIER, buildTowards(rc, center))) {
+                            rc.buildRobot(RobotType.AMPLIFIER, centerBuildLoc);
+                            amplifiersBuilt++;
+                        }
+                    } else {
+                        MapLocation carrierBuildLoc = buildTowards(rc, carrierBuildTarget);
+                        while (rc.canBuildRobot(RobotType.CARRIER, carrierBuildLoc)) {
+                            rc.buildRobot(RobotType.CARRIER, carrierBuildLoc);
+                            carrierBuildLoc = buildTowards(rc, carrierBuildTarget);
+                            carriersBuilt++;
+                        }
+                        while (rc.canBuildRobot(RobotType.LAUNCHER, centerBuildLoc)) {
+                            rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);
+                            centerBuildLoc = buildTowards(rc, center);
+                            launchersBuilt++;
+                        }
                     }
                 }
             } else {

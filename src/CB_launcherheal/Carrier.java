@@ -343,12 +343,13 @@ public strictfp class Carrier {
                 }
             }
             if (islandLocs.size() > 0) {
+                anchorCommand = null;
                 MapLocation islandLocation = islandLocs.iterator().next();
                 pathTowards(rc, islandLocation);
 
                 if (rc.canPlaceAnchor()) {
                     rc.placeAnchor();
-                    anchorCommand = null;
+
 
                     if(rc.canWriteSharedArray(0, 0)){
                         Comms.reportIslandLocation(rc, rc.getLocation(), rc.getTeam());

@@ -243,7 +243,7 @@ public strictfp class Carrier {
             if (smallMap) {
                 MNlimit = 8;
             }
-            if (rc.getRoundNum() > 100) {
+            if (rc.getRoundNum() > 200) {
                 ADlimit = 8;
                 MNlimit = 8;
             }
