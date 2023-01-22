@@ -91,7 +91,7 @@ public strictfp class Amplifier {
     }
 
     static void sense(RobotController rc) throws GameActionException{
-        int minRange = 21;
+        int minRange = 200;
         enemies = rc.senseNearbyRobots(RobotType.AMPLIFIER.visionRadiusSquared, rc.getTeam().opponent());
         allies = rc.senseNearbyRobots(RobotType.AMPLIFIER.visionRadiusSquared, rc.getTeam());
         MapLocation loc = rc.getLocation();
