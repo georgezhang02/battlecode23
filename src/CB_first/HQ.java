@@ -184,7 +184,7 @@ public strictfp class HQ {
         MapLocation buildSquare = location;
         MapLocation[] locs = rc.getAllLocationsWithinRadiusSquared(location, 9);
         for (MapLocation loc : locs) {
-            int distance = Helper.distanceTo(loc.x, loc.y, target.x, target.y);
+            int distance = loc.distanceSquaredTo(target);
             if (distance < lowestDist && rc.senseRobotAtLocation(loc) == null && rc.sensePassability(loc)) {
                 lowestDist = distance;
                 buildSquare = new MapLocation(loc.x, loc.y);
