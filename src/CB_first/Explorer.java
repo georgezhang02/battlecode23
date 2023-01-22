@@ -1,9 +1,12 @@
 package CB_first;
 
+import CB_first.Comms;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotType;
+
+import javax.xml.crypto.Data;
 
 public class Explorer {
 
@@ -14,76 +17,92 @@ public class Explorer {
     static MapLocation HQLoc3;
     static MapLocation HQLoc4;
 
-    static int numExplorationTargets = 0;
-    static int curHQExploreIndex = 0;
-    static boolean[] HQsExplored;
+    static boolean[] rotHQsExplored;
 
+    static boolean[] horizHQsExplored;
+    static boolean[] vertHQsExplored;
+
+    static boolean[]curExploring;
+
+    static int curHQExploreIndex = -1;
     static int numHQs = 0;
 
     static MapLocation target;
 
 
+    public static void resetHQsExplored(RobotController rc){
+        curHQExploreIndex = -1;
+        rotHQsExplored = new boolean[numHQs];
+        horizHQsExplored = new boolean[numHQs];
+        vertHQsExplored = new boolean[numHQs];
+    }
 
-//    public static void getHQExploreTarget(RobotController rc) throws GameActionException {
-//
-//        if(!HQInit){
-//            int numHQs = Comms.getNumHQs(rc);
-//            HQLoc1 = Comms.getTeamHQLocation(rc, 0);
-//            if(numHQs <= 2)  HQLoc2 = Comms.getTeamHQLocation(rc, 1);
-//            if(numHQs <= 3)  HQLoc3 = Comms.getTeamHQLocation(rc, 2);
-//            if(numHQs <= 4)  HQLoc4 = Comms.getTeamHQLocation(rc, 3);
-//        }
-//
-//        if(numExplorationTargets == 0){
-//            numExplorationTargets = Comms.getNumExploration(rc);
-//            HQsExplored = new boolean[numExplorationTargets];
-//        }
-//        int maxRange = 100000;
-//        target = null;
-//        for(int i = 0; i<numExplorationTargets; i++){
-//            MapLocation enemyHQLoc = Comms.getExplorationTarget(rc, i);
-//            int range = rc.getLocation().distanceSquaredTo(enemyHQLoc);
-//
-//            if(!HQsExplored[i]){
-//                if(rc.getLocation().distanceSquaredTo(enemyHQLoc) > rc.getType().visionRadiusSquared){
-//                    // check not in vision
-//                 /*   if(targetNotHQ(HQLoc1) &&
-//                            (numHQs>=2 || targetNotHQ(HQLoc2)) &&
-//                            (numHQs>=3 || targetNotHQ(HQLoc3)) &&
-//                            (numHQs>=4 || targetNotHQ(HQLoc4))
-//                    ) {*/
-//                        //check not in HQ range
-//                        if(range < maxRange){
-//                            maxRange = range;
-//                            target = enemyHQLoc;
-//                            curHQExploreIndex = i;
-//                        }
-//                    } else{
-//                        // inside ally HQ range
-//                        HQsExplored[i] = true;
-//                    }
-//                /*}else  {
-//                    //inside vision range
-//                    HQsExplored[i] = true;
-//                }*/
-//            }
-//
-//
-//        }
-//
-//        if(target == null){
-//            getExploreTargetRandom(rc, rc.getMapWidth(), rc.getMapHeight());
-//        }
-//    }
+
+
+    public static void getHQExploreTarget(RobotController rc) throws GameActionException {
+
+        if(!HQInit){
+            numHQs = Comms.getNumHQs(rc);
+            HQLoc1 = Comms.getTeamHQLocation(rc, 0);
+            if(numHQs <= 2)  HQLoc2 = Comms.getTeamHQLocation(rc, 1);
+            if(numHQs <= 3)  HQLoc3 = Comms.getTeamHQLocation(rc, 2);
+            if(numHQs <= 4)  HQLoc4 = Comms.getTeamHQLocation(rc, 3);
+
+            rotHQsExplored = new boolean[numHQs];
+            horizHQsExplored = new boolean[numHQs];
+            vertHQsExplored = new boolean[numHQs];
+        }
+
+        target = null;
+        if(Database.rotational){
+            target = getNearestUnexploredHQ(rc, Database.rotationalEnemyHQs, rotHQsExplored);
+            curExploring = rotHQsExplored;
+        } else if(Database.horizontal){
+            target = getNearestUnexploredHQ(rc, Database.horizontalEnemyHQs, horizHQsExplored);
+            curExploring = horizHQsExplored;
+        } else if(Database.vertical){
+            target = getNearestUnexploredHQ(rc, Database.verticalEnemyHQs, vertHQsExplored);
+            curExploring = vertHQsExplored;
+        }
+
+
+        if(target == null){
+            getExploreTargetRandom(rc, rc.getMapWidth(), rc.getMapHeight());
+        }
+    }
+
+    private static MapLocation getNearestUnexploredHQ(RobotController rc, Database.SymmetryCheck[]enemyHQs, boolean[]HQsExplored){
+        int maxRange = 100000;
+        target = null;
+        for(int i = 0; i< enemyHQs.length; i++){
+            MapLocation enemyHQLoc = enemyHQs[i].location;
+            int range = rc.getLocation().distanceSquaredTo(enemyHQLoc);
+
+            if(!HQsExplored[i]){
+                if(rc.getLocation().distanceSquaredTo(enemyHQLoc) > rc.getType().visionRadiusSquared){
+                    if(range < maxRange){
+                        maxRange = range;
+                        target = enemyHQLoc;
+                        curHQExploreIndex = i;
+                    }
+                } else{
+                    HQsExplored[i] = true;
+                }
+            }
+
+
+        }
+        return target;
+    }
 
     // Choose random unvisited location through visited array, if can't find in tries moves
     //chooses random on radius
     public static void getExploreTarget(RobotController rc, int tries, int mapWidth, int mapHeight) throws GameActionException {
         if(!HQInit){
-            int numHQs = Comms.getNumHQs(rc);
-            HQLoc1 = Comms.getTeamHQLocation(rc, 0);
-            if(numHQs <= 2)  HQLoc2 = Comms.getTeamHQLocation(rc, 1);
-            if(numHQs <= 3)  HQLoc3 = Comms.getTeamHQLocation(rc, 2);
+            int numHQs = CB_first.Comms.getNumHQs(rc);
+            HQLoc1 = CB_first.Comms.getTeamHQLocation(rc, 0);
+            if(numHQs <= 2)  HQLoc2 = CB_first.Comms.getTeamHQLocation(rc, 1);
+            if(numHQs <= 3)  HQLoc3 = CB_first.Comms.getTeamHQLocation(rc, 2);
             if(numHQs <= 4)  HQLoc4 = Comms.getTeamHQLocation(rc, 3);
         }
 
@@ -98,8 +117,8 @@ public class Explorer {
                         (numHQs>=3 || targetNotHQ(HQLoc3)) &&
                         (numHQs>=4 || targetNotHQ(HQLoc4))
                 ) {*/
-                    found = true;
-              //  }
+                found = true;
+                //  }
 
 
             }

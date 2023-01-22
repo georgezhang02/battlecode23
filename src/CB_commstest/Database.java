@@ -131,7 +131,7 @@ public class Database {
         if(horizontal)newCount ++;
         if(vertical)newCount ++;
 
-        if(newCount < globalSymmetryCount){
+        if(newCount < globalSymmetryCount && newCount>0){
             symmetryUpload = true;
         }
         if(newCount ==1 && !symmetryFound) {

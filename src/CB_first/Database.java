@@ -1,14 +1,14 @@
 package CB_first;
 
-import battlecode.common.*;
 
-import java.awt.*;
+import battlecode.common.*;
 
 public class Database {
 
-    static boolean rotational; // available symmetries
-    static boolean horizontal;
-    static boolean vertical;
+    static final int BYTECODE_LIMIT = 500;
+    static boolean rotational = true; // available symmetries
+    static boolean horizontal = true;
+    static boolean vertical = true;
     static MapLocation[]localADWells = new MapLocation[8]; // adamantium wells
     static MapLocation[]globalADWells = new MapLocation[8];
     static MapLocation[]unprocessedADWells = new MapLocation[16];
@@ -30,11 +30,11 @@ public class Database {
     static int verticalManaWellsCount = 0;
     static MapLocation[]unprocessedManaWells = new MapLocation[16];
     static MapLocation[]allyHQs; // HQ locations
-    static MapLocation[]globalEnemyHQs;
+    static MapLocation[]globalEnemyHQs = new MapLocation[4];;
     static RobotInfo[]localEnemyHQs = new RobotInfo[4];
-    static MapLocation[]rotationalEnemyHQs;
-    static MapLocation[]horizontalEnemyHQs;
-    static MapLocation[]verticalEnemyHQs;
+    public static SymmetryCheck[]rotationalEnemyHQs;
+    public static SymmetryCheck[]horizontalEnemyHQs;
+    public static SymmetryCheck[]verticalEnemyHQs;
     static MapLocation[] uncheckedEnemyHQs = new MapLocation[4];
     static int numUncheckedHQs = 0;
     static int numGlobalEnemyHQs = 0;
@@ -57,18 +57,24 @@ public class Database {
     static int width;
     static int height;
 
-    public static void init(RobotController rc) throws GameActionException {
-        globalKnownLocations = new HashSet<>();
-        localKnownLocations = new HashSet<>();
-        allyHQs = Comms.getAllHQs(rc);
+    static boolean initialized = false;
 
-        width = rc.getMapWidth();
-        height = rc.getMapHeight();
+    public static void init(RobotController rc) throws GameActionException {
+        if(!initialized){
+            globalKnownLocations = new HashSet<>();
+            localKnownLocations = new HashSet<>();
+            allyHQs = Comms.getAllHQs(rc);
+            processHQSymmetries();
+            width = rc.getMapWidth();
+            height = rc.getMapHeight();
+            initialized = true;
+        }
 
     }
     public static void downloadLocations(RobotController rc) throws GameActionException {
-        if(allyHQs.length < Comms.getNumHQs(rc)){
+        if(allyHQs.length <Comms.getNumHQs(rc)){
             allyHQs = Comms.getAllHQs(rc);
+            processHQSymmetries();
         }
         int numCommEnemyHQ = Comms.getNumEnemyHQs(rc);
         int numCommAD = Comms.getNumADWells(rc);
@@ -125,7 +131,7 @@ public class Database {
         if(horizontal)newCount ++;
         if(vertical)newCount ++;
 
-        if(newCount < globalSymmetryCount){
+        if(newCount < globalSymmetryCount && newCount>0){
             symmetryUpload = true;
         }
         if(newCount ==1 && !symmetryFound) {
@@ -136,12 +142,13 @@ public class Database {
     public static void uploadSymmetry(RobotController rc) throws GameActionException {
         if(symmetryUpload && rc.canWriteSharedArray(0,0)) {
             Comms.setSymmetries(rc, rotational, horizontal, vertical);
+            symmetryUpload = false;
         }
     }
 
     public static void uploadLocations(RobotController rc) throws GameActionException {
-        if(numLocalHQs >0){
-            for(int i = 0; i < 4; i++){
+        if(numLocalHQs >0 && Clock.getBytecodesLeft() >BYTECODE_LIMIT){
+            for(int i = 0; i < 4 && Clock.getBytecodesLeft() > BYTECODE_LIMIT; i++){
                 if(localEnemyHQs[i]!= null){
 
                     if(globalKnownLocations.contains(localEnemyHQs[i].getLocation())){
@@ -162,8 +169,8 @@ public class Database {
                 }
             }
         }
-        if(numLocalADWells >0 ){
-            for(int i = 0; i < 8; i++){
+        if(numLocalADWells >0 && Clock.getBytecodesLeft() >BYTECODE_LIMIT){
+            for(int i = 0; i < 8   && Clock.getBytecodesLeft() >BYTECODE_LIMIT; i++){
                 if(localADWells[i]!= null){
                     if(globalKnownLocations.contains(localADWells[i])){
                         localADWells[i] = null;
@@ -182,8 +189,8 @@ public class Database {
                 }
             }
         }
-        if(numLocalManaWells >0){
-            for(int i = 0; i < 8; i++){
+        if(numLocalManaWells >0 && Clock.getBytecodesLeft() >BYTECODE_LIMIT){
+            for(int i = 0; i < 8  && Clock.getBytecodesLeft() >BYTECODE_LIMIT; i++){
                 if(localManaWells[i]!= null){
                     if(globalKnownLocations.contains(localManaWells[i])){
                         localManaWells[i] = null;
@@ -206,60 +213,63 @@ public class Database {
     }
 
     public static void addWell(RobotController rc, WellInfo info) throws GameActionException{
-        MapLocation loc = info.getMapLocation();
-        if(!globalKnownLocations.contains(loc) && !localKnownLocations.contains(loc)){
-            if(rc.canWriteSharedArray(0,0)){
-                if(info.getResourceType().equals(ResourceType.ADAMANTIUM) && numGlobalAD < 8){
-                    boolean added = Comms.setADWell(rc, info.getMapLocation());
-                    if(added){
-                        globalADWells[numGlobalAD] = info.getMapLocation();
-                        globalKnownLocations.add(info.getMapLocation());
-                        numGlobalAD++;
+        if(Clock.getBytecodesLeft() >BYTECODE_LIMIT){
+            MapLocation loc = info.getMapLocation();
+            if(!globalKnownLocations.contains(loc) && !localKnownLocations.contains(loc)){
+                if(rc.canWriteSharedArray(0,0)){
+                    if(info.getResourceType().equals(ResourceType.ADAMANTIUM) && numGlobalAD < 8){
+                        boolean added = Comms.setADWell(rc, info.getMapLocation());
+                        if(added){
+                            globalADWells[numGlobalAD] = info.getMapLocation();
+                            globalKnownLocations.add(info.getMapLocation());
+                            numGlobalAD++;
 
-                        unprocessedADWells[genADSymmetries] = info.getMapLocation();
-                        genADSymmetries++;
+                            unprocessedADWells[genADSymmetries] = info.getMapLocation();
+                            genADSymmetries++;
+                        }
+
+                    } else if (info.getResourceType().equals(ResourceType.MANA) && numGlobalMana < 8){
+                        boolean added = Comms.setManaWell(rc, info.getMapLocation());
+                        if(added){
+                            globalManaWells[numGlobalMana] = info.getMapLocation();
+                            globalKnownLocations.add(info.getMapLocation());
+                            numGlobalMana++;
+
+                            unprocessedManaWells[genManaSymmetries] = info.getMapLocation();
+                            genManaSymmetries++;
+                        }
+
                     }
+                } else{
 
-                } else if (info.getResourceType().equals(ResourceType.MANA) && numGlobalMana < 8){
-                    boolean added = Comms.setManaWell(rc, info.getMapLocation());
-                    if(added){
-                        globalManaWells[numGlobalMana] = info.getMapLocation();
-                        globalKnownLocations.add(info.getMapLocation());
-                        numGlobalMana++;
+                    if(info.getResourceType().equals(ResourceType.ADAMANTIUM) && numLocalADWells < 16){
+                        int index = findFirstNullLocation(localADWells);
+                        if(index != -1){
+                            localADWells[index] = info.getMapLocation();
+                            localKnownLocations.add(info.getMapLocation());
 
-                        unprocessedManaWells[genManaSymmetries] = info.getMapLocation();
-                        genManaSymmetries++;
+                            unprocessedADWells[genADSymmetries] = info.getMapLocation();
+                            genADSymmetries++;
+                        }
+
+                    } else if (info.getResourceType().equals(ResourceType.MANA) && numLocalManaWells < 16){
+                        int index = findFirstNullLocation(localManaWells);
+                        if(index != -1){
+                            localManaWells[index] = info.getMapLocation();
+                            localKnownLocations.add(info.getMapLocation());
+
+                            unprocessedManaWells[genManaSymmetries] = info.getMapLocation();
+                            genManaSymmetries++;
+                        }
                     }
 
                 }
-            } else{
-
-                if(info.getResourceType().equals(ResourceType.ADAMANTIUM) && numLocalADWells < 16){
-                    int index = findFirstNullLocation(localADWells);
-                    if(index != -1){
-                        localADWells[index] = info.getMapLocation();
-                        localKnownLocations.add(info.getMapLocation());
-
-                        unprocessedADWells[genADSymmetries] = info.getMapLocation();
-                        genADSymmetries++;
-                    }
-
-                } else if (info.getResourceType().equals(ResourceType.MANA) && numLocalManaWells < 16){
-                    int index = findFirstNullLocation(localManaWells);
-                    if(index != -1){
-                        localManaWells[index] = info.getMapLocation();
-                        localKnownLocations.add(info.getMapLocation());
-
-                        unprocessedManaWells[genManaSymmetries] = info.getMapLocation();
-                        genManaSymmetries++;
-                    }
-                }
-
             }
         }
+
     }
 
-    public static int findFirstNullLocation(Object[]arr){
+    private static int findFirstNullLocation(Object[]arr){
         for(int i = 0; i< arr.length; i++){
             if(arr[i] == null){
                 return i;
@@ -270,44 +280,43 @@ public class Database {
     }
 
     public static void addEnemyHQ(RobotController rc, RobotInfo info) throws GameActionException{
-        MapLocation loc = info.getLocation();
-        if(!globalKnownLocations.contains(loc) && !localKnownLocations.contains(loc)){
-            if(rc.canWriteSharedArray(0,0)){
-                boolean added = Comms.setEnemyHQLocation(rc, info.getLocation(), info.getID());
-                if(added){
-                    globalEnemyHQs[numGlobalEnemyHQs] = info.getLocation();
-                    globalKnownLocations.add(info.getLocation());
-                    numGlobalEnemyHQs++;
+
+        if(Clock.getBytecodesLeft() >BYTECODE_LIMIT) {
+            MapLocation loc = info.getLocation();
+            if (!globalKnownLocations.contains(loc) && !localKnownLocations.contains(loc)) {
+                if (rc.canWriteSharedArray(0, 0)) {
+                    boolean added = Comms.setEnemyHQLocation(rc, info.getLocation(), info.getID());
+                    if (added) {
+                        globalEnemyHQs[numGlobalEnemyHQs] = info.getLocation();
+                        globalKnownLocations.add(info.getLocation());
+                        numGlobalEnemyHQs++;
+                    }
+                } else {
+                    int index = findFirstNullLocation(localEnemyHQs);
+                    if (index != -1) {
+                        localEnemyHQs[index] = info;
+                        localKnownLocations.add(info.getLocation());
+                    }
                 }
-            } else{
-                localKnownLocations.add(info.getLocation());
-                int index = findFirstNullLocation(localEnemyHQs);
-                if(index != -1){
-                    localEnemyHQs[index] = info;
-                    localKnownLocations.add(info.getLocation());
-                }
+                uncheckedEnemyHQs[numUncheckedHQs] = info.getLocation();
+                numUncheckedHQs++;
             }
-            uncheckedEnemyHQs[numUncheckedHQs] = info.getLocation();
-            numUncheckedHQs++;
         }
     }
-
-
-
-    public static void processHQSymmetries(){
-        rotationalEnemyHQs = new MapLocation[allyHQs.length];
-        horizontalEnemyHQs = new MapLocation[allyHQs.length];
-        verticalEnemyHQs = new MapLocation[allyHQs.length];
+    public static void processHQSymmetries(){ // checked
+        rotationalEnemyHQs = new SymmetryCheck[allyHQs.length];
+        horizontalEnemyHQs = new SymmetryCheck[allyHQs.length];
+        verticalEnemyHQs = new SymmetryCheck[allyHQs.length];
         for(int i = 0; i< allyHQs.length; i++){
-            rotationalEnemyHQs[i] = rotate(allyHQs[i]);
-            horizontalEnemyHQs[i] = reflectAcrossHorizontal(allyHQs[i]);
-            verticalEnemyHQs[i] = reflectAcrossVertical(allyHQs[i]);
+            rotationalEnemyHQs[i] = new SymmetryCheck(rotate(allyHQs[i]));
+            horizontalEnemyHQs[i] = new SymmetryCheck(reflectAcrossHorizontal(allyHQs[i]));
+            verticalEnemyHQs[i] = new SymmetryCheck(reflectAcrossVertical(allyHQs[i]));
         }
     }
 
     public static void processWellSymmetries(){
 
-        for(; genADSymmetries>0; genADSymmetries--){
+        for(; genADSymmetries>0 && Clock.getBytecodesLeft() >BYTECODE_LIMIT; genADSymmetries--){
             rotationalADWells[rotationalADWellsCount] = new SymmetryCheck(rotate(unprocessedADWells[genADSymmetries-1]));
             rotationalADWellsCount++;
 
@@ -318,7 +327,7 @@ public class Database {
             verticalADWellsCount++;
         }
 
-        for(; genManaSymmetries>0; genManaSymmetries--){
+        for(; genManaSymmetries>0 && Clock.getBytecodesLeft() >BYTECODE_LIMIT; genManaSymmetries--){
             rotationalManaWells[rotationalManaWellsCount] = new SymmetryCheck(rotate(unprocessedManaWells[genManaSymmetries-1]));
             rotationalManaWellsCount++;
 
@@ -331,31 +340,62 @@ public class Database {
     }
 
     public static void checkSymmetries(RobotController rc) throws GameActionException{
-        if(!symmetryFound && numUncheckedHQs >0){
-            for(;numUncheckedHQs>0; numUncheckedHQs--){
+        // if you've found unchecked Enemy HQs, run them through all other known HQs to make sure they fit
+        processHQSymmetries();
+        searchHQAllowed(rc);
+        checkSymmetryFound();
+        if(!symmetryFound && rotational && Clock.getBytecodesLeft() >BYTECODE_LIMIT){
+            rotational = checkHQSymmetry(rc, rotationalEnemyHQs);
+        }
+        if(!symmetryFound && horizontal && Clock.getBytecodesLeft() >BYTECODE_LIMIT){
+            horizontal = checkHQSymmetry(rc, horizontalEnemyHQs);
+        }
+        if(!symmetryFound && vertical && Clock.getBytecodesLeft() >BYTECODE_LIMIT){
+            vertical = checkHQSymmetry(rc, verticalEnemyHQs);
+        } // do your enemy HQ checks first
+
+        processWellSymmetries();
+        if(!symmetryFound && rotational && Clock.getBytecodesLeft() >BYTECODE_LIMIT){
+            rotational = checkWellSymmetry(rc, rotationalADWells, rotationalManaWells);
+        }
+        if(!symmetryFound && horizontal && Clock.getBytecodesLeft() >BYTECODE_LIMIT){
+            horizontal = checkWellSymmetry(rc, horizontalADWells, horizontalManaWells);
+        }
+        if(!symmetryFound && vertical && Clock.getBytecodesLeft() >BYTECODE_LIMIT){
+            vertical = checkWellSymmetry(rc, verticalADWells, verticalManaWells);
+        }
+        checkSymmetryFound();
+        uploadSymmetry(rc);
+
+    }
+
+    public static void searchHQAllowed(RobotController rc){
+        if(!symmetryFound && numUncheckedHQs >0 && Clock.getBytecodesLeft()>BYTECODE_LIMIT
+                && rc.getRoundNum() >1){
+            for(;numUncheckedHQs>0 && Clock.getBytecodesLeft() >BYTECODE_LIMIT; numUncheckedHQs--){
                 MapLocation loc = uncheckedEnemyHQs[numUncheckedHQs-1];
-                if(rotational){
+                if(rotational && rotationalEnemyHQs.length >0){
                     rotational = false;
                     for(int i = 0; i<rotationalEnemyHQs.length; i++){
-                        if(rotationalEnemyHQs[i].equals(loc)){
+                        if(rotationalEnemyHQs[i].location.equals(loc)){
                             rotational = true;
                             break;
                         }
                     }
                 }
-                if(horizontal){
+                if(horizontal && horizontalEnemyHQs.length >0){
                     horizontal = false;
                     for(int i = 0; i<horizontalEnemyHQs.length; i++){
-                        if(horizontalEnemyHQs[i].equals(loc)){
+                        if(horizontalEnemyHQs[i].location.equals(loc)){
                             horizontal = true;
                             break;
                         }
                     }
                 }
-                if(vertical){
+                if(vertical  && verticalEnemyHQs.length >0){
                     vertical = false;
                     for(int i = 0; i<verticalEnemyHQs.length; i++){
-                        if(verticalEnemyHQs[i].equals(loc)){
+                        if(verticalEnemyHQs[i].location.equals(loc)){
                             vertical = true;
                             break;
                         }
@@ -363,22 +403,33 @@ public class Database {
                 }
             }
         }
-        checkSymmetryFound();
-        if(!symmetryFound && rotational){
-            rotational = checkWellSymmetry(rc, rotationalADWells, rotationalManaWells);
-        }
-        if(!symmetryFound && horizontal){
-            horizontal = checkWellSymmetry(rc, horizontalADWells, horizontalManaWells);
-        }
-        if(!symmetryFound && vertical){
-            vertical = checkWellSymmetry(rc, verticalADWells, verticalManaWells);
-        }
-        checkSymmetryFound();
-
     }
 
+    static boolean checkHQSymmetry(RobotController rc, SymmetryCheck[]enemyHQs) throws GameActionException {
+        if(rc.getRoundNum() >1) {
+            for (int i = 0; i < enemyHQs.length && Clock.getBytecodesLeft() > BYTECODE_LIMIT; i++) {
+                if (enemyHQs[i] == null) {
+                    break;
+                }
+                if (!enemyHQs[i].checked) {
+                    if (rc.canSenseLocation(enemyHQs[i].location)) {
+                        RobotInfo info = rc.senseRobotAtLocation(enemyHQs[i].location);
+                        if (info == null ||
+                                !(info.getType().equals(RobotType.HEADQUARTERS) || !(info.getTeam().equals(rc.getTeam().opponent())))) {
+                            return false;
+                        } else {
+                            enemyHQs[i].checked = true;
+                        }
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+
     static boolean checkWellSymmetry(RobotController rc, SymmetryCheck[]adWells, SymmetryCheck[]manaWells) throws GameActionException {
-        for(int i = 0; i<adWells.length; i++){
+        for(int i = 0; i<adWells.length && Clock.getBytecodesLeft() >BYTECODE_LIMIT; i++){
             if(adWells[i] == null){
                 break;
             }
@@ -396,7 +447,7 @@ public class Database {
             }
         }
 
-        for(int i = 0; i<manaWells.length; i++){
+        for(int i = 0; i<manaWells.length && Clock.getBytecodesLeft() >BYTECODE_LIMIT; i++){
             if(manaWells[i] == null){
                 break;
             }
@@ -415,7 +466,6 @@ public class Database {
         }
         return true;
     }
-
 
     private static MapLocation rotate(MapLocation loc) {
         return new MapLocation(width - loc.x - 1, height - loc.y - 1);

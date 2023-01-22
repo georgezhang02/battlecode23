@@ -1,6 +1,7 @@
 package CB_first;
 
 import battlecode.common.*;
+
 public strictfp class Pathfinder {
 
     static boolean directBug;
@@ -71,11 +72,10 @@ public strictfp class Pathfinder {
     public static Direction pathToExploreHQ(RobotController rc) throws GameActionException {
 
         if(!exploring || rc.getLocation().distanceSquaredTo(Explorer.target) <= 16){
-            if(Explorer.HQsExplored != null){
-                Explorer.HQsExplored[Explorer.curHQExploreIndex] = true;
+            if(Explorer.curExploring != null && Explorer.curHQExploreIndex!=-1){
+                Explorer.curExploring[Explorer.curHQExploreIndex] = true;
             }
-            //temporary
-            //Explorer.getHQExploreTarget(rc);
+            Explorer.getHQExploreTarget(rc);
         }
         //rc.setIndicatorString(Explorer.target+"");
         Direction dir = pathBug(rc, Explorer.target);
@@ -120,7 +120,7 @@ public strictfp class Pathfinder {
         }
 
         if(!exploring || rc.getLocation().distanceSquaredTo(Explorer.target) <= 4){
-            Explorer.getExploreTarget(rc, 10, rc.getMapWidth(), rc.getMapHeight());
+            CB_launcherheal.Explorer.getExploreTarget(rc, 10, rc.getMapWidth(), rc.getMapHeight());
         }
         Direction dir = pathBF(rc, Explorer.target);
         exploring = true;
@@ -177,7 +177,7 @@ public strictfp class Pathfinder {
                 Direction leftWallDir = lastBugDir.rotateLeft().rotateLeft();
                 if((canMoveThrough(rc, lastBugDir, rc.getLocation().add(leftWallDir) )
                         && canMoveThrough(rc, leftWallDir, rc.getLocation().add(leftWallDir)))
-                            || !rc.onTheMap(rc.getLocation().add(leftWallDir)))
+                        || !rc.onTheMap(rc.getLocation().add(leftWallDir)))
                 {
                     rotatingBug = false;
                     rc.setIndicatorString("can move through now");
@@ -189,7 +189,7 @@ public strictfp class Pathfinder {
                 Direction rightWallDir = lastBugDir.rotateRight().rotateRight();
                 if((canMoveThrough(rc, lastBugDir, rc.getLocation().add(rightWallDir)) &&
                         canMoveThrough(rc, rightWallDir, rc.getLocation().add(rightWallDir)))
-                            || !rc.onTheMap(rc.getLocation().add(rightWallDir))) {
+                        || !rc.onTheMap(rc.getLocation().add(rightWallDir))) {
                     rotatingBug = false;
                     rc.setIndicatorString("can move through now");
                 }
