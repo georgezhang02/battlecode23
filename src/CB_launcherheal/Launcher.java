@@ -5,7 +5,7 @@ public strictfp class Launcher {
 
     static final int ATTACKDMG = 30;
     public enum LauncherState {
-        Combat, Pursuing, Exploring, Fallback, FollowingCommand
+        Combat, Pursuing, Exploring, Fallback, FollowingCommand, Camping
     }
 
     static RobotInfo[] enemies;
@@ -134,6 +134,8 @@ public strictfp class Launcher {
             rc.setIndicatorString("I cant run");
         }
 
+        writeComms(rc);
+
     }
 
     static void onUnitInit(RobotController rc) throws GameActionException{
@@ -173,12 +175,6 @@ public strictfp class Launcher {
 
         allies = rc.senseNearbyRobots(RobotType.LAUNCHER.visionRadiusSquared, rc.getTeam());
 
-        islands  = rc.senseNearbyIslands();
-        for(int i = 0; i < islands.length; i++){
-            if(rc.senseTeamOccupyingIsland(islands[i]) == rc.getTeam()){
-                fallbackIsland = rc.senseNearbyIslandLocations(islands[i])[0];;
-            }
-        }
         numEnemyMil = 0;
         nearestEnemyMil = null;
         for(RobotInfo enemy: enemies){
@@ -228,6 +224,18 @@ public strictfp class Launcher {
             }
         }
 
+        islands  = rc.senseNearbyIslands();
+        boolean commandSent = false;
+        for(int i = 0; i < islands.length; i++){
+
+            if(rc.senseTeamOccupyingIsland(islands[i]) == rc.getTeam()){
+                fallbackIsland = rc.senseNearbyIslandLocations(islands[i])[0];;
+            } else if(numEnemyMil == 0 && !commandSent){
+                commandSent = true;
+                Comms.setAnchorCommand(rc, rc.senseNearbyIslandLocations(islands[i])[0]);
+            }
+        }
+
 
         if((numAllyMil >=2 && cooldownTurn >=2) || numEnemyMil >= 1 || rc.getRoundNum() >30){
 
@@ -263,6 +271,7 @@ public strictfp class Launcher {
             if (rc.getLocation().distanceSquaredTo(fallbackIsland) <= RobotType.LAUNCHER.visionRadiusSquared) {
                 if (rc.canSenseLocation(fallbackIsland)) {
                     if (rc.senseTeamOccupyingIsland(rc.senseIsland(fallbackIsland)) != rc.getTeam()) {
+                        Comms.reportIslandLocation(rc, fallbackIsland, null);
                         fallbackIsland = getFallback(rc);
                         state = LauncherState.Exploring;
                     }
@@ -559,43 +568,42 @@ public strictfp class Launcher {
         }
     }
 
-    static void checkMovement(RobotController rc){
-
-        String checked ="";
-
-        String previous = "alliesPrevious ";
-
-
-        for(RobotInfo ally:allies){
-            if(ally.getType() == RobotType.LAUNCHER || ally.getType() == RobotType.DESTABILIZER){
-
-                int ID = ally.getID();
-                MapLocation loc = ally.getLocation();
 
 
 
-                for(int j = 0; j < numAlliesPrevious; j++){
-
-                    //If the ids match up
-                    if(ID == alliesPrevious[j].getID()){
-                        previous  = previous + ally.getID()+" "+ally.getLocation();
-                        //If the previous ally location is different from before
-
-
-                        if(loc != alliesPrevious[j].getLocation()){
-                            movementChange = true;
-                            dirChange = alliesPrevious[j].getLocation().directionTo(loc);
-                            followBot = ally;
-
-                            return;
-                        }
+    static void followCommand(RobotController rc) throws GameActionException{
+        MapLocation target= attackCommand.location;
+        if(rc.canSenseLocation(target) && rc.getLocation().distanceSquaredTo(target) >= rc.getType().actionRadiusSquared){
+            if(rc.isMovementReady()){
+                Direction moveDir = Pathfinder.pathBug(rc, target);
+                if(canMove(rc, moveDir)){
+                    rc.move(moveDir);
+                }
+                sense(rc);
+                if(enemies.length > 0){
+                    RobotInfo enemy = findAttack(rc);
+                    if(enemy!= null && rc.canAttack(enemy.getLocation())){
+                        rc.attack(enemy.getLocation());
                     }
                 }
+
             }
         }
+    }
 
+    static Comms.Attack getAttackCommand(RobotController rc) throws GameActionException {
+        Comms.Attack[] attackCommands = Comms.getAllAttackCommands(rc);
+        int maxPrio = (attackCommand==null) ? 0 : Comms.getCommPrio(attackCommand.type);
 
-
+        for(int i = 0; i< attackCommands.length; i++){
+            MapLocation loc = attackCommands[i].location;
+            int prio = Comms.getCommPrio(attackCommands[i].type);
+            if(prio > maxPrio && rc.getLocation().distanceSquaredTo(attackCommand.location) > rc.getType().actionRadiusSquared){
+                attackCommand = attackCommands[i];
+                maxPrio = prio;
+            }
+        }
+        return attackCommand;
     }
 
     static void explore(RobotController rc) throws GameActionException{
@@ -641,13 +649,43 @@ public strictfp class Launcher {
 
     }
 
-    static boolean canMove(RobotController rc, Direction dir) throws GameActionException{
-        return dir != null && rc.canMove(dir);
-    }
+    static void checkMovement(RobotController rc){
 
-    static boolean canMoveToExplore(RobotController rc, Direction dir) throws GameActionException{
-        return dir != null && rc.canMove(dir) &&
-                (rc.getRoundNum()%2 ==0 || rc.senseMapInfo(rc.getLocation()).getCooldownMultiplier(rc.getTeam()) != 1);
+        String checked ="";
+
+        String previous = "alliesPrevious ";
+
+
+        for(RobotInfo ally:allies){
+            if(ally.getType() == RobotType.LAUNCHER || ally.getType() == RobotType.DESTABILIZER){
+
+                int ID = ally.getID();
+                MapLocation loc = ally.getLocation();
+
+
+
+                for(int j = 0; j < numAlliesPrevious; j++){
+
+                    //If the ids match up
+                    if(ID == alliesPrevious[j].getID()){
+                        previous  = previous + ally.getID()+" "+ally.getLocation();
+                        //If the previous ally location is different from before
+
+
+                        if(loc != alliesPrevious[j].getLocation()){
+                            movementChange = true;
+                            dirChange = alliesPrevious[j].getLocation().directionTo(loc);
+                            followBot = ally;
+
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+
+
     }
 
     //Find closest capped island
@@ -664,38 +702,16 @@ public strictfp class Launcher {
         return fallbackIsland;
     }
 
-    static Comms.Attack getAttackCommand(RobotController rc) throws GameActionException {
-        Comms.Attack[] attackCommands = Comms.getAllAttackCommands(rc);
-        int maxPrio = (attackCommand==null) ? 0 : Comms.getCommPrio(attackCommand.type);
+    static void writeComms(RobotController rc){
 
-        for(int i = 0; i< attackCommands.length; i++){
-            MapLocation loc = attackCommands[i].location;
-            int prio = Comms.getCommPrio(attackCommands[i].type);
-            if(prio > maxPrio && rc.getLocation().distanceSquaredTo(attackCommand.location) > rc.getType().actionRadiusSquared){
-                attackCommand = attackCommands[i];
-                maxPrio = prio;
-            }
-        }
-        return attackCommand;
     }
 
-    static void followCommand(RobotController rc) throws GameActionException{
-        MapLocation target= attackCommand.location;
-        if(rc.canSenseLocation(target) && rc.getLocation().distanceSquaredTo(target) >= rc.getType().actionRadiusSquared){
-            if(rc.isMovementReady()){
-                Direction moveDir = Pathfinder.pathBug(rc, target);
-                if(canMove(rc, moveDir)){
-                    rc.move(moveDir);
-                }
-                sense(rc);
-                if(enemies.length > 0){
-                    RobotInfo enemy = findAttack(rc);
-                    if(enemy!= null && rc.canAttack(enemy.getLocation())){
-                        rc.attack(enemy.getLocation());
-                    }
-                }
+    static boolean canMove(RobotController rc, Direction dir) throws GameActionException{
+        return dir != null && rc.canMove(dir);
+    }
 
-            }
-        }
+    static boolean canMoveToExplore(RobotController rc, Direction dir) throws GameActionException{
+        return dir != null && rc.canMove(dir) &&
+                (rc.getRoundNum()%2 ==0 || rc.senseMapInfo(rc.getLocation()).getCooldownMultiplier(rc.getTeam()) != 1);
     }
 }
