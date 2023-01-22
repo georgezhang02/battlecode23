@@ -100,11 +100,7 @@ public strictfp class Launcher {
         }// sense if other bots have moved
 
 
-        if (Comms.readEven(rc)) {
-            rc.setIndicatorString(Comms.getNumACEven(rc)+" "+ Comms.getNumACOdd(rc));
-        } else{
-            rc.setIndicatorString(Comms.getNumACOdd(rc)+" "+ Comms.getNumACEven(rc));
-        }
+        rc.setIndicatorString(state.name());
 
         //select action based on state
         switch (state){
@@ -128,15 +124,6 @@ public strictfp class Launcher {
                 campHQ(rc);
                 break;
         }
-
-        MapLocation[]manaWells = Database.getKnownManaLocations();
-        String printString =" ";
-        for(int i = 0; i<manaWells.length; i++){
-           printString = printString+ manaWells[i]+" ";
-        }
-        rc.setIndicatorString(printString);
-        writeComms(rc);
-        Database.checkSymmetries(rc);
 
 
     }
@@ -297,12 +284,12 @@ public strictfp class Launcher {
             pursuitLocation = null;
             combatCD =5;
             state = LauncherState.Combat;
-        }  else if (fallbackIsland != null && rc.getHealth() < RobotType.LAUNCHER.getMaxHealth()/4
+        }  /*else if (fallbackIsland != null && rc.getHealth() < RobotType.LAUNCHER.getMaxHealth()/4
             && Math.sqrt(rc.getLocation().distanceSquaredTo(fallbackIsland)) <= diagonal/2){
             attackCommand = null;
             pursuitLocation = null;
             state = LauncherState.Fallback;
-        }
+        }*/
         else if( combatCD >0 && pursuitLocation!=null &&
                 rc.getLocation().distanceSquaredTo(pursuitLocation) > 5 ){
             attackCommand = null;
@@ -310,6 +297,7 @@ public strictfp class Launcher {
         } else if(state == LauncherState.FollowingCommand && attackCommand != null){
             if(rc.getLocation().distanceSquaredTo(attackCommand.location) <= rc.getType().actionRadiusSquared
                     && rc.canSenseLocation(attackCommand.location)){
+                attackCommand = null;
                 if(getAttackCommand(rc) != null){
                     combatCD = 0;
                     pursuitLocation = null;
@@ -614,6 +602,10 @@ public strictfp class Launcher {
                 }
 
             }
+        } else{
+            attackCommand = null;
+            state = LauncherState.Exploring;
+            explore(rc);
         }
     }
 
