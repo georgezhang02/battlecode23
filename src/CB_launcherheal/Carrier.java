@@ -41,6 +41,8 @@ public strictfp class Carrier {
 
     static MapLocation anchorCommand = null;
 
+    static int[]islands;
+
     static void run(RobotController rc) throws GameActionException {
         sense(rc);
         if(!initialized){
@@ -57,9 +59,27 @@ public strictfp class Carrier {
     static void sense(RobotController rc) throws GameActionException{
         location = rc.getLocation();
         allies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam());
+        enemies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam().opponent());
         adAmount = rc.getResourceAmount(ResourceType.ADAMANTIUM);
         manaAmount = rc.getResourceAmount(ResourceType.MANA);
         elixirAmount = rc.getResourceAmount(ResourceType.ELIXIR);
+
+
+        int numEnemyMil = 0;
+        for(RobotInfo enemy: enemies){
+            if(enemy.getType() == RobotType.LAUNCHER || enemy.getType() == RobotType.DESTABILIZER){
+                numEnemyMil++;
+            }
+        }
+
+        islands  = rc.senseNearbyIslands();
+        boolean commandSent = false;
+        for(int i = 0; i < islands.length; i++){
+            if(numEnemyMil == 0 && !commandSent && rc.canWriteSharedArray(0,0)){
+                commandSent = true;
+                Comms.setAnchorCommand(rc, rc.senseNearbyIslandLocations(islands[i])[0]);
+            }
+        }
     }
 
     static void onUnitInit(RobotController rc) throws GameActionException {
@@ -99,6 +119,8 @@ public strictfp class Carrier {
             }
         }
         return enemiesFound;
+
+
     }
 
     static void updateState(RobotController rc) throws GameActionException {
