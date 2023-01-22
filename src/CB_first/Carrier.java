@@ -26,6 +26,7 @@ public strictfp class Carrier {
     static int HQIndex;
 
     static MapLocation assignedWell = null;
+    static int assignedType = -1;
     static MapLocation[] knownADWells;
     static MapLocation[] knownMNWells;
     static WellInfo[] discoveredWells = new WellInfo[288];
@@ -84,6 +85,7 @@ public strictfp class Carrier {
             // Go to mana
             state = CarrierState.Gathering;
             assignedWell = closestMN;
+            assignedType = 1;
         }
         // Only see ad
         else if (!MNInRange) {
@@ -95,6 +97,7 @@ public strictfp class Carrier {
             else {
                 state = CarrierState.Gathering;
                 assignedWell = closestAD;
+                assignedType = 0;
             }
         }
         // See both wells
@@ -103,10 +106,12 @@ public strictfp class Carrier {
             // Go mn on small maps
             if (smallMap) {
                 assignedWell = closestMN;
+                assignedType = 1;
             }
             // Go ad on big maps
             else {
                 assignedWell = closestAD;
+                assignedType = 0;
             }
         }
     }
@@ -231,9 +236,14 @@ public strictfp class Carrier {
         } else if (location.distanceSquaredTo(assignedWell) <= 10){
             //THIS SECTION IS INTENDED TO MAKE IT SO THAT THE CARRIERS SWITCH THE WELL THEY'RE ASSIGNED TO IF IT'S FULL
             MapLocation[] aroundWell = rc.getAllLocationsWithinRadiusSquared(assignedWell, 2);
-            int limit = 4;
+            int ADlimit = 4;
+            int MNlimit = 4;
+            if (smallMap) {
+                MNlimit = 8;
+            }
             if (rc.getRoundNum() > 100) {
-                limit = 8;
+                ADlimit = 8;
+                MNlimit = 8;
             }
             int robotCount = 0;
             int availableSquares = 0;
@@ -247,16 +257,28 @@ public strictfp class Carrier {
                     availableSquares++;
                 }
             }
-            if ((robotCount > limit || availableSquares <= 0) && location.distanceSquaredTo(assignedWell) > 2) {
+            int limit = 8;
+            switch(assignedType) {
+                case 0:
+                    limit = ADlimit;
+                    break;
+                case 1:
+                    limit = MNlimit;
+                    break;
+            }
+            if ((robotCount >= limit || availableSquares <= 0) && location.distanceSquaredTo(assignedWell) > 2) {
+                visitedWells.add(assignedWell);
                 if (doMana) {
                     MapLocation nextWell = Helper.getClosest(knownMNWells, HQ_LOCATION, visitedWells);
                     if (nextWell != null) {
                         assignedWell = nextWell;
+                        assignedType = 1;
                         doMana = false;
                     } else {
                         nextWell = Helper.getClosest(knownADWells, HQ_LOCATION, visitedWells);
                         if (nextWell != null) {
                             assignedWell = nextWell;
+                            assignedType = 0;
                             doMana = true;
                         } else {
                             state = CarrierState.Exploring;
@@ -266,11 +288,13 @@ public strictfp class Carrier {
                     MapLocation nextWell = Helper.getClosest(knownADWells, HQ_LOCATION, visitedWells);
                     if (nextWell != null) {
                         assignedWell = nextWell;
+                        assignedType = 0;
                         doMana = true;
                     } else {
                         nextWell = Helper.getClosest(knownMNWells, HQ_LOCATION, visitedWells);
                         if (nextWell != null) {
                             assignedWell = nextWell;
+                            assignedType = 1;
                             doMana = false;
                         } else {
                             state = CarrierState.Exploring;
@@ -327,6 +351,11 @@ public strictfp class Carrier {
                 assignClosest(rc);
             } else {
                 state = CarrierState.Gathering;
+                if (smallMap) {
+                    doMana = false;
+                } else {
+                    doMana = true;
+                }
             }
         }
     }
@@ -470,15 +499,23 @@ public strictfp class Carrier {
         if (smallMap && MNInRange){
             state = CarrierState.Gathering;
             assignedWell = closestMN;
+            assignedType = 1;
+            doMana = false;
         } else if (!smallMap & ADInRange) {
             state = CarrierState.Gathering;
             assignedWell = closestAD;
+            assignedType = 0;
+            doMana = true;
         } else if (MNInRange) {
             state = CarrierState.Gathering;
             assignedWell = closestMN;
+            assignedType = 1;
+            doMana = false;
         } else if (ADInRange) {
             state = CarrierState.Gathering;
             assignedWell = closestAD;
+            assignedType = 0;
+            doMana = true;
         }
     }
 
@@ -515,7 +552,8 @@ public strictfp class Carrier {
                         toMove = Direction.WEST;
                         break;
                 }
-                if (toMove != null && rc.canMove(toMove)) {
+                if (toMove != null && rc.canMove(toMove) &&
+                        rc.canSenseLocation(location.add(toMove)) && rc.senseMapInfo(location.add(toMove)).getCurrentDirection() == Direction.CENTER) {
                     rc.move(toMove);
                 }
             }
