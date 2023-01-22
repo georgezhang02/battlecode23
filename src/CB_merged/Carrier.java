@@ -312,6 +312,9 @@ public strictfp class Carrier {
             if (rc.canCollectResource(assignedWell, -1)) {
                 rc.collectResource(assignedWell, -1);
             }
+            if (rc.canCollectResource(assignedWell, -1)) {
+                rc.collectResource(assignedWell, -1);
+            }
             pathWell(rc);
         } else {
             pathTowards(rc, assignedWell);
