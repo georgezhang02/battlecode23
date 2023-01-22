@@ -15,14 +15,8 @@ public strictfp class HQ {
     static int width;
     static int height;
     static MapLocation center;
-    static String indicatorString = "";
-
-
     static boolean smallMap;
-    static MapLocation[] startingAD = new MapLocation[144];
-    static int startingADCount = 0;
-    static MapLocation[] startingMN = new MapLocation[144];
-    static int startingMNCount = 0;
+    static String indicatorString = "";
 
     static boolean buildExplore = false;
     static MapLocation carrierBuildTarget = null;
@@ -86,48 +80,45 @@ public strictfp class HQ {
             if (well.getResourceType() == ResourceType.ADAMANTIUM) {
                 MapLocation loc = well.getMapLocation();
                 Comms.setADWell(rc, loc);
-                startingAD[startingADCount++] = loc;
             }
             if (well.getResourceType() == ResourceType.MANA) {
                 MapLocation loc = well.getMapLocation();
                 Comms.setManaWell(rc, loc);
-                startingMN[startingMNCount++] = loc;
             }
         }
 
+        MapLocation[] ADWells = Comms.getAllADWells(rc);
+        MapLocation closestAD = getClosest(ADWells, location);
+        MapLocation[] MNWells = Comms.getAllManaWells(rc);
+        MapLocation closestMN = getClosest(MNWells, location);
+
         // Don't see any ad wells, explore
-        if (startingADCount == 0 && startingMNCount == 0) {
-            Comms.writeHQCommand(rc, HQIndex, new MapLocation(0, 0), 0);
+        boolean ADInRange = closestAD != null && closestAD.isWithinDistanceSquared(location, 34);
+        boolean MNInRange = closestMN != null && closestMN.isWithinDistanceSquared(location, 34);
+
+        if (!ADInRange && !MNInRange) {
             buildExplore = true;
         }
         // Only see mana
-        else if (startingADCount == 0) {
+        else if (!ADInRange) {
             // Go to mana on small map
             if (smallMap) {
-                MapLocation closestWell = getClosest(startingMN, startingMNCount, location);
-                Comms.writeHQCommand(rc, HQIndex, closestWell, 1);
-                carrierBuildTarget = closestWell;
-                buildExplore = false;
+                carrierBuildTarget = closestMN;
             }
             // Explore on big maps
             else {
-                Comms.writeHQCommand(rc, HQIndex, new MapLocation(0, 0), 0);
                 buildExplore = true;
             }
         }
         // Only see ad
-        else if (startingMNCount == 0) {
+        else if (!MNInRange) {
             // Explore on small map
             if (smallMap) {
-                Comms.writeHQCommand(rc, HQIndex, new MapLocation(0, 0), 0);
                 buildExplore = true;
             }
             // Go ad on big maps
             else {
-                MapLocation closestWell = getClosest(startingAD, startingADCount, location);
-                Comms.writeHQCommand(rc, HQIndex, closestWell, 1);
-                carrierBuildTarget = closestWell;
-                buildExplore = false;
+                carrierBuildTarget = closestAD;
             }
         }
         // See both wells
@@ -135,16 +126,15 @@ public strictfp class HQ {
             MapLocation closestWell;
             // Mana first on small maps
             if (smallMap) {
-                closestWell = getClosest(startingMN, startingMNCount, location);
+                closestWell = closestMN;
             }
             // Ad first on big maps
             else {
-                closestWell = getClosest(startingAD, startingADCount, location);
+                closestWell = closestAD;
             }
             carrierBuildTarget = closestWell;
-            buildExplore = false;
-            Comms.writeHQCommand(rc, HQIndex, closestWell, 1);
         }
+        indicatorString = String.valueOf(carrierBuildTarget);
     }
 
     static void sense(RobotController rc) throws GameActionException {
@@ -213,14 +203,14 @@ public strictfp class HQ {
         return buildSquare;
     }
 
-    static MapLocation getClosest(MapLocation[] options, int count, MapLocation location) {
+    static MapLocation getClosest(MapLocation[] options, MapLocation location) {
         int lowestDist = 10000;
         MapLocation closest = null;
-        for (int i = 0; i < count; i++) {
-            int distance = location.distanceSquaredTo(options[i]);
+        for (MapLocation option: options) {
+            int distance = location.distanceSquaredTo(option);
             if (distance < lowestDist) {
                 lowestDist = distance;
-                closest = new MapLocation(options[i].x, options[i].y);
+                closest = new MapLocation(option.x, option.y);
             }
         }
         return closest;
