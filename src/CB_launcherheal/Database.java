@@ -72,7 +72,7 @@ public class Database {
 
     }
     public static void downloadLocations(RobotController rc) throws GameActionException {
-        if(allyHQs.length <Comms.getNumHQs(rc)){
+        if(allyHQs == null || allyHQs.length <Comms.getNumHQs(rc)){
             allyHQs = Comms.getAllHQs(rc);
             processHQSymmetries();
         }

@@ -129,6 +129,7 @@ public strictfp class Launcher {
     static void onUnitInit(RobotController rc) throws GameActionException{
         state = LauncherState.Exploring;
         diagonal= (float) Math.sqrt(rc.getMapHeight()* rc.getMapHeight()+rc.getMapWidth()* rc.getMapHeight());
+        Database.init(rc);
     }
 
     static void onTurnStart(RobotController rc) throws GameActionException{
@@ -146,10 +147,8 @@ public strictfp class Launcher {
     }
 
     static void readComms(RobotController rc)throws GameActionException{
-
         Database.downloadSymmetry(rc);
         Database.downloadLocations(rc);
-
         //if you dont have a fallback, find the island through comms
         if(fallbackIsland == null ||
                 (Math.sqrt(rc.getLocation().distanceSquaredTo(fallbackIsland)) > diagonal/2 && Math.sqrt(rc.getLocation().distanceSquaredTo(fallbackIsland)) >15)){
