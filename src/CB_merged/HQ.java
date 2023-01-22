@@ -34,6 +34,8 @@ public strictfp class HQ {
     static MapLocation[] MNWells;
     static MapLocation closestMN;
 
+    static int carrierCounter = 0;
+
     static boolean buildAnchor = false;
 
     public static void run(RobotController rc) throws GameActionException {
@@ -252,8 +254,9 @@ public strictfp class HQ {
 
             if(totalAnchorCount == 0 &&
                     !buildAnchor  && rc.getRobotCount() > 5 * Comms.getNumHQs(rc) && anchorsBuilt < 20 * carriersBuilt
-                        && rc.getRobotCount() >= ANCHOR_BUILD_THRESHOLD){
+                        && rc.getRobotCount() >= ANCHOR_BUILD_THRESHOLD && carrierCounter > 20){
                 buildAnchor = true;
+                carrierCounter = 0;
             }
 
             if (!enemiesFound) {
@@ -289,6 +292,9 @@ public strictfp class HQ {
                             rc.buildRobot(RobotType.CARRIER, carrierBuildLoc);
                             carrierBuildLoc = buildTowards(rc, carrierBuildTarget);
                             carriersBuilt++;
+                            if(rc.getRoundNum() > 100){
+                                carrierCounter++;
+                            }
                         }
                         while (rc.canBuildRobot(RobotType.LAUNCHER, centerBuildLoc)) {
                             rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);

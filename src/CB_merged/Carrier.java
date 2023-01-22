@@ -238,7 +238,7 @@ public strictfp class Carrier {
         } else if (location.distanceSquaredTo(assignedWell) <= 10){
             //THIS SECTION IS INTENDED TO MAKE IT SO THAT THE CARRIERS SWITCH THE WELL THEY'RE ASSIGNED TO IF IT'S FULL
             MapLocation[] aroundWell = rc.getAllLocationsWithinRadiusSquared(assignedWell, 2);
-            int ADlimit = 4;
+            int ADlimit = 3;
             int MNlimit = 4;
             if (smallMap) {
                 MNlimit = 8;
@@ -439,6 +439,7 @@ public strictfp class Carrier {
                 }
             }
             if (islandLocs.size() > 0) {
+                anchorCommand = null;
                 MapLocation islandLocation = islandLocs.iterator().next();
                 pathTowards(rc, islandLocation);
 
@@ -456,7 +457,8 @@ public strictfp class Carrier {
                     }
                 }
             }
-        } else if(anchorCommand != null || searchAnchorCommands(rc) != null){
+        } else if(anchorCommand != null || searchAnchorCommands(rc) != null &&
+            rc.getLocation().distanceSquaredTo(anchorCommand) <= rc.getType().visionRadiusSquared){
             if(rc.isMovementReady()){
                 Direction moveDir = Pathfinder.pathBug(rc, anchorCommand);
                 if(moveDir != null && rc.canMove(moveDir)){
@@ -466,6 +468,7 @@ public strictfp class Carrier {
         }
         //Otherwise, Explore until you find an island
         else{
+            anchorCommand = null;
             pathExplore(rc);
         }
     }

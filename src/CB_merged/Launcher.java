@@ -311,11 +311,11 @@ public strictfp class Launcher {
             combatCD = 0;
             pursuitLocation = null;
             state = LauncherState.FollowingCommand;
-        } else if(closestEnemyHQ != null){
+        } /*else if(closestEnemyHQ != null){
             attackCommand = null;
             pursuitLocation = null;
             state = LauncherState.Camping;
-        }else{
+        }*/else{
             combatCD = 0;
             pursuitLocation = null;
             state = LauncherState.Exploring;
