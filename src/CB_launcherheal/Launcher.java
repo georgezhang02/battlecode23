@@ -616,15 +616,24 @@ public strictfp class Launcher {
     static Comms.Attack getAttackCommand(RobotController rc) throws GameActionException {
         Comms.Attack[] attackCommands = Comms.getAllAttackCommands(rc);
         int maxPrio = (attackCommand==null) ? 0 : Comms.getCommPrio(attackCommand.type);
-
+        int minRange = 10000;
 
         for(int i = 0; i< attackCommands.length; i++){
             MapLocation loc = attackCommands[i].location;
             int prio = Comms.getCommPrio(attackCommands[i].type);
-            if(prio > maxPrio && rc.getLocation().distanceSquaredTo(attackCommands[i].location) > rc.getType().actionRadiusSquared){
-                attackCommand = attackCommands[i];
-                maxPrio = prio;
+            int range = rc.getLocation().distanceSquaredTo(attackCommands[i].location);
+            if(range > rc.getType().actionRadiusSquared){
+
+                if(prio > maxPrio){
+                    attackCommand = attackCommands[i];
+                    maxPrio = prio;
+                    minRange = range;
+                } else if(prio== maxPrio && minRange < range){
+                    attackCommand = attackCommands[i];
+                    minRange = range;
+                }
             }
+
         }
         return attackCommand;
     }
@@ -736,6 +745,7 @@ public strictfp class Launcher {
             int dist = rc.getLocation().distanceSquaredTo(islands[i].location);
             if(dist < min){
                 fallbackIsland = islands[i].location;
+                min = dist;
             }
         }
         return fallbackIsland;

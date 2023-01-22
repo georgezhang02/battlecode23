@@ -22,6 +22,8 @@ public strictfp class Carrier {
     static int manaAmount;
     static int elixirAmount;
 
+
+
     static MapLocation HQ_LOCATION = null;
     static int HQIndex;
 
