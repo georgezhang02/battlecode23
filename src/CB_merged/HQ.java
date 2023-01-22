@@ -4,8 +4,6 @@ import battlecode.common.*;
 
 public strictfp class HQ {
 
-    static final int ANCHOR_BUILD_THRESHOLD = 30;
-
     static boolean initialized = false;
     static MapLocation location;
     static int HQIndex;
@@ -25,6 +23,16 @@ public strictfp class HQ {
     static boolean enemiesFound;
     static boolean launchersFirst = false;
 
+    static int launchersBuilt = 0;
+    static int carriersBuilt = 0;
+    static int anchorsBuilt = 0;
+    static int amplifiersBuilt = 0;
+
+    static MapLocation[] ADWells;
+    static MapLocation closestAD;
+    static MapLocation[] MNWells;
+    static MapLocation closestMN;
+
     public static void run(RobotController rc) throws GameActionException {
 
         checkEnemies(rc);
@@ -37,7 +45,7 @@ public strictfp class HQ {
         // sense part
         sense(rc);
 
-        think(rc);
+        comms(rc);
 
         //act part should be triggered by think part, see methods below
         build(rc);
@@ -60,7 +68,7 @@ public strictfp class HQ {
     static void onUnitInit(RobotController rc) throws GameActionException {
         location = rc.getLocation();
         id = rc.getID();
-        HQIndex = CB_first.Comms.setTeamHQLocation(rc, location, id);
+        HQIndex = Comms.setTeamHQLocation(rc, location, id);
         width = rc.getMapWidth();
         height = rc.getMapHeight();
         smallMap = width <= 30 && height <= 30;
@@ -69,7 +77,7 @@ public strictfp class HQ {
         // Find any enemy HQs
         for (RobotInfo enemy : enemies) {
             if (enemy.getType() == RobotType.HEADQUARTERS) {
-                CB_first.Comms.setEnemyHQLocation(rc, enemy.getLocation(), enemy.getID());
+                Comms.setEnemyHQLocation(rc, enemy.getLocation(), enemy.getID());
                 smallMap = true;
                 launchersFirst = true;
             }
@@ -80,18 +88,18 @@ public strictfp class HQ {
         for (WellInfo well : wells) {
             if (well.getResourceType() == ResourceType.ADAMANTIUM) {
                 MapLocation loc = well.getMapLocation();
-                CB_first.Comms.setADWell(rc, loc);
+                Comms.setADWell(rc, loc);
             }
             if (well.getResourceType() == ResourceType.MANA) {
                 MapLocation loc = well.getMapLocation();
-                CB_first.Comms.setManaWell(rc, loc);
+                Comms.setManaWell(rc, loc);
             }
         }
 
-        MapLocation[] ADWells = CB_first.Comms.getAllADWells(rc);
-        MapLocation closestAD = Helper.getClosest(ADWells, location);
-        MapLocation[] MNWells = CB_first.Comms.getAllManaWells(rc);
-        MapLocation closestMN = Helper.getClosest(MNWells, location);
+        ADWells = Comms.getAllADWells(rc);
+        closestAD = Helper.getClosest(ADWells, location);
+        MNWells = Comms.getAllManaWells(rc);
+        closestMN = Helper.getClosest(MNWells, location);
 
         // Don't see any ad wells, explore
         boolean ADInRange = closestAD != null && closestAD.isWithinDistanceSquared(location, 34);
@@ -136,8 +144,11 @@ public strictfp class HQ {
     }
 
 
-    static void think(RobotController rc) throws GameActionException {
-
+    static void comms(RobotController rc) throws GameActionException {
+        ADWells = Comms.getAllADWells(rc);
+        closestAD = Helper.getClosest(ADWells, location);
+        MNWells = Comms.getAllManaWells(rc);
+        closestMN = Helper.getClosest(MNWells, location);
     }
 
     static void build(RobotController rc) throws GameActionException{
@@ -157,19 +168,43 @@ public strictfp class HQ {
             }
         } else {
             MapLocation centerBuildLoc = buildTowards(rc, center);
-            MapLocation carrierBuildLoc = buildTowards(rc, center);
+            MapLocation carrierBuildTarget;
+            if (smallMap) {
+                carrierBuildTarget = closestMN;
+            } else {
+                carrierBuildTarget = closestAD;
+            }
             if (!enemiesFound) {
-                if (totalAnchorCount == 0 && rc.getRobotCount() >= ANCHOR_BUILD_THRESHOLD) {
+                if (totalAnchorCount == 0 && rc.getRobotCount() > 5 * Comms.getNumHQs(rc)
+                        && anchorsBuilt < 20 * carriersBuilt) {
                     if (rc.canBuildAnchor(Anchor.STANDARD)) {
                         rc.buildAnchor(Anchor.STANDARD);
+                        anchorsBuilt++;
                     }
-                } else if (rc.canBuildRobot(RobotType.CARRIER, carrierBuildLoc)) {
-                    rc.buildRobot(RobotType.CARRIER, carrierBuildLoc);
-                } else if (rc.canBuildRobot(RobotType.LAUNCHER, centerBuildLoc)) {
-                    rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);
+                } else if (rc.getRobotCount() > 5 * Comms.getNumHQs(rc) && amplifiersBuilt < 10 * launchersBuilt) {
+                    if (rc.canBuildRobot(RobotType.AMPLIFIER, buildTowards(rc, center))) {
+                        rc.buildRobot(RobotType.AMPLIFIER, centerBuildLoc);
+                        amplifiersBuilt++;
+                    }
+                } else {
+                    MapLocation carrierBuildLoc = buildTowards(rc, carrierBuildTarget);
+                    while (rc.canBuildRobot(RobotType.CARRIER, carrierBuildLoc)) {
+                        rc.buildRobot(RobotType.CARRIER, carrierBuildLoc);
+                        carrierBuildLoc = buildTowards(rc, carrierBuildTarget);
+                        carriersBuilt++;
+                    }
+                    while (rc.canBuildRobot(RobotType.LAUNCHER, centerBuildLoc)) {
+                        rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);
+                        centerBuildLoc = buildTowards(rc, center);
+                        launchersBuilt++;
+                    }
                 }
-            } else if (rc.canBuildRobot(RobotType.LAUNCHER, centerBuildLoc)) {
-                rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);
+            } else {
+                while (rc.canBuildRobot(RobotType.LAUNCHER, centerBuildLoc)) {
+                    rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);
+                    centerBuildLoc = buildTowards(rc, center);
+                    launchersBuilt++;
+                }
             }
         }
     }
@@ -199,6 +234,7 @@ public strictfp class HQ {
             rc.buildRobot(RobotType.CARRIER, buildTowards(rc, new MapLocation(location.x - 2, location.y + 2)));
             rc.buildRobot(RobotType.CARRIER, buildTowards(rc, new MapLocation(location.x + 2, location.y - 2)));
             rc.buildRobot(RobotType.CARRIER, buildTowards(rc, new MapLocation(location.x + 2, location.y + 2)));
+            carriersBuilt += 4;
         }
         // Build towards a well
         else {
@@ -206,6 +242,7 @@ public strictfp class HQ {
             rc.buildRobot(RobotType.CARRIER, buildTowards(rc, carrierBuildTarget));
             rc.buildRobot(RobotType.CARRIER, buildTowards(rc, carrierBuildTarget));
             rc.buildRobot(RobotType.CARRIER, buildTowards(rc, carrierBuildTarget));
+            carriersBuilt += 4;
         }
     }
 
@@ -213,6 +250,7 @@ public strictfp class HQ {
         rc.buildRobot(RobotType.LAUNCHER, buildTowards(rc, center));
         rc.buildRobot(RobotType.LAUNCHER, buildTowards(rc, center));
         rc.buildRobot(RobotType.LAUNCHER, buildTowards(rc, center));
+        launchersBuilt += 3;
     }
     /*
     public static class BuildUnit {

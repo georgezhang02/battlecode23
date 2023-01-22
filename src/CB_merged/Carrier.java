@@ -66,13 +66,13 @@ public strictfp class Carrier {
         for (RobotInfo ally : allies) {
             if (ally.getType() == RobotType.HEADQUARTERS) {
                 HQ_LOCATION = ally.getLocation();
-                HQIndex = CB_first.Comms.getHQIndexByID(rc, ally.getID());
+                HQIndex = Comms.getHQIndexByID(rc, ally.getID());
             }
         }
 
-        knownADWells = CB_first.Comms.getAllADWells(rc);
+        knownADWells = Comms.getAllADWells(rc);
         closestAD = Helper.getClosest(knownADWells, HQ_LOCATION);
-        knownMNWells = CB_first.Comms.getAllManaWells(rc);
+        knownMNWells = Comms.getAllManaWells(rc);
         closestMN = Helper.getClosest(knownMNWells, HQ_LOCATION);
 
         // Don't see any ad wells, explore
@@ -119,8 +119,8 @@ public strictfp class Carrier {
     }
 
     static void comms(RobotController rc) throws GameActionException {
-        knownADWells = CB_first.Comms.getAllADWells(rc);
-        knownMNWells = CB_first.Comms.getAllManaWells(rc);
+        knownADWells = Comms.getAllADWells(rc);
+        knownMNWells = Comms.getAllManaWells(rc);
     }
 
     static void sense(RobotController rc) throws GameActionException{
@@ -396,7 +396,7 @@ public strictfp class Carrier {
             while (reportedWellCount < discoveredWellCount) {
                 //AD ID = 1
                 if(discoveredWells[reportedWellCount].getResourceType().resourceID == 1){
-                    CB_first.Comms.setADWell(rc, discoveredWells[reportedWellCount++].getMapLocation());
+                    Comms.setADWell(rc, discoveredWells[reportedWellCount++].getMapLocation());
                 }
                 //MN ID = 2
                 else if(discoveredWells[reportedWellCount].getResourceType().resourceID == 2){
@@ -493,7 +493,7 @@ public strictfp class Carrier {
     */
 
     static void pathExplore(RobotController rc) throws GameActionException {
-        MapLocation target = CB_first.Pathfinder.locationToExplore(rc);
+        MapLocation target = Pathfinder.locationToExplore(rc);
         pathTowards(rc, target);
     }
 
