@@ -65,6 +65,8 @@ public strictfp class Launcher {
 
     static float diagonal = 1000;
 
+    static boolean attackSent;
+
 
     static final Direction[] directions = {
             Direction.NORTH,
@@ -100,16 +102,12 @@ public strictfp class Launcher {
 
         }// sense if other bots have moved
 
-        String printString = "";
-        for(int i = 0; i<Database.rotationalEnemyHQs.length; i++){
-            if(Database.rotationalEnemyHQs[i] != null){
-                printString = printString + Database.rotationalEnemyHQs[i].location;
 
-            }
+        if (Comms.readEven(rc)) {
+            rc.setIndicatorString(Comms.getNumACEven(rc)+" "+Comms.getNumACOdd(rc));
+        } else{
+            rc.setIndicatorString(Comms.getNumACOdd(rc)+" "+Comms.getNumACEven(rc));
         }
-
-
-
 
         //select action based on state
         switch (state){
@@ -127,6 +125,7 @@ public strictfp class Launcher {
                 break;
             case FollowingCommand:
                 followCommand(rc);
+                rc.setIndicatorString("following command" + attackCommand.location);
                 break;
             case Camping:
                 campHQ(rc);
@@ -135,6 +134,7 @@ public strictfp class Launcher {
 
         writeComms(rc);
         Database.checkSymmetries(rc);
+
 
     }
 
@@ -149,6 +149,7 @@ public strictfp class Launcher {
         movementChange = false;
         combatCD--;
         detachCD--;
+        attackSent = false;
 
         if(rc.getRoundNum()%2 == 0){
             for(int i = 0; i< numNearbyAllyMil; i++){
@@ -303,12 +304,14 @@ public strictfp class Launcher {
             attackCommand = null;
             state = LauncherState.Pursuing;
         } else if(state == LauncherState.FollowingCommand && attackCommand != null){
-            if(rc.getLocation().distanceSquaredTo(attackCommand.location) <= rc.getType().actionRadiusSquared){
+            if(rc.getLocation().distanceSquaredTo(attackCommand.location) <= rc.getType().actionRadiusSquared
+                    && rc.canSenseLocation(attackCommand.location)){
                 if(getAttackCommand(rc) != null){
                     combatCD = 0;
                     pursuitLocation = null;
                     state = LauncherState.FollowingCommand;
                 } else{
+                    pursuitLocation = null;
                     state = LauncherState.Exploring;
                 }
             }
@@ -317,6 +320,8 @@ public strictfp class Launcher {
             pursuitLocation = null;
             state = LauncherState.FollowingCommand;
         } else if(closestEnemyHQ != null){
+            attackCommand = null;
+            pursuitLocation = null;
             state = LauncherState.Camping;
         }else{
             combatCD = 0;
@@ -359,9 +364,7 @@ public strictfp class Launcher {
         Direction moveDir = findMovementCombat(rc, attackRobot);
 
         if(attackRobot!=null){
-            if(rc.canWriteSharedArray(0,0)){
-                Comms.setAttackCommand(rc, attackRobot.getLocation(), attackRobot.getType());
-            }
+
             if(moveFirst){
                 if(canMove(rc, moveDir)){
                     rc.move(moveDir);
@@ -560,6 +563,13 @@ public strictfp class Launcher {
 
             }
         }
+        if(!attackSent && enemyToAttack != null){
+            if(rc.canWriteSharedArray(0,0)){
+                Comms.setAttackCommand(rc, enemyToAttack.getLocation(), enemyToAttack.getType());
+                rc.setIndicatorString("sending attack command");
+                attackSent = true;
+            }
+        }
         return enemyToAttack;
     }
 
@@ -585,7 +595,7 @@ public strictfp class Launcher {
 
     static void followCommand(RobotController rc) throws GameActionException{
         MapLocation target= attackCommand.location;
-        if(rc.canSenseLocation(target) && rc.getLocation().distanceSquaredTo(target) >= rc.getType().actionRadiusSquared){
+        if(!rc.canSenseLocation(target) || rc.getLocation().distanceSquaredTo(target) > rc.getType().actionRadiusSquared){
             if(rc.isMovementReady()){
                 Direction moveDir = Pathfinder.pathBug(rc, target);
                 if(canMove(rc, moveDir)){
@@ -606,6 +616,7 @@ public strictfp class Launcher {
     static Comms.Attack getAttackCommand(RobotController rc) throws GameActionException {
         Comms.Attack[] attackCommands = Comms.getAllAttackCommands(rc);
         int maxPrio = (attackCommand==null) ? 0 : Comms.getCommPrio(attackCommand.type);
+
 
         for(int i = 0; i< attackCommands.length; i++){
             MapLocation loc = attackCommands[i].location;

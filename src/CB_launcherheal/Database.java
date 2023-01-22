@@ -69,11 +69,13 @@ public class Database {
             globalKnownLocations = new HashSet<>();
             localKnownLocations = new HashSet<>();
             allyHQs = Comms.getAllHQs(rc);
-            processHQSymmetries(rc);
+
 
             width = rc.getMapWidth();
             height = rc.getMapHeight();
             initialized = true;
+
+            processHQSymmetries(rc);
 
         }
 
@@ -384,10 +386,6 @@ public class Database {
             MapLocation rotation = rotate(allyHQs[i]);
             rotationalEnemyHQs[i] = new SymmetryCheck(rotation);
 
-
-
-            rc.setIndicatorString(rotate(allyHQs[i])+" ");
-
             MapLocation horizontalReflection = reflectAcrossHorizontal(allyHQs[i]);
             horizontalEnemyHQs[i] = new SymmetryCheck(horizontalReflection);
 
@@ -449,9 +447,13 @@ public class Database {
         checkSymmetryFound();
         uploadSymmetry(rc);
 
+
     }
 
+
+
     public static void searchHQAllowed(RobotController rc){
+
         if(!symmetryFound && numUncheckedHQs >0 && Clock.getBytecodesLeft()>BYTECODE_LIMIT
                 && rc.getRoundNum() >1){
             for(;numUncheckedHQs>0 && Clock.getBytecodesLeft() >BYTECODE_LIMIT; numUncheckedHQs--){
@@ -486,18 +488,24 @@ public class Database {
             }
         }
     }
-
     static boolean checkHQSymmetry(RobotController rc, SymmetryCheck[]enemyHQs) throws GameActionException {
+
+
         if(rc.getRoundNum() >1) {
+
             for (int i = 0; i < enemyHQs.length && Clock.getBytecodesLeft() > BYTECODE_LIMIT; i++) {
                 if (enemyHQs[i] == null) {
                     break;
                 }
+
                 if (!enemyHQs[i].checked) {
                     if (rc.canSenseLocation(enemyHQs[i].location)) {
+
+
                         RobotInfo info = rc.senseRobotAtLocation(enemyHQs[i].location);
-                        if (info == null ||
-                                !(info.getType().equals(RobotType.HEADQUARTERS) || !(info.getTeam().equals(rc.getTeam().opponent())))) {
+                        if (info == null || !(info.getType().equals(RobotType.HEADQUARTERS) &&
+                                info.getTeam().equals(rc.getTeam().opponent()))) {
+
                             return false;
                         } else {
                             enemyHQs[i].checked = true;

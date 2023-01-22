@@ -48,17 +48,19 @@ public class Comms {
      *
      * @return Number of odd attack commands
      */
-    public static int getNumACOdd(RobotController rc) throws GameActionException {
+    public static int getNumACEven(RobotController rc) throws GameActionException {
         return decode(rc.readSharedArray(COUNT_OFFSET_1), 1);
     }
+
 
     /**
      *
      * @return Number of odd attack commands
      */
-    public static int getNumACEven(RobotController rc) throws GameActionException {
+    public static int getNumACOdd(RobotController rc) throws GameActionException {
         return decode(rc.readSharedArray(COUNT_OFFSET_1), 2);
     }
+
 
     /**
      *
@@ -726,15 +728,15 @@ public class Comms {
         int[] count3 = getAllCount3(rc);
         int[] count4 = getAllCount4(rc);
         //wipe last round Attacks and Anchors
-        if(readEven(rc)){
-            // if we're now reading from evens, wipe odds
-            count1[2] = 0;
-            count4[1] = 0;
-
-        } else{
-            // if we're now reading from odds, wipe evens
+        if(writeEven(rc)){
+            // if we're now writing to evens, clear evens
             count1[1] = 0;
             count4[0] = 0;
+
+        } else{
+            // if we're now writing to odds, clear odds
+            count1[2] = 0;
+            count4[1] = 0;
         }
         // wipe reports
         count3[2] = 0; // island reports
@@ -767,15 +769,15 @@ public class Comms {
         int[] count3 = getAllCount3(rc);
         int[] count4 = getAllCount4(rc);
         //wipe last round Attacks and Anchors
-        if(readEven(rc)){
-            // if we're now reading from evens, wipe odds
-            count1[2] = 0;
-            count4[1] = 0;
-
-        } else{
-            // if we're now reading from odds, wipe evens
+        if(writeEven(rc)){
+            // if we're now writing to evens, clear evens
             count1[1] = 0;
             count4[0] = 0;
+
+        } else{
+            // if we're now writing to odds, clear odds
+            count1[2] = 0;
+            count4[1] = 0;
         }
         // wipe reports
         count3[2] = 0;

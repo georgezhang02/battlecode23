@@ -51,6 +51,8 @@ public class Explorer {
             rotHQsExplored = new boolean[numHQs];
             horizHQsExplored = new boolean[numHQs];
             vertHQsExplored = new boolean[numHQs];
+
+
         }
 
         target = null;

@@ -100,7 +100,7 @@ public strictfp class HQ {
                 // check for islands to add outside of already available team island locations
             }
         }
-
+/*
         if(removed){
             if(!Comms.isCommsCleaned(rc)){
                 Comms.wipeComms(rc, false, false, true);
@@ -132,6 +132,9 @@ public strictfp class HQ {
                 Comms.wipeComms(rc);
             }
             // wipe comms
+        }*/
+        if(!Comms.isCommsCleaned(rc)){
+            Comms.wipeComms(rc);
         }
 
 
