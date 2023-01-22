@@ -77,9 +77,16 @@ public strictfp class Pathfinder {
             }
             Explorer.getHQExploreTarget(rc);
         }
+
+        if(Explorer.exploreRot && !Database.rotational){
+            Explorer.getHQExploreTarget(rc);
+        } else if(Explorer.exploreHor && !Database.horizontal){
+            Explorer.getHQExploreTarget(rc);
+        }  else if(Explorer.exploreVrt && !Database.vertical){
+            Explorer.getHQExploreTarget(rc);
+        }
         //rc.setIndicatorString(Explorer.target+"");
         Direction dir = pathBug(rc, Explorer.target);
-
 
         exploring = true;
         return dir;
@@ -111,7 +118,7 @@ public strictfp class Pathfinder {
 
             }
         }
-        rc.setIndicatorString(pathToAlly+" ");
+        //(pathToAlly+" ");
         if(pathToAlly != null){
             if(pathToAlly.getLocation().distanceSquaredTo(rc.getLocation()) <=1){
                 return Direction.CENTER;
@@ -180,9 +187,9 @@ public strictfp class Pathfinder {
                         || !rc.onTheMap(rc.getLocation().add(leftWallDir)))
                 {
                     rotatingBug = false;
-                    rc.setIndicatorString("can move through now");
+                    //rc.setIndicatorString("can move through now");
                 } else if(currentDist < lowestDist && canMoveThrough(rc, lastBugDir, rc.getLocation().add(leftWallDir))){
-                    rc.setIndicatorString("lower than max dist");
+                    //rc.setIndicatorString("lower than max dist");
                     rotatingBug = false;
                 }
             } else{
@@ -191,7 +198,7 @@ public strictfp class Pathfinder {
                         canMoveThrough(rc, rightWallDir, rc.getLocation().add(rightWallDir)))
                         || !rc.onTheMap(rc.getLocation().add(rightWallDir))) {
                     rotatingBug = false;
-                    rc.setIndicatorString("can move through now");
+                    //rc.setIndicatorString("can move through now");
                 }
             }
         }
@@ -272,8 +279,8 @@ public strictfp class Pathfinder {
                         } else{
                             lastBugDir= left;
                         }
-                        rc.setIndicatorString("starting rotation left"+target.toString() +" "+lastBugDir.toString()+
-                                " ");
+                        /*rc.setIndicatorString("starting rotation left"+target.toString() +" "+lastBugDir.toString()+
+                                " ");*/
 
 
 
@@ -286,8 +293,8 @@ public strictfp class Pathfinder {
                             lastBugDir= right;
                         }
 
-                        rc.setIndicatorString("starting rotation right"+target.toString() +" "+lastBugDir.toString()+
-                                " ");
+                       /* rc.setIndicatorString("starting rotation right"+target.toString() +" "+lastBugDir.toString()+
+                                " ");*/
 
 
                         return right;

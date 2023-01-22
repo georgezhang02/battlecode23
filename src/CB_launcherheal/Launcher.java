@@ -4,6 +4,7 @@ import battlecode.common.*;
 
 import javax.xml.crypto.Data;
 
+
 public strictfp class Launcher {
 
     static final int ATTACKDMG = 30;
@@ -99,6 +100,16 @@ public strictfp class Launcher {
 
         }// sense if other bots have moved
 
+        String printString = "";
+        for(int i = 0; i<Database.rotationalEnemyHQs.length; i++){
+            if(Database.rotationalEnemyHQs[i] != null){
+                printString = printString + Database.rotationalEnemyHQs[i].location;
+
+            }
+        }
+
+
+
 
         //select action based on state
         switch (state){
@@ -121,13 +132,6 @@ public strictfp class Launcher {
                 campHQ(rc);
                 break;
         }
-        String printString = "";
-        MapLocation[]allMana = Database.getKnownManaLocations();
-        for(int i = 0; i< allMana.length; i++){
-            printString  = printString + allMana[i];
-        }
-        rc.setIndicatorString(printString);
-
 
         writeComms(rc);
         Database.checkSymmetries(rc);
@@ -385,10 +389,10 @@ public strictfp class Launcher {
             // no action available, run from enemies
             if(nearestEnemyMil != null &&
                     (nearestEnemyMil.getLocation().distanceSquaredTo(rc.getLocation()) <= 16 && rc.getActionCooldownTurns()<=1)){
-                rc.setIndicatorString("no actions, run");
+               // rc.setIndicatorString("no actions, run");
                 return Pathfinder.pathAwayFrom(rc, nearestEnemyMil.getLocation());
             }  else if(attackRobot!= null){
-                rc.setIndicatorString("pursue");
+                //rc.setIndicatorString("pursue");
                 pursuitLocation = attackRobot.getLocation();
                 pursue(rc);
             }
@@ -401,7 +405,7 @@ public strictfp class Launcher {
 
                 if(rc.canAttack(attackLoc)){
                     // if attack already in radius, attack and kite
-                    rc.setIndicatorString("attack and kite");
+                  //  rc.setIndicatorString("attack and kite");
                     rc.attack(attackLoc);
                     moveFirst = false;
                     if(nearestEnemyMil != null){
@@ -469,7 +473,7 @@ public strictfp class Launcher {
 
 
                     if(moveToAttack){
-                        rc.setIndicatorString("move and hit to kill");
+                        //rc.setIndicatorString("move and hit to kill");
                         moveFirst = true;
                         return Pathfinder.pathBug(rc, attackLoc);
                     }
@@ -562,7 +566,7 @@ public strictfp class Launcher {
     static void pursue(RobotController rc) throws GameActionException{
 
         if(rc.isMovementReady()){
-            rc.setIndicatorString(pursuitLocation+"");
+           // rc.setIndicatorString(pursuitLocation+"");
             Direction moveDir = Pathfinder.pathBug(rc, pursuitLocation);
 
             if(canMove(rc, moveDir)){
@@ -639,7 +643,7 @@ public strictfp class Launcher {
                 //rc.setIndicatorString("following "+followBot.getLocation());
 
             } else{
-                dir = Pathfinder.pathToExploreBug(rc);
+                dir = Pathfinder.pathToExploreHQ(rc);
                 //rc.setIndicatorString("pathing to explore" + Explorer.target);
             }
             if(canMoveToExplore(rc, dir)){

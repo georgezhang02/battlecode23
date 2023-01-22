@@ -20,9 +20,11 @@ public class Explorer {
 
     static boolean[] horizHQsExplored;
     static boolean[] vertHQsExplored;
-
     static boolean[]curExploring;
 
+    static boolean exploreRot = false;
+    static boolean exploreHor = false;
+    static boolean exploreVrt = false;
     static int curHQExploreIndex = -1;
     static int numHQs = 0;
 
@@ -35,7 +37,6 @@ public class Explorer {
         horizHQsExplored = new boolean[numHQs];
         vertHQsExplored = new boolean[numHQs];
     }
-
 
 
     public static void getHQExploreTarget(RobotController rc) throws GameActionException {
@@ -53,50 +54,67 @@ public class Explorer {
         }
 
         target = null;
+
+
         if(Database.rotational){
             target = getNearestUnexploredHQ(rc, Database.rotationalEnemyHQs, rotHQsExplored);
             curExploring = rotHQsExplored;
+            exploreRot = true;
+            exploreHor = false;
+            exploreVrt = false;
         } else if(Database.horizontal){
             target = getNearestUnexploredHQ(rc, Database.horizontalEnemyHQs, horizHQsExplored);
             curExploring = horizHQsExplored;
+            exploreRot = false;
+            exploreHor = true;
+            exploreVrt = false;
         } else if(Database.vertical){
             target = getNearestUnexploredHQ(rc, Database.verticalEnemyHQs, vertHQsExplored);
             curExploring = vertHQsExplored;
+            exploreRot = false;
+            exploreHor = false;
+            exploreVrt = true;
         }
-
 
         if(target == null){
             getExploreTargetRandom(rc, rc.getMapWidth(), rc.getMapHeight());
         }
     }
 
-    private static MapLocation getNearestUnexploredHQ(RobotController rc, Database.SymmetryCheck[]enemyHQs, boolean[]HQsExplored){
-        int maxRange = 100000;
-        target = null;
-        for(int i = 0; i< enemyHQs.length; i++){
-            MapLocation enemyHQLoc = enemyHQs[i].location;
-            int range = rc.getLocation().distanceSquaredTo(enemyHQLoc);
+    public static MapLocation getNearestUnexploredHQ(RobotController rc, Database.SymmetryCheck[]enemyHQs, boolean[]HQsExplored){
 
-            if(!HQsExplored[i]){
-                if(rc.getLocation().distanceSquaredTo(enemyHQLoc) > rc.getType().visionRadiusSquared){
-                    if(range < maxRange){
-                        maxRange = range;
-                        target = enemyHQLoc;
-                        curHQExploreIndex = i;
+
+
+        int maxRange = 100000;
+        for(int i = 0; i< enemyHQs.length; i++){
+            if(enemyHQs[i] != null){
+                MapLocation enemyHQLoc = enemyHQs[i].location;
+                int range = rc.getLocation().distanceSquaredTo(enemyHQLoc);
+
+                if(!HQsExplored[i]){
+                    if(rc.getLocation().distanceSquaredTo(enemyHQLoc) > rc.getType().visionRadiusSquared){
+                        if(range < maxRange){
+                            maxRange = range;
+                            target = enemyHQLoc;
+                            curHQExploreIndex = i;
+                        }
+                    } else{
+                        HQsExplored[i] = true;
                     }
-                } else{
-                    HQsExplored[i] = true;
                 }
             }
 
 
+
         }
+
         return target;
     }
 
     // Choose random unvisited location through visited array, if can't find in tries moves
     //chooses random on radius
     public static void getExploreTarget(RobotController rc, int tries, int mapWidth, int mapHeight) throws GameActionException {
+        curHQExploreIndex = -1;
         if(!HQInit){
             int numHQs = Comms.getNumHQs(rc);
             HQLoc1 = Comms.getTeamHQLocation(rc, 0);
