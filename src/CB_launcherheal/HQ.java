@@ -74,6 +74,7 @@ public strictfp class HQ {
         boolean removed = false;
         boolean added = false;
 
+        //reading island report comms
         for(int j = 0; j<reports.length; j++){
             Comms.Island report = reports[j];
             if(report.owner == null || !report.owner.equals(rc.getTeam())){
@@ -82,22 +83,20 @@ public strictfp class HQ {
                 for(int i = 0; i< teamIslands.length; i++){
                     if(report.location.distanceSquaredTo(teamIslands[i].location) <= 5){
                         teamIslands[i] = null;
+                        removed = true;
                         toRemove = true;
                     }
                 }
                 if(toRemove) reports[j] = null;
-                removed = toRemove  || removed;
                 // check for removal of islands based off of losing reports
             } else {
-                boolean toAdd = true;
                 for(int i = 0; i< teamIslands.length; i++){
                     if(report.location.distanceSquaredTo(teamIslands[i].location) <= 5){
-                        toAdd = false;
                         reports[j]  = null;
-                        break;
+                    } else{
+                        added = true;
                     }
                 }
-                added = added || toAdd;
                 // check for islands to add outside of already available team island locations
             }
         }

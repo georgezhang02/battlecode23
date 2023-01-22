@@ -5,7 +5,7 @@ public strictfp class Launcher {
 
     static final int ATTACKDMG = 30;
     public enum LauncherState {
-        Combat, Pursuing, Exploring, Fallback
+        Combat, Pursuing, Exploring, Fallback, FollowingCommand
     }
 
     static RobotInfo[] enemies;
@@ -58,6 +58,8 @@ public strictfp class Launcher {
     static Comms.Attack attackCommand;
 
     static String allyString;
+
+    static float diagonal = 1000;
 
     static final Direction[] directions = {
             Direction.NORTH,
@@ -121,6 +123,9 @@ public strictfp class Launcher {
             case Fallback:
                 fallback(rc);
                 break;
+            case FollowingCommand:
+                followCommand(rc);
+                break;
         }
         if(fallbackIsland != null){
             rc.setIndicatorString(fallbackIsland.toString());
@@ -133,6 +138,7 @@ public strictfp class Launcher {
 
     static void onUnitInit(RobotController rc) throws GameActionException{
         state = LauncherState.Exploring;
+        diagonal= (float) Math.sqrt(rc.getMapHeight()* rc.getMapHeight()+rc.getMapWidth()* rc.getMapHeight());
     }
 
     static void onTurnStart(RobotController rc) throws GameActionException{
@@ -156,7 +162,7 @@ public strictfp class Launcher {
         }
 
         //if you dont have a fallback, find the island through comms
-        if(fallbackIsland == null){
+        if(fallbackIsland == null || Math.sqrt(rc.getLocation().distanceSquaredTo(fallbackIsland)) <= diagonal/2){
             fallbackIsland = getFallback(rc);
         }
     }
@@ -237,6 +243,7 @@ public strictfp class Launcher {
         // combatCD will be necessary in the future for avoiding high-cd multiplier squares
 
         boolean enemiesFound = false;
+
         if(enemies.length > 0){
             int i = 0;
             while(i< enemies.length && enemies[i].getType() == RobotType.HEADQUARTERS){
@@ -247,29 +254,57 @@ public strictfp class Launcher {
 
             }
         }
-        if(state == LauncherState.Fallback){
-            if(rc.getLocation().distanceSquaredTo(fallbackIsland) <= RobotType.LAUNCHER.visionRadiusSquared){
-                if(rc.canSenseLocation(fallbackIsland)){
-                    if(rc.senseTeamOccupyingIsland(rc.senseIsland(fallbackIsland)) != rc.getTeam()){
+
+
+
+        if(state == LauncherState.Fallback) {
+            attackCommand = null;
+            pursuitLocation = null;
+            if (rc.getLocation().distanceSquaredTo(fallbackIsland) <= RobotType.LAUNCHER.visionRadiusSquared) {
+                if (rc.canSenseLocation(fallbackIsland)) {
+                    if (rc.senseTeamOccupyingIsland(rc.senseIsland(fallbackIsland)) != rc.getTeam()) {
                         fallbackIsland = getFallback(rc);
                         state = LauncherState.Exploring;
                     }
                 }
             }
-            if(rc.getHealth() == RobotType.LAUNCHER.getMaxHealth()){
+            if (rc.getHealth() == RobotType.LAUNCHER.getMaxHealth()) {
                 state = LauncherState.Exploring;
             }
-        } else if (enemiesFound){
+        }
+
+
+
+        if (enemiesFound){
+            attackCommand = null;
             pursuitLocation = null;
             combatCD =5;
             state = LauncherState.Combat;
-        } else if (fallbackIsland != null && rc.getHealth() < RobotType.LAUNCHER.getMaxHealth()){
+        }  else if (fallbackIsland != null && rc.getHealth() < RobotType.LAUNCHER.getMaxHealth()
+            && Math.sqrt(rc.getLocation().distanceSquaredTo(fallbackIsland)) <= diagonal/2){
+            attackCommand = null;
+            pursuitLocation = null;
             state = LauncherState.Fallback;
         }
         else if( combatCD >0 && pursuitLocation!=null &&
                 rc.getLocation().distanceSquaredTo(pursuitLocation) > 5 ){
+            attackCommand = null;
             state = LauncherState.Pursuing;
-        }else{
+        } else if(state == LauncherState.FollowingCommand && attackCommand != null){
+            if(rc.getLocation().distanceSquaredTo(attackCommand.location) <= rc.getType().actionRadiusSquared){
+                if(getAttackCommand(rc) != null){
+                    combatCD = 0;
+                    pursuitLocation = null;
+                    state = LauncherState.FollowingCommand;
+                } else{
+                    state = LauncherState.Exploring;
+                }
+            }
+        } else if(getAttackCommand(rc) != null){
+            combatCD = 0;
+            pursuitLocation = null;
+            state = LauncherState.FollowingCommand;
+        } else{
             combatCD = 0;
             pursuitLocation = null;
             state = LauncherState.Exploring;
@@ -303,7 +338,7 @@ public strictfp class Launcher {
         Direction moveDir = findMovementCombat(rc, attackRobot);
 
         if(attackRobot!=null){
-
+            Comms.setAttackCommand(rc, attackRobot.getLocation(), attackRobot.getType());
             if(moveFirst){
                 if(canMove(rc, moveDir)){
                     rc.move(moveDir);
@@ -618,6 +653,7 @@ public strictfp class Launcher {
     //Find closest capped island
     static MapLocation getFallback(RobotController rc) throws GameActionException{
         Comms.Island[] islands = Comms.getAllIslands(rc);
+        fallbackIsland = null;
         int min = Integer.MAX_VALUE;
         for(int i = 0; i < islands.length; i++){
             int dist = rc.getLocation().distanceSquaredTo(islands[i].location);
@@ -626,5 +662,40 @@ public strictfp class Launcher {
             }
         }
         return fallbackIsland;
+    }
+
+    static Comms.Attack getAttackCommand(RobotController rc) throws GameActionException {
+        Comms.Attack[] attackCommands = Comms.getAllAttackCommands(rc);
+        int maxPrio = (attackCommand==null) ? 0 : Comms.getCommPrio(attackCommand.type);
+
+        for(int i = 0; i< attackCommands.length; i++){
+            MapLocation loc = attackCommands[i].location;
+            int prio = Comms.getCommPrio(attackCommands[i].type);
+            if(prio > maxPrio && rc.getLocation().distanceSquaredTo(attackCommand.location) > rc.getType().actionRadiusSquared){
+                attackCommand = attackCommands[i];
+                maxPrio = prio;
+            }
+        }
+        return attackCommand;
+    }
+
+    static void followCommand(RobotController rc) throws GameActionException{
+        MapLocation target= attackCommand.location;
+        if(rc.canSenseLocation(target) && rc.getLocation().distanceSquaredTo(target) >= rc.getType().actionRadiusSquared){
+            if(rc.isMovementReady()){
+                Direction moveDir = Pathfinder.pathBug(rc, target);
+                if(canMove(rc, moveDir)){
+                    rc.move(moveDir);
+                }
+                sense(rc);
+                if(enemies.length > 0){
+                    RobotInfo enemy = findAttack(rc);
+                    if(enemy!= null && rc.canAttack(enemy.getLocation())){
+                        rc.attack(enemy.getLocation());
+                    }
+                }
+
+            }
+        }
     }
 }
