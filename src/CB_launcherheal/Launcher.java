@@ -661,16 +661,16 @@ public strictfp class Launcher {
         Direction dir = Pathfinder.pathBug(rc, closestEnemyHQ);
         if(rc.getLocation().isWithinDistanceSquared(closestEnemyHQ,9)){
             dir = Pathfinder.pathAwayFrom(rc,closestEnemyHQ);
+        } else if(rc.getLocation().add(dir).isWithinDistanceSquared(closestEnemyHQ,9)){
+            return;
         }
-        if(rc.getLocation().distanceSquaredTo(closestEnemyHQ) > 16 || rc.getLocation().distanceSquaredTo(closestEnemyHQ) <= 9 ){
-            if(rc.canMove(dir)){
-                rc.move(dir);
-                sense(rc);
-                if(enemies.length > 0){
-                    RobotInfo enemy = findAttack(rc);
-                    if(enemy!= null && rc.canAttack(enemy.getLocation())){
-                        rc.attack(enemy.getLocation());
-                    }
+        if(rc.canMove(dir)){
+            rc.move(dir);
+            sense(rc);
+            if(enemies.length > 0){
+                RobotInfo enemy = findAttack(rc);
+                if(enemy!= null && rc.canAttack(enemy.getLocation())){
+                    rc.attack(enemy.getLocation());
                 }
             }
         }
