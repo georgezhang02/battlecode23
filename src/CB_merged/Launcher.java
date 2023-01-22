@@ -1,8 +1,6 @@
-package CB_launcherheal;
+package CB_merged;
 
 import battlecode.common.*;
-
-import javax.xml.crypto.Data;
 
 
 public strictfp class Launcher {
@@ -103,9 +101,9 @@ public strictfp class Launcher {
 
 
         if (Comms.readEven(rc)) {
-            rc.setIndicatorString(Comms.getNumACEven(rc)+" "+Comms.getNumACOdd(rc));
+            rc.setIndicatorString(Comms.getNumACEven(rc)+" "+ Comms.getNumACOdd(rc));
         } else{
-            rc.setIndicatorString(Comms.getNumACOdd(rc)+" "+Comms.getNumACEven(rc));
+            rc.setIndicatorString(Comms.getNumACOdd(rc)+" "+ Comms.getNumACEven(rc));
         }
 
         //select action based on state
