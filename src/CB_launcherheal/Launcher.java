@@ -226,7 +226,7 @@ public strictfp class Launcher {
 
             if(rc.senseTeamOccupyingIsland(islands[i]) == rc.getTeam()){
                 fallbackIsland = rc.senseNearbyIslandLocations(islands[i])[0];;
-            } else if(numEnemyMil == 0 && !commandSent){
+            } else if(numEnemyMil == 0 && !commandSent && rc.canWriteSharedArray(0,0)){
                 commandSent = true;
                 Comms.setAnchorCommand(rc, rc.senseNearbyIslandLocations(islands[i])[0]);
             }
@@ -267,7 +267,10 @@ public strictfp class Launcher {
             if (rc.getLocation().distanceSquaredTo(fallbackIsland) <= RobotType.LAUNCHER.visionRadiusSquared) {
                 if (rc.canSenseLocation(fallbackIsland)) {
                     if (rc.senseTeamOccupyingIsland(rc.senseIsland(fallbackIsland)) != rc.getTeam()) {
-                        Comms.reportIslandLocation(rc, fallbackIsland, null);
+                        if(rc.canWriteSharedArray(0,0)){
+                            Comms.reportIslandLocation(rc, fallbackIsland, null);
+                        }
+
                         fallbackIsland = getFallback(rc);
                         state = LauncherState.Exploring;
                     }
@@ -343,7 +346,9 @@ public strictfp class Launcher {
         Direction moveDir = findMovementCombat(rc, attackRobot);
 
         if(attackRobot!=null){
-            Comms.setAttackCommand(rc, attackRobot.getLocation(), attackRobot.getType());
+            if(rc.canWriteSharedArray(0,0)){
+                Comms.setAttackCommand(rc, attackRobot.getLocation(), attackRobot.getType());
+            }
             if(moveFirst){
                 if(canMove(rc, moveDir)){
                     rc.move(moveDir);
