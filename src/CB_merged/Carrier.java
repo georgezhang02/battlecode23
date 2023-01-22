@@ -46,6 +46,8 @@ public strictfp class Carrier {
     static Direction turn;
     static MapLocation secondStep;
 
+    static MapLocation anchorCommand;
+
     static void run(RobotController rc) throws GameActionException {
         if(!initialized){
             onUnitInit(rc); // first time starting the bot, do some setup
@@ -414,7 +416,6 @@ public strictfp class Carrier {
     }
 
     static void anchor(RobotController rc) throws GameActionException{
-
         // If I have an anchor singularly focus on getting it to the first island I see
         int[] islands = rc.senseNearbyIslands();
         int inc = 0;
@@ -437,19 +438,44 @@ public strictfp class Carrier {
 
                 if (rc.canPlaceAnchor()) {
                     rc.placeAnchor();
+                    anchorCommand = null;
+
+                    if(rc.canWriteSharedArray(0, 0)){
+                        Comms.reportIslandLocation(rc, rc.getLocation(), rc.getTeam());
+                    }
                     if (discoveredWellCount > 0) {
-                        state = CarrierState.Returning;
+                        state = Carrier.CarrierState.Returning;
                     } else {
-                        state = CarrierState.Exploring;
+                        state = Carrier.CarrierState.Exploring;
                     }
                 }
             }
+        } else if(anchorCommand != null || searchAnchorCommands(rc) != null){
+            if(rc.isMovementReady()){
+                Direction moveDir = Pathfinder.pathBug(rc, anchorCommand);
+                if(moveDir != null && rc.canMove(moveDir)){
+                    rc.move(moveDir);
+                }
+            }
         }
-
         //Otherwise, Explore until you find an island
         else{
             pathExplore(rc);
         }
+    }
+
+    static MapLocation searchAnchorCommands(RobotController rc) throws GameActionException {
+        MapLocation[] commands = Comms.getAllAnchorCommands(rc);
+        int minDist = 10000;
+
+        for(MapLocation command: commands){
+            if(rc.getLocation().distanceSquaredTo(anchorCommand) < minDist){
+                anchorCommand = command;
+                minDist = rc.getLocation().distanceSquaredTo(anchorCommand);
+            }
+        }
+
+        return anchorCommand;
     }
 
     /*
