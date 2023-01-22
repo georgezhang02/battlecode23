@@ -97,16 +97,12 @@ public strictfp class Launcher {
         // sense part
         sense(rc);
 
+        selectState(rc);
 
-        if(alliesPrevious != null ){
+        if(state == LauncherState.Exploring && alliesPrevious != null ){
             checkMovement(rc);
 
-        }
-
-        // sense if other bots have moved
-
-
-        selectState(rc);
+        }// sense if other bots have moved
 
 
         //select action based on state
@@ -567,8 +563,6 @@ public strictfp class Launcher {
             }
         }
     }
-
-
 
 
     static void followCommand(RobotController rc) throws GameActionException{
