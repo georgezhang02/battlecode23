@@ -622,7 +622,7 @@ public strictfp class Launcher {
             MapLocation loc = attackCommands[i].location;
             int prio = Comms.getCommPrio(attackCommands[i].type);
             int range = rc.getLocation().distanceSquaredTo(attackCommands[i].location);
-            if(range > rc.getType().actionRadiusSquared){
+            if(range > rc.getType().actionRadiusSquared && loc.distanceSquaredTo(rc.getLocation()) <=50){
 
                 if(prio > maxPrio){
                     attackCommand = attackCommands[i];

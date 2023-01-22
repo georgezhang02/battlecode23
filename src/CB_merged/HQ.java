@@ -4,6 +4,7 @@ import battlecode.common.*;
 
 public strictfp class HQ {
 
+    static int ANCHOR_BUILD_THRESHOLD = 30;
     static boolean initialized = false;
     static MapLocation location;
     static int HQIndex;
@@ -250,7 +251,8 @@ public strictfp class HQ {
             }
 
             if(totalAnchorCount == 0 &&
-                    !buildAnchor  && rc.getRobotCount() > 5 * Comms.getNumHQs(rc) && anchorsBuilt < 20 * carriersBuilt){
+                    !buildAnchor  && rc.getRobotCount() > 5 * Comms.getNumHQs(rc) && anchorsBuilt < 20 * carriersBuilt
+                        && rc.getRobotCount() >= ANCHOR_BUILD_THRESHOLD){
                 buildAnchor = true;
             }
 
@@ -276,12 +278,12 @@ public strictfp class HQ {
                     }
 
                 } else{
-                     if (rc.getRobotCount() > 5 * Comms.getNumHQs(rc) && amplifiersBuilt < 10 * launchersBuilt) {
+                     /*if (rc.getRobotCount() > 5 * Comms.getNumHQs(rc) && amplifiersBuilt < 30 * launchersBuilt) {
                         if (rc.canBuildRobot(RobotType.AMPLIFIER, buildTowards(rc, center))) {
                             rc.buildRobot(RobotType.AMPLIFIER, centerBuildLoc);
                             amplifiersBuilt++;
                         }
-                    } else {
+                    } else {*/
                         MapLocation carrierBuildLoc = buildTowards(rc, carrierBuildTarget);
                         while (rc.canBuildRobot(RobotType.CARRIER, carrierBuildLoc)) {
                             rc.buildRobot(RobotType.CARRIER, carrierBuildLoc);
@@ -292,7 +294,7 @@ public strictfp class HQ {
                             rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);
                             centerBuildLoc = buildTowards(rc, center);
                             launchersBuilt++;
-                        }
+                   //     }
                     }
                 }
             } else {
