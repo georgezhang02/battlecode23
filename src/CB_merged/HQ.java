@@ -23,6 +23,7 @@ public strictfp class HQ {
 
     static RobotInfo[] enemies;
     static boolean enemiesFound;
+    static boolean launchersFirst = false;
 
     public static void run(RobotController rc) throws GameActionException {
 
@@ -70,6 +71,7 @@ public strictfp class HQ {
             if (enemy.getType() == RobotType.HEADQUARTERS) {
                 CB_first.Comms.setEnemyHQLocation(rc, enemy.getLocation(), enemy.getID());
                 smallMap = true;
+                launchersFirst = true;
             }
         }
 
@@ -139,20 +141,19 @@ public strictfp class HQ {
     }
 
     static void build(RobotController rc) throws GameActionException{
-        MapLocation[] enemyHQs = Comms.getAllEnemyHQs(rc);
         if (rc.getRoundNum() == 1) {
-            if (enemyHQs.length > 0) {
-                //initialLauncherBuild(rc);
+            if (launchersFirst || smallMap) {
+                initialLauncherBuild(rc);
             }
             else {
                 initialCarrierBuild(rc);
             }
         } else if (rc.getRoundNum() == 2) {
-            if (enemyHQs.length > 0) {
+            if (launchersFirst || smallMap) {
                 initialCarrierBuild(rc);
             }
             else {
-                //initialLauncherBuild(rc);
+                initialLauncherBuild(rc);
             }
         } else {
             MapLocation centerBuildLoc = buildTowards(rc, center);
@@ -165,10 +166,10 @@ public strictfp class HQ {
                 } else if (rc.canBuildRobot(RobotType.CARRIER, carrierBuildLoc)) {
                     rc.buildRobot(RobotType.CARRIER, carrierBuildLoc);
                 } else if (rc.canBuildRobot(RobotType.LAUNCHER, centerBuildLoc)) {
-                    //rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);
+                    rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);
                 }
             } else if (rc.canBuildRobot(RobotType.LAUNCHER, centerBuildLoc)) {
-                //rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);
+                rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);
             }
         }
     }
