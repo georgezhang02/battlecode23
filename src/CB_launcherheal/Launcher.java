@@ -1,7 +1,9 @@
 package CB_launcherheal;
 
-import CB_commstest.Database;
 import battlecode.common.*;
+
+import javax.xml.crypto.Data;
+
 public strictfp class Launcher {
 
     static final int ATTACKDMG = 30;
@@ -114,15 +116,16 @@ public strictfp class Launcher {
                 followCommand(rc);
                 break;
         }
-        if(fallbackIsland != null){
-            rc.setIndicatorString(fallbackIsland.toString());
+        String printString = "";
+        MapLocation[]allMana = Database.getKnownManaLocations();
+        for(int i = 0; i< allMana.length; i++){
+            printString  = printString + allMana[i];
         }
-        else{
-            rc.setIndicatorString("I cant run");
-        }
+        rc.setIndicatorString(printString);
 
-        //writeComms(rc);
-        //Database.checkSymmetries(rc);
+
+        writeComms(rc);
+        Database.checkSymmetries(rc);
 
     }
 
@@ -279,7 +282,7 @@ public strictfp class Launcher {
             pursuitLocation = null;
             combatCD =5;
             state = LauncherState.Combat;
-        }  else if (fallbackIsland != null && rc.getHealth() < RobotType.LAUNCHER.getMaxHealth()
+        }  else if (fallbackIsland != null && rc.getHealth() < RobotType.LAUNCHER.getMaxHealth()/4
             && Math.sqrt(rc.getLocation().distanceSquaredTo(fallbackIsland)) <= diagonal/2){
             attackCommand = null;
             pursuitLocation = null;
@@ -588,7 +591,7 @@ public strictfp class Launcher {
         for(int i = 0; i< attackCommands.length; i++){
             MapLocation loc = attackCommands[i].location;
             int prio = Comms.getCommPrio(attackCommands[i].type);
-            if(prio > maxPrio && rc.getLocation().distanceSquaredTo(attackCommand.location) > rc.getType().actionRadiusSquared){
+            if(prio > maxPrio && rc.getLocation().distanceSquaredTo(attackCommands[i].location) > rc.getType().actionRadiusSquared){
                 attackCommand = attackCommands[i];
                 maxPrio = prio;
             }
@@ -621,7 +624,7 @@ public strictfp class Launcher {
                 //rc.setIndicatorString("following "+followBot.getLocation());
 
             } else{
-                dir = Pathfinder.pathToExplore(rc);
+                dir = Pathfinder.pathToExploreBug(rc);
                 //rc.setIndicatorString("pathing to explore" + Explorer.target);
             }
             if(canMoveToExplore(rc, dir)){

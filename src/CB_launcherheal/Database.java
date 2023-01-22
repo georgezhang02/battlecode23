@@ -29,7 +29,7 @@ public class Database {
     static SymmetryCheck[]verticalManaWells= new SymmetryCheck[16];
     static int verticalManaWellsCount = 0;
     static MapLocation[]unprocessedManaWells = new MapLocation[16];
-    static MapLocation[]allyHQs; // HQ locations
+    public static MapLocation[]allyHQs; // HQ locations
     static MapLocation[]globalEnemyHQs = new MapLocation[4];;
     static RobotInfo[]localEnemyHQs = new RobotInfo[4];
     public static SymmetryCheck[]rotationalEnemyHQs;
@@ -71,6 +71,62 @@ public class Database {
         }
 
     }
+
+    public static MapLocation[] getKnownADLocations(){
+        int wellIndex = 0;
+        MapLocation[]wells = new MapLocation[numLocalADWells+numGlobalAD];
+        for(int i = 0; i<localADWells.length; i++){
+            if(localADWells[i]!= null){
+                wells[wellIndex] = localADWells[i];
+                wellIndex++;
+            }
+        }
+
+        for(int i = 0; i<numGlobalAD; i++){
+            wells[wellIndex] = globalADWells[i];
+            wellIndex++;
+        }
+        return wells;
+    }
+
+    public static MapLocation[] getKnownManaLocations(){
+        int wellIndex = 0;
+        MapLocation[]wells = new MapLocation[numLocalManaWells+numGlobalMana];
+        for(int i = 0; i<localManaWells.length; i++){
+            if(localManaWells[i]!= null){
+                wells[wellIndex] = localManaWells[i];
+                wellIndex++;
+            }
+        }
+
+        for(int i = 0; i<numGlobalMana; i++){
+            wells[wellIndex] = globalManaWells[i];
+            wellIndex++;
+        }
+
+        return wells;
+
+    }
+
+    public static MapLocation[] getKnownEnemyHQLocations(){
+        int index = 0;
+        MapLocation[]hqs = new MapLocation[numGlobalEnemyHQs+numLocalHQs];
+        for(int i = 0; i<localEnemyHQs.length; i++){
+            if(localEnemyHQs[i]!= null){
+                hqs[index] = localEnemyHQs[i].location;
+                index++;
+            }
+        }
+
+        for(int i = 0; i< numGlobalEnemyHQs; i++){
+            hqs[i] = globalEnemyHQs[i];
+            index++;
+        }
+
+        return hqs;
+
+    }
+
     public static void downloadLocations(RobotController rc) throws GameActionException {
         if(allyHQs == null || allyHQs.length <Comms.getNumHQs(rc)){
             allyHQs = Comms.getAllHQs(rc);
@@ -85,8 +141,10 @@ public class Database {
                 globalEnemyHQs[numGlobalEnemyHQs] = Comms.getEnemyHQLocation(rc, numGlobalEnemyHQs);
                 globalKnownLocations.add(globalEnemyHQs[numGlobalEnemyHQs] );
 
-                uncheckedEnemyHQs[numUncheckedHQs] = globalEnemyHQs[numGlobalEnemyHQs];
-                numUncheckedHQs++;
+                if(!localKnownLocations.contains(globalEnemyHQs[numGlobalEnemyHQs])) {
+                    uncheckedEnemyHQs[numUncheckedHQs] = globalEnemyHQs[numGlobalEnemyHQs];
+                    numUncheckedHQs++;
+                }
             }
         }
 
@@ -95,8 +153,10 @@ public class Database {
                 globalADWells[numGlobalAD] = Comms.getADWell(rc, numGlobalAD);
                 globalKnownLocations.add(globalADWells[numGlobalAD] );
 
-                unprocessedADWells[genADSymmetries] = globalADWells[numGlobalAD];
-                genADSymmetries++;
+                if(!localKnownLocations.contains(globalADWells[numGlobalAD])) {
+                    unprocessedADWells[genADSymmetries] = globalADWells[numGlobalAD];
+                    genADSymmetries++;
+                }
             }
         }
 
@@ -105,8 +165,11 @@ public class Database {
                 globalManaWells[numGlobalMana] = Comms.getManaWell(rc, numGlobalMana);
                 globalKnownLocations.add(globalManaWells[numGlobalMana]);
 
-                unprocessedManaWells[genManaSymmetries] = globalManaWells[numGlobalMana];
-                genManaSymmetries++;
+                if(!localKnownLocations.contains(globalManaWells[numGlobalMana])){
+                    unprocessedManaWells[genManaSymmetries] = globalManaWells[numGlobalMana];
+                    genManaSymmetries++;
+                }
+
             }
         }
     }
@@ -242,21 +305,23 @@ public class Database {
                     }
                 } else{
 
-                    if(info.getResourceType().equals(ResourceType.ADAMANTIUM) && numLocalADWells < 16){
+                    if(info.getResourceType().equals(ResourceType.ADAMANTIUM) && numLocalADWells < 8){
                         int index = findFirstNullLocation(localADWells);
                         if(index != -1){
                             localADWells[index] = info.getMapLocation();
                             localKnownLocations.add(info.getMapLocation());
+                            numLocalADWells++;
 
                             unprocessedADWells[genADSymmetries] = info.getMapLocation();
                             genADSymmetries++;
                         }
 
-                    } else if (info.getResourceType().equals(ResourceType.MANA) && numLocalManaWells < 16){
+                    } else if (info.getResourceType().equals(ResourceType.MANA) && numLocalManaWells < 8){
                         int index = findFirstNullLocation(localManaWells);
                         if(index != -1){
                             localManaWells[index] = info.getMapLocation();
                             localKnownLocations.add(info.getMapLocation());
+                            numLocalManaWells++;
 
                             unprocessedManaWells[genManaSymmetries] = info.getMapLocation();
                             genManaSymmetries++;
@@ -296,6 +361,7 @@ public class Database {
                     if (index != -1) {
                         localEnemyHQs[index] = info;
                         localKnownLocations.add(info.getLocation());
+                        numLocalHQs++;
                     }
                 }
                 uncheckedEnemyHQs[numUncheckedHQs] = info.getLocation();
