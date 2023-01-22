@@ -47,7 +47,7 @@ public strictfp class Amplifier {
 
         selectState(rc);
 
-
+        rc.setIndicatorString(state.toString());
 
         //select action based on state
         switch (state){
@@ -122,7 +122,7 @@ public strictfp class Amplifier {
                 }
                 numAllyMil++;
             }
-            if(ally.getType() == RobotType.AMPLIFIER && loc.isWithinDistanceSquared(ally.getLocation(),16)){
+            if(ally.getType() == RobotType.AMPLIFIER && loc.isWithinDistanceSquared(ally.getLocation(),25)){
                 ampInRange = true;
                 if(closestAmp == null || loc.distanceSquaredTo(closestAmp) > loc.distanceSquaredTo(ally.getLocation())){
                     closestAmp = ally.getLocation();
@@ -140,7 +140,7 @@ public strictfp class Amplifier {
         }
     }
     static boolean enemiesFound(RobotController rc) throws GameActionException {
-        enemies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam().opponent());
+        enemies = rc.senseNearbyRobots(RobotType.AMPLIFIER.visionRadiusSquared, rc.getTeam().opponent());
         boolean enemiesFound = false;
         for (RobotInfo enemy : enemies) {
             if (!(enemy.getType() == RobotType.HEADQUARTERS ||
@@ -174,13 +174,10 @@ public strictfp class Amplifier {
             if(rc.canWriteSharedArray(0,0)){
                 Comms.setAttackCommand(rc, nearestEnemyMil.getLocation(), nearestEnemyMil.getType());
             }
-            if(rc.getLocation().distanceSquaredTo(nearestEnemyMil.getLocation()) <=
-                    nearestEnemyMil.getType().visionRadiusSquared){
-                if(rc.isMovementReady()){
-                    Direction moveDir = Pathfinder.pathAwayFrom(rc, nearestEnemyMil.getLocation());
-                    if(moveDir != null && rc.canMove(moveDir)){
-                        rc.move(moveDir);
-                    }
+            if(rc.isMovementReady()){
+                Direction moveDir = Pathfinder.pathAwayFrom(rc, nearestEnemyMil.getLocation());
+                if(moveDir != null && rc.canMove(moveDir)){
+                    rc.move(moveDir);
                 }
             }
         }
