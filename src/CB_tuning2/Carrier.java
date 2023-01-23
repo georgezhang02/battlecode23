@@ -273,7 +273,8 @@ public strictfp class Carrier {
                     if (bot.team == rc.getTeam() && bot.type == RobotType.CARRIER) {
                         robotCount++;
                     }
-                } else if (rc.canSenseLocation(loc) && rc.sensePassability(loc)) {
+                } else if (rc.canSenseLocation(loc) && rc.sensePassability(loc) &&
+                        rc.senseMapInfo(loc).getCurrentDirection() == Direction.CENTER) {
                     availableSquares++;
                 }
             }
@@ -362,7 +363,7 @@ public strictfp class Carrier {
 
     static void returnUpdate(RobotController rc) throws GameActionException {
         //HQ_LOCATION.distanceSquaredTo(location) <= 2 &&
-        if (adAmount == 0 && manaAmount == 0 && elixirAmount == 0) {
+        if (adAmount == 0 && manaAmount == 0 && elixirAmount == 0 && discoveredWellCount == 0) {
             // Get anchor if available
             if (rc.canTakeAnchor(HQ_LOCATION, Anchor.STANDARD)) {
                 rc.takeAnchor(HQ_LOCATION, Anchor.STANDARD);
