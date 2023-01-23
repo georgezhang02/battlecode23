@@ -277,12 +277,20 @@ public strictfp class HQ {
                 buildAmp = false;
                 carrierCounter = 0;
             }
-
-            if(!buildAnchor && !smallMap && rc.getRobotCount() > 5 * Comms.getNumHQs(rc) && ampsBuilt < 20 * launchersBuilt
-                    && rc.getRobotCount() >= AMP_BUILD_THRESHOLD && launcherCounter > 20){
-                buildAmp = true;
-                launcherCounter = 0;
+            if(smallMap){
+                if(!buildAnchor && rc.getRobotCount() > 10 * Comms.getNumHQs(rc) && ampsBuilt < 20 * launchersBuilt
+                        && rc.getRobotCount() >= AMP_BUILD_THRESHOLD && launcherCounter > 20){
+                    buildAmp = true;
+                    launcherCounter = 0;
+                }
+            } else {
+                if(!buildAnchor && rc.getRobotCount() > 15 * Comms.getNumHQs(rc) && ampsBuilt < 20 * launchersBuilt
+                        && rc.getRobotCount() >= AMP_BUILD_THRESHOLD && launcherCounter > 20){
+                    buildAmp = true;
+                    launcherCounter = 0;
+                }
             }
+
 
             if (!enemiesFound) {
                 if(buildAnchor){
@@ -344,7 +352,9 @@ public strictfp class HQ {
                         centerBuildLoc = buildTowards(rc, center);
                         launchersBuilt++;
                //
-                        if(rc.getRoundNum() > 250){
+                        if(smallMap && rc.getRoundNum() > 250){
+                            launcherCounter++;
+                        } else if (!smallMap && rc.getRoundNum() > 500){
                             launcherCounter++;
                         }
                     }
