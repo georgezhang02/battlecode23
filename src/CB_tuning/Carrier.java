@@ -164,24 +164,34 @@ public strictfp class Carrier {
 
         knownADWells = Database.getKnownADLocations();
         knownMNWells = Database.getKnownManaLocations();
+
+        int[] islands  = rc.senseNearbyIslands();
+        boolean commandSent = false;
+        for(int i = 0; i < islands.length; i++){
+            if(!enemiesFound(rc) && !commandSent && rc.canWriteSharedArray(0,0)){
+                Comms.setAnchorCommand(rc, rc.senseNearbyIslandLocations(islands[i])[0]);
+                commandSent = true;
+            }
+        }
     }
 
 
     static boolean enemiesFound(RobotController rc) throws GameActionException {
         enemies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam().opponent());
         boolean enemiesFound = false;
+        boolean attackSent = false;
         for (RobotInfo enemy : enemies) {
             if(enemy.getType() == RobotType.CARRIER){
-                if(rc.canWriteSharedArray(0,0)){
+                if(rc.canWriteSharedArray(0,0) && !attackSent){
                     Comms.setAttackCommand(rc, enemy.getLocation(), enemy.getType());
-                    rc.setIndicatorString("sending attack command");
+                    attackSent = true;
                 }
             }
             if (!(enemy.getType() == RobotType.HEADQUARTERS || enemy.getType() == RobotType.CARRIER || enemy.getType() == RobotType.AMPLIFIER)) {
                 enemiesFound = true;
-                if(rc.canWriteSharedArray(0,0)){
+                if(rc.canWriteSharedArray(0,0) && !attackSent){
                     Comms.setAttackCommand(rc, enemy.getLocation(), enemy.getType());
-                    rc.setIndicatorString("sending attack command");
+                    attackSent = true;
                 }
             }
             if(enemy.getType()== RobotType.HEADQUARTERS){
