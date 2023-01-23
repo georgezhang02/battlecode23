@@ -422,6 +422,9 @@ public class Database {
 
     public static void checkSymmetries(RobotController rc) throws GameActionException{
         // if you've found unchecked Enemy HQs, run them through all other known HQs to make sure they fit
+        if(rc.getRoundNum() <= 1){
+            return;
+        }
         searchHQAllowed(rc);
         checkSymmetryFound();
         if(!symmetryFound && rotational && Clock.getBytecodesLeft() >BYTECODE_LIMIT){

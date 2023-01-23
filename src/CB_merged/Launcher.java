@@ -100,8 +100,6 @@ public strictfp class Launcher {
         }// sense if other bots have moved
 
 
-
-
         //select action based on state
         switch (state){
             case Combat:
@@ -125,13 +123,16 @@ public strictfp class Launcher {
                 break;
         }
 
+        writeComms(rc);
+        Database.checkSymmetries(rc);
+
 
     }
 
     static void onUnitInit(RobotController rc) throws GameActionException{
         state = LauncherState.Exploring;
         diagonal= (float) Math.sqrt(rc.getMapHeight()* rc.getMapHeight()+rc.getMapWidth()* rc.getMapHeight());
-        Database.init(rc);
+
     }
 
     static void onTurnStart(RobotController rc) throws GameActionException{
@@ -150,6 +151,7 @@ public strictfp class Launcher {
     }
 
     static void readComms(RobotController rc)throws GameActionException{
+        Database.init(rc);
         Database.downloadSymmetry(rc);
         Database.downloadLocations(rc);
         //if you dont have a fallback, find the island through comms

@@ -29,9 +29,7 @@ public strictfp class Carrier {
     static int assignedType = -1;
     static MapLocation[] knownADWells;
     static MapLocation[] knownMNWells;
-    static WellInfo[] discoveredWells = new WellInfo[288];
     static int discoveredWellCount = 0;
-    static int reportedWellCount = 0;
     static int exploreCounter = 0;
     static boolean smallMap;
     static MapLocation closestAD;
@@ -49,15 +47,19 @@ public strictfp class Carrier {
     static MapLocation anchorCommand;
 
     static void run(RobotController rc) throws GameActionException {
+        readComms(rc);
         if(!initialized){
             onUnitInit(rc); // first time starting the bot, do some setup
             initialized = true;
         }
-        comms(rc);
+
         sense(rc);
         updateState(rc);
         runState(rc);
         rc.setIndicatorString(state + " " + discoveredWellCount + " " + assignedWell);
+
+        writeComms(rc);
+        Database.checkSymmetries(rc);
     }
 
     static void onUnitInit(RobotController rc) throws GameActionException {
@@ -69,10 +71,9 @@ public strictfp class Carrier {
                 HQIndex = Comms.getHQIndexByID(rc, ally.getID());
             }
         }
-
-        knownADWells = Comms.getAllADWells(rc);
+        knownADWells = Database.getKnownADLocations();
         closestAD = Helper.getClosest(knownADWells, HQ_LOCATION);
-        knownMNWells = Comms.getAllManaWells(rc);
+        knownMNWells = Database.getKnownManaLocations();
         closestMN = Helper.getClosest(knownMNWells, HQ_LOCATION);
 
         // Don't see any ad wells, explore
@@ -118,10 +119,22 @@ public strictfp class Carrier {
         }
     }
 
-    static void comms(RobotController rc) throws GameActionException {
-        knownADWells = Comms.getAllADWells(rc);
-        knownMNWells = Comms.getAllManaWells(rc);
+    static void readComms(RobotController rc) throws GameActionException {
+        Database.init(rc);
+        Database.downloadSymmetry(rc);
+        Database.downloadLocations(rc);
+
     }
+
+    static void writeComms(RobotController rc) throws GameActionException {
+
+        if(rc.canWriteSharedArray(0,0)){
+            Database.uploadSymmetry(rc);
+            Database.uploadLocations(rc);
+        }
+    }
+
+
 
     static void sense(RobotController rc) throws GameActionException{
         location = rc.getLocation();
@@ -130,44 +143,27 @@ public strictfp class Carrier {
         manaAmount = rc.getResourceAmount(ResourceType.MANA);
         elixirAmount = rc.getResourceAmount(ResourceType.ELIXIR);
 
+
+
         WellInfo[] wells = rc.senseNearbyWells();
         for (WellInfo well : wells) {
             rc.setIndicatorDot(well.getMapLocation(), 255, 255, 255);
-            boolean known = false;
-            MapLocation wellLocation = well.getMapLocation();
-            for (MapLocation ADWell : knownADWells) {
-                if (ADWell.equals(wellLocation)) {
-                    known = true;
-                    break;
-                }
-            }
-            //first, check through all known mana wells and set to true if it's a known place
-            if (!known) {
-                for (MapLocation MNWell : knownMNWells) {
-                    if (MNWell.equals(wellLocation)) {
-                        known = true;
-                        break;
-                    }
-                }
-            }
-            //if this is a well that was previously discovered by this unit, then break
-            if (!known) {
-                for (int i = 0; i < discoveredWellCount; i++) {
-                    if (discoveredWells[i].getMapLocation().equals(wellLocation)) {
-                        known = true;
-                        break;
-                    }
-                }
-            }
+            boolean known = Database.globalKnownLocations.contains(well.getMapLocation())
+                    || Database.localKnownLocations.contains(well.getMapLocation());
+
             //otherwise, mark this as known and return to base
             if (!known) {
-                discoveredWells[discoveredWellCount++] = well;
+                Database.addWell(rc, well);
+                discoveredWellCount++;
             }
         }
 
         if (discoveredWellCount > 0) {
             state = CarrierState.Returning;
         }
+
+        knownADWells = Database.getKnownADLocations();
+        knownMNWells = Database.getKnownManaLocations();
     }
 
 
@@ -175,9 +171,11 @@ public strictfp class Carrier {
         enemies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam().opponent());
         boolean enemiesFound = false;
         for (RobotInfo enemy : enemies) {
-            if (!(enemy.getType() == RobotType.HEADQUARTERS || enemy.getType() == RobotType.CARRIER)) {
+            if (!(enemy.getType() == RobotType.HEADQUARTERS || enemy.getType() == RobotType.CARRIER || enemy.getType() == RobotType.AMPLIFIER)) {
                 enemiesFound = true;
-                break;
+            }
+            if(enemy.getType()== RobotType.HEADQUARTERS){
+                Database.addEnemyHQ(rc, enemy);
             }
         }
         return enemiesFound;
@@ -347,7 +345,7 @@ public strictfp class Carrier {
 
     static void returnUpdate(RobotController rc) throws GameActionException {
         //HQ_LOCATION.distanceSquaredTo(location) <= 2 &&
-        if (reportedWellCount == discoveredWellCount && adAmount == 0 && manaAmount == 0 && elixirAmount == 0) {
+        if (adAmount == 0 && manaAmount == 0 && elixirAmount == 0) {
             // Get anchor if available
             if (rc.canTakeAnchor(HQ_LOCATION, Anchor.STANDARD)) {
                 rc.takeAnchor(HQ_LOCATION, Anchor.STANDARD);
@@ -399,20 +397,11 @@ public strictfp class Carrier {
 
         // If within comms range and has discovered well, report well.
         if (rc.canWriteSharedArray(0, 0)) {
-            while (reportedWellCount < discoveredWellCount) {
-                //AD ID = 1
-                if(discoveredWells[reportedWellCount].getResourceType().resourceID == 1){
-                    Comms.setADWell(rc, discoveredWells[reportedWellCount++].getMapLocation());
-                }
-                //MN ID = 2
-                else if(discoveredWells[reportedWellCount].getResourceType().resourceID == 2){
-                    Comms.setManaWell(rc, discoveredWells[reportedWellCount++].getMapLocation());
-                }
-            }
             discoveredWellCount = 0;
-            reportedWellCount = 0;
         }
     }
+
+
 
     static void anchorUpdate(RobotController rc) throws GameActionException {
         //If the robot no longer has an anchor (thrown), explore

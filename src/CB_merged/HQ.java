@@ -42,6 +42,8 @@ public strictfp class HQ {
 
         checkEnemies(rc);
 
+        readComms(rc);
+
         if(!initialized){
             onUnitInit(rc); // first time starting the bot, do some setup
             initialized = true;
@@ -50,13 +52,14 @@ public strictfp class HQ {
         // sense part
         sense(rc);
 
-        comms(rc);
-
         //act part should be triggered by think part, see methods below
         build(rc);
 
-        // prints the indicator string
-        debug(rc);
+        rc.setIndicatorString(Database.rotational+" "+Database.horizontal+" "+Database.vertical);
+
+        writeComms(rc);
+        Database.checkSymmetries(rc);
+
     }
 
     static void checkEnemies(RobotController rc) throws GameActionException {
@@ -76,13 +79,13 @@ public strictfp class HQ {
         HQIndex = Comms.setTeamHQLocation(rc, location, id);
         width = rc.getMapWidth();
         height = rc.getMapHeight();
-        smallMap = width <= 30 && height <= 30;
+        smallMap = width <= 30 || height <= 30;
         center = new MapLocation(width / 2, height / 2);  // Get map center
 
         // Find any enemy HQs
         for (RobotInfo enemy : enemies) {
             if (enemy.getType() == RobotType.HEADQUARTERS) {
-                Comms.setEnemyHQLocation(rc, enemy.getLocation(), enemy.getID());
+                Database.addEnemyHQ(rc, enemy);
                 smallMap = true;
                 launchersFirst = true;
             }
@@ -91,14 +94,7 @@ public strictfp class HQ {
         // Initialize all the wells within vision range
         WellInfo[] wells = rc.senseNearbyWells();
         for (WellInfo well : wells) {
-            if (well.getResourceType() == ResourceType.ADAMANTIUM) {
-                MapLocation loc = well.getMapLocation();
-                Comms.setADWell(rc, loc);
-            }
-            if (well.getResourceType() == ResourceType.MANA) {
-                MapLocation loc = well.getMapLocation();
-                Comms.setManaWell(rc, loc);
-            }
+            Database.addWell(rc, well);
         }
 
         ADWells = Comms.getAllADWells(rc);
@@ -146,17 +142,25 @@ public strictfp class HQ {
 
     static void sense(RobotController rc) throws GameActionException {
         totalAnchorCount = rc.senseRobot(id).getTotalAnchors();
+        ADWells = Database.getKnownADLocations();
+        closestAD = Helper.getClosest(ADWells, location);
+        MNWells = Database.getKnownManaLocations();
+        closestMN = Helper.getClosest(MNWells, location);
     }
 
 
-    static void comms(RobotController rc) throws GameActionException {
-        ADWells = Comms.getAllADWells(rc);
-        closestAD = Helper.getClosest(ADWells, location);
-        MNWells = Comms.getAllManaWells(rc);
-        closestMN = Helper.getClosest(MNWells, location);
+    static void readComms(RobotController rc) throws GameActionException {
+        Database.init(rc);
+        Database.downloadLocations(rc);
+        Database.downloadSymmetry(rc);
 
         wipeComms(rc);
 
+    }
+
+    static void writeComms(RobotController rc) throws GameActionException {
+        Database.uploadSymmetry(rc);
+        Database.uploadLocations(rc);
     }
 
     static void wipeComms(RobotController rc) throws GameActionException{
@@ -313,9 +317,6 @@ public strictfp class HQ {
         }
     }
 
-    static void debug(RobotController rc){
-        rc.setIndicatorString(indicatorString);
-    }
 
     private static MapLocation buildTowards(RobotController rc, MapLocation target) throws GameActionException {
         int lowestDist = 10000;
