@@ -272,14 +272,14 @@ public strictfp class HQ {
 
             if(totalAnchorCount == 0 &&
                     !buildAnchor  && rc.getRobotCount() > 5 * Comms.getNumHQs(rc) && anchorsBuilt < 20 * carriersBuilt
-                        && rc.getRobotCount() >= ANCHOR_BUILD_THRESHOLD && carrierCounter > 20){
+                        && rc.getRobotCount() >= ANCHOR_BUILD_THRESHOLD && carrierCounter >= 20){
                 buildAnchor = true;
                 buildAmp = false;
                 carrierCounter = 0;
             }
 
-            if(!buildAnchor && !smallMap && rc.getRobotCount() > 10 * Comms.getNumHQs(rc) && ampsBuilt < 20 * launchersBuilt
-                    && rc.getRobotCount() >= AMP_BUILD_THRESHOLD && launcherCounter > 20){
+            if(!buildAnchor  && rc.getRobotCount() > 10 * Comms.getNumHQs(rc) && ampsBuilt < 10 * launchersBuilt
+                    && rc.getRobotCount() >= AMP_BUILD_THRESHOLD && launcherCounter >= 10){
                 buildAmp = true;
                 launcherCounter = 0;
             }
@@ -344,7 +344,9 @@ public strictfp class HQ {
                         centerBuildLoc = buildTowards(rc, center);
                         launchersBuilt++;
                //
-                        if(rc.getRoundNum() > 250){
+                        if(rc.getRoundNum()>400){
+                            launcherCounter++;
+                        } else if(!smallMap && rc.getRoundNum() > 150){
                             launcherCounter++;
                         }
                     }

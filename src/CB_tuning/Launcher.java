@@ -116,12 +116,13 @@ public strictfp class Launcher {
                 break;
             case FollowingCommand:
                 followCommand(rc);
-
                 break;
             case Camping:
                 campHQ(rc);
                 break;
         }
+
+        rc.setIndicatorString(state.name());
 
         writeComms(rc);
         Database.checkSymmetries(rc);
@@ -625,7 +626,8 @@ public strictfp class Launcher {
             int prio = Comms.getCommPrio(attackCommands[i].type);
             int range = rc.getLocation().distanceSquaredTo(attackCommands[i].location);
             if(range > rc.getType().actionRadiusSquared &&
-                    loc.distanceSquaredTo(rc.getLocation()) <=50){
+                    (loc.distanceSquaredTo(rc.getLocation()) <=50 ||
+                            Math.sqrt(loc.distanceSquaredTo(rc.getLocation()))< diagonal/8)){
 
                 if(prio > maxPrio){
                     attackCommand = attackCommands[i];
