@@ -273,8 +273,7 @@ public strictfp class Carrier {
                     if (bot.team == rc.getTeam() && bot.type == RobotType.CARRIER) {
                         robotCount++;
                     }
-                } else if (rc.canSenseLocation(loc) && rc.sensePassability(loc) &&
-                        rc.senseMapInfo(loc).getCurrentDirection() == Direction.CENTER) {
+                } else if (rc.canSenseLocation(loc) && rc.sensePassability(loc)) {
                     availableSquares++;
                 }
             }
