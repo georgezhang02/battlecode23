@@ -5,6 +5,8 @@ import battlecode.common.*;
 public strictfp class HQ {
 
     static int ANCHOR_BUILD_THRESHOLD = 30;
+
+    static int AMP_BUILD_THRESHOLD = 30;
     static boolean initialized = false;
     static MapLocation location;
     static int HQIndex;
@@ -27,7 +29,7 @@ public strictfp class HQ {
     static int launchersBuilt = 0;
     static int carriersBuilt = 0;
     static int anchorsBuilt = 0;
-    static int amplifiersBuilt = 0;
+    static int ampsBuilt = 0;
 
     static MapLocation[] ADWells;
     static MapLocation closestAD;
@@ -37,6 +39,9 @@ public strictfp class HQ {
     static int carrierCounter = 0;
 
     static boolean buildAnchor = false;
+
+    static int launcherCounter = 0;
+    static boolean buildAmp = false;
 
     public static void run(RobotController rc) throws GameActionException {
 
@@ -269,7 +274,14 @@ public strictfp class HQ {
                     !buildAnchor  && rc.getRobotCount() > 5 * Comms.getNumHQs(rc) && anchorsBuilt < 20 * carriersBuilt
                         && rc.getRobotCount() >= ANCHOR_BUILD_THRESHOLD && carrierCounter > 20){
                 buildAnchor = true;
+                buildAmp = false;
                 carrierCounter = 0;
+            }
+
+            if(!buildAnchor && !smallMap && rc.getRobotCount() > 5 * Comms.getNumHQs(rc) && ampsBuilt < 20 * launchersBuilt
+                    && rc.getRobotCount() >= AMP_BUILD_THRESHOLD && launcherCounter > 20){
+                buildAmp = true;
+                launcherCounter = 0;
             }
 
             if (!enemiesFound) {
@@ -277,6 +289,7 @@ public strictfp class HQ {
                     if(rc.canBuildAnchor(Anchor.STANDARD)){
                         rc.buildAnchor(Anchor.STANDARD);
                         buildAnchor = false;
+                        buildAmp = false;
                     }
                     MapLocation carrierBuildLoc = buildTowards(rc, carrierBuildTarget);
                     while (rc.getResourceAmount(ResourceType.ADAMANTIUM) > 150 &&
@@ -286,34 +299,54 @@ public strictfp class HQ {
                         carriersBuilt++;
                     }
 
-                    MapLocation launcherBuildLoc = buildTowards(rc, carrierBuildTarget);
                     while (rc.getResourceAmount(ResourceType.MANA) > 160 && rc.canBuildRobot(RobotType.LAUNCHER, centerBuildLoc)) {
                         rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);
                         centerBuildLoc = buildTowards(rc, center);
                         launchersBuilt++;
                     }
 
-                } else{
-                     /*if (rc.getRobotCount() > 5 * Comms.getNumHQs(rc) && amplifiersBuilt < 30 * launchersBuilt) {
-                        if (rc.canBuildRobot(RobotType.AMPLIFIER, buildTowards(rc, center))) {
-                            rc.buildRobot(RobotType.AMPLIFIER, centerBuildLoc);
-                            amplifiersBuilt++;
+                }else if(buildAmp){
+                    if(rc.canBuildRobot(RobotType.AMPLIFIER, centerBuildLoc)){
+                        rc.buildRobot(RobotType.AMPLIFIER, centerBuildLoc);
+                        centerBuildLoc = buildTowards(rc, center);
+                        ampsBuilt++;
+
+                        buildAmp = false;
+                        buildAnchor = false;
+                    }
+                    MapLocation carrierBuildLoc = buildTowards(rc, carrierBuildTarget);
+                    while (rc.getResourceAmount(ResourceType.ADAMANTIUM) > 80 &&
+                            rc.canBuildRobot(RobotType.CARRIER, carrierBuildLoc)) {
+                        rc.buildRobot(RobotType.CARRIER, carrierBuildLoc);
+                        carrierBuildLoc = buildTowards(rc, carrierBuildTarget);
+                        carriersBuilt++;
+                    }
+
+                    while (rc.getResourceAmount(ResourceType.MANA) > 90 && rc.canBuildRobot(RobotType.LAUNCHER, centerBuildLoc)) {
+                        rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);
+                        centerBuildLoc = buildTowards(rc, center);
+                        launchersBuilt++;
+                    }
+
+                }else{
+
+                    MapLocation carrierBuildLoc = buildTowards(rc, carrierBuildTarget);
+                    while (rc.canBuildRobot(RobotType.CARRIER, carrierBuildLoc)) {
+                        rc.buildRobot(RobotType.CARRIER, carrierBuildLoc);
+                        carrierBuildLoc = buildTowards(rc, carrierBuildTarget);
+                        carriersBuilt++;
+                        if(rc.getRoundNum() > 100){
+                            carrierCounter++;
                         }
-                    } else {*/
-                        MapLocation carrierBuildLoc = buildTowards(rc, carrierBuildTarget);
-                        while (rc.canBuildRobot(RobotType.CARRIER, carrierBuildLoc)) {
-                            rc.buildRobot(RobotType.CARRIER, carrierBuildLoc);
-                            carrierBuildLoc = buildTowards(rc, carrierBuildTarget);
-                            carriersBuilt++;
-                            if(rc.getRoundNum() > 100){
-                                carrierCounter++;
-                            }
+                    }
+                    while (rc.canBuildRobot(RobotType.LAUNCHER, centerBuildLoc)) {
+                        rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);
+                        centerBuildLoc = buildTowards(rc, center);
+                        launchersBuilt++;
+               //
+                        if(rc.getRoundNum() > 250){
+                            launcherCounter++;
                         }
-                        while (rc.canBuildRobot(RobotType.LAUNCHER, centerBuildLoc)) {
-                            rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);
-                            centerBuildLoc = buildTowards(rc, center);
-                            launchersBuilt++;
-                   //     }
                     }
                 }
             } else {
