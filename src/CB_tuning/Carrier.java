@@ -56,7 +56,7 @@ public strictfp class Carrier {
         sense(rc);
         updateState(rc);
         runState(rc);
-        rc.setIndicatorString(state + " " + discoveredWellCount + " " + assignedWell);
+        //rc.setIndicatorString(state + " " + discoveredWellCount + " " + assignedWell);
 
         writeComms(rc);
         Database.checkSymmetries(rc);
@@ -147,7 +147,7 @@ public strictfp class Carrier {
 
         WellInfo[] wells = rc.senseNearbyWells();
         for (WellInfo well : wells) {
-            rc.setIndicatorDot(well.getMapLocation(), 255, 255, 255);
+            //rc.setIndicatorDot(well.getMapLocation(), 255, 255, 255);
             boolean known = Database.globalKnownLocations.contains(well.getMapLocation())
                     || Database.localKnownLocations.contains(well.getMapLocation());
 
@@ -171,8 +171,18 @@ public strictfp class Carrier {
         enemies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam().opponent());
         boolean enemiesFound = false;
         for (RobotInfo enemy : enemies) {
+            if(enemy.getType() == RobotType.CARRIER){
+                if(rc.canWriteSharedArray(0,0)){
+                    Comms.setAttackCommand(rc, enemy.getLocation(), enemy.getType());
+                    rc.setIndicatorString("sending attack command");
+                }
+            }
             if (!(enemy.getType() == RobotType.HEADQUARTERS || enemy.getType() == RobotType.CARRIER || enemy.getType() == RobotType.AMPLIFIER)) {
                 enemiesFound = true;
+                if(rc.canWriteSharedArray(0,0)){
+                    Comms.setAttackCommand(rc, enemy.getLocation(), enemy.getType());
+                    rc.setIndicatorString("sending attack command");
+                }
             }
             if(enemy.getType()== RobotType.HEADQUARTERS){
                 Database.addEnemyHQ(rc, enemy);
