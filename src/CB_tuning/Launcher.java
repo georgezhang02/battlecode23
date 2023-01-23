@@ -580,14 +580,16 @@ public strictfp class Launcher {
         return enemyToAttack;
     }
 
-    static MapLocation findCloudAttack(RobotController rc){
+    static MapLocation findCloudAttack(RobotController rc) throws GameActionException {
         int minDist = 10000;
         MapLocation attackLoc = null;
-        for(int i = 0; i<clouds.length; i++){
-            int range = rc.getLocation().distanceSquaredTo(clouds[i]);
-            if(rc.canAttack(clouds[i]) && range > 4 && range < minDist ){
-                minDist = range;
-                attackLoc = clouds[i];
+        if (rc.senseMapInfo(rc.getLocation()).getCooldownMultiplier(rc.getTeam()) <= 1){
+            for (int i = 0; i < clouds.length; i++) {
+                int range = rc.getLocation().distanceSquaredTo(clouds[i]);
+                if (rc.canAttack(clouds[i]) && range > 4 && range < minDist) {
+                    minDist = range;
+                    attackLoc = clouds[i];
+                }
             }
         }
         return attackLoc;
