@@ -332,11 +332,14 @@ public strictfp class HQ {
         MapLocation buildSquare = location;
         MapLocation[] locs = rc.getAllLocationsWithinRadiusSquared(location, 9);
         for (MapLocation loc : locs) {
-            int distance = loc.distanceSquaredTo(target);
-            if (distance < lowestDist && rc.senseRobotAtLocation(loc) == null && rc.sensePassability(loc)) {
-                lowestDist = distance;
-                buildSquare = new MapLocation(loc.x, loc.y);
+            if(loc != null){
+                int distance = loc.distanceSquaredTo(target);
+                if (distance < lowestDist && rc.senseRobotAtLocation(loc) == null && rc.sensePassability(loc)) {
+                    lowestDist = distance;
+                    buildSquare = new MapLocation(loc.x, loc.y);
+                }
             }
+
         }
         return buildSquare;
     }
