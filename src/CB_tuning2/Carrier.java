@@ -37,7 +37,6 @@ public strictfp class Carrier {
     static MapLocation closestMN;
     static boolean MNInRange;
     static Set<MapLocation> visitedWells = new HashSet<MapLocation>();
-    static boolean doMana = true;
 
     static Direction away;
     static MapLocation firstStep;
@@ -56,7 +55,7 @@ public strictfp class Carrier {
         sense(rc);
         updateState(rc);
         runState(rc);
-        //rc.setIndicatorString(state + " " + discoveredWellCount + " " + assignedWell);
+        rc.setIndicatorString(state + " " + discoveredWellCount + " " + assignedWell);
 
         writeComms(rc);
         Database.checkSymmetries(rc);
@@ -289,18 +288,16 @@ public strictfp class Carrier {
             }
             if ((robotCount >= limit || availableSquares <= 0) && location.distanceSquaredTo(assignedWell) > 2) {
                 visitedWells.add(assignedWell);
-                if (doMana) {
+                if (assignedType == 0) {
                     MapLocation nextWell = Helper.getClosest(knownMNWells, HQ_LOCATION, visitedWells);
                     if (nextWell != null) {
                         assignedWell = nextWell;
                         assignedType = 1;
-                        doMana = false;
                     } else {
                         nextWell = Helper.getClosest(knownADWells, HQ_LOCATION, visitedWells);
                         if (nextWell != null) {
                             assignedWell = nextWell;
                             assignedType = 0;
-                            doMana = true;
                         } else {
                             state = CarrierState.Exploring;
                         }
@@ -310,13 +307,11 @@ public strictfp class Carrier {
                     if (nextWell != null) {
                         assignedWell = nextWell;
                         assignedType = 0;
-                        doMana = true;
                     } else {
                         nextWell = Helper.getClosest(knownMNWells, HQ_LOCATION, visitedWells);
                         if (nextWell != null) {
                             assignedWell = nextWell;
                             assignedType = 1;
-                            doMana = false;
                         } else {
                             state = CarrierState.Exploring;
                         }
@@ -378,11 +373,6 @@ public strictfp class Carrier {
                 assignClosest(rc);
             } else {
                 state = CarrierState.Gathering;
-                if (smallMap) {
-                    doMana = false;
-                } else {
-                    doMana = true;
-                }
             }
         }
     }
@@ -548,22 +538,18 @@ public strictfp class Carrier {
             state = CarrierState.Gathering;
             assignedWell = closestMN;
             assignedType = 1;
-            doMana = false;
         } else if (!smallMap & ADInRange) {
             state = CarrierState.Gathering;
             assignedWell = closestAD;
             assignedType = 0;
-            doMana = true;
         } else if (MNInRange) {
             state = CarrierState.Gathering;
             assignedWell = closestMN;
             assignedType = 1;
-            doMana = false;
         } else if (ADInRange) {
             state = CarrierState.Gathering;
             assignedWell = closestAD;
             assignedType = 0;
-            doMana = true;
         }
     }
 
