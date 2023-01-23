@@ -286,7 +286,8 @@ public strictfp class Carrier {
                     limit = MNlimit;
                     break;
             }
-            if ((robotCount >= limit || availableSquares <= 0) && location.distanceSquaredTo(assignedWell) > 2) {
+            if ((robotCount >= limit || availableSquares <= 0) && location.distanceSquaredTo(assignedWell) > 2
+                && !rc.senseCloud(location)) {
                 visitedWells.add(assignedWell);
                 if (assignedType == 0) {
                     MapLocation nextWell = Helper.getClosest(knownMNWells, HQ_LOCATION, visitedWells);
