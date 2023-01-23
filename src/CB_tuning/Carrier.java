@@ -370,10 +370,13 @@ public strictfp class Carrier {
         // If lower than maxHealth and can throw, throw
         if(rc.getHealth() < RobotType.CARRIER.getMaxHealth()) {
             for (RobotInfo enemy : enemies) {
-                if (rc.canAttack(enemy.getLocation())) {
-                    rc.attack(enemy.getLocation());
-                    break;
+                if(enemy.getType()!= RobotType.HEADQUARTERS && enemy.getType() != RobotType.AMPLIFIER && enemy.getType() != RobotType.CARRIER){
+                    if (rc.canAttack(enemy.getLocation())) {
+                        rc.attack(enemy.getLocation());
+                        break;
+                    }
                 }
+
             }
         }
 

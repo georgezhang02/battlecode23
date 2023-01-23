@@ -65,11 +65,20 @@ public strictfp class HQ {
     static void checkEnemies(RobotController rc) throws GameActionException {
         enemies = rc.senseNearbyRobots(RobotType.HEADQUARTERS.visionRadiusSquared, rc.getTeam().opponent());
         enemiesFound = false;
+
+        RobotInfo reportEnemy = null;
         for (RobotInfo enemy : enemies) {
-            if (!(enemy.getType() == RobotType.HEADQUARTERS || enemy.getType() == RobotType.CARRIER)) {
+            if (!(enemy.getType() == RobotType.HEADQUARTERS || enemy.getType() == RobotType.CARRIER || enemy.getType() == RobotType.AMPLIFIER)) {
                 enemiesFound = true;
-                break;
+
+                if(reportEnemy == null || Comms.getCommPrio(enemy.getType()) > Comms.getCommPrio(reportEnemy.getType())){
+                    reportEnemy = enemy;
+                }
             }
+        }
+
+        if(reportEnemy != null){
+            Comms.setAttackCommand(rc, reportEnemy.getLocation(), reportEnemy.getType());
         }
     }
 

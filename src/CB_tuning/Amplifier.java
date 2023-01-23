@@ -33,6 +33,8 @@ public strictfp class Amplifier {
     static Comms.Attack attackCommand;
 
     static void run(RobotController rc) throws GameActionException {
+        // interpret overall macro state
+        readComms(rc);
         if(!initialized){
             onUnitInit(rc); // first time starting the bot, do some setup
             initialized = true;
@@ -40,8 +42,7 @@ public strictfp class Amplifier {
 
         onTurnStart(rc); // cleanup for when the turn starts
 
-        // interpret overall macro state
-        readComms(rc);
+
 
         // sense part
         sense(rc);
@@ -66,7 +67,8 @@ public strictfp class Amplifier {
                 break;
         }
 
-
+        writeComms(rc);
+        Database.checkSymmetries(rc);
     }
 
     static void onUnitInit(RobotController rc) throws GameActionException{
@@ -78,6 +80,10 @@ public strictfp class Amplifier {
     }
 
     static void readComms(RobotController rc)throws GameActionException {
+        Database.init(rc);
+        Database.downloadSymmetry(rc);
+        Database.downloadLocations(rc);
+
         Comms.Attack[] attackCommands = Comms.getAllAttackCommands(rc);
         int maxPrio = (attackCommand==null) ? 0 : Comms.getCommPrio(attackCommand.type);
 
@@ -88,6 +94,17 @@ public strictfp class Amplifier {
                 attackCommand = attackCommands[i];
                 maxPrio = prio;
             }
+        }
+
+
+
+    }
+
+
+    static void writeComms(RobotController rc) throws GameActionException{
+        if(rc.canWriteSharedArray(0,0)){
+            Database.uploadSymmetry(rc);
+            Database.uploadLocations(rc);
         }
     }
 
@@ -106,6 +123,8 @@ public strictfp class Amplifier {
                     nearestEnemyMil = enemy;
                     minRange = range;
                 }
+            } else if(enemy.getType() == RobotType.HEADQUARTERS){
+                Database.addEnemyHQ(rc, enemy);
             }
         }
 
@@ -139,6 +158,12 @@ public strictfp class Amplifier {
                 Comms.setAnchorCommand(rc, rc.senseNearbyIslandLocations(islands[i])[0]);
             }
         }
+
+        WellInfo[]wells = rc.senseNearbyWells();
+        for(int i =0; i< wells.length; i++){
+            Database.addWell(rc, wells[i]);
+        }
+
     }
     static boolean enemiesFound(RobotController rc) throws GameActionException {
         enemies = rc.senseNearbyRobots(RobotType.AMPLIFIER.visionRadiusSquared, rc.getTeam().opponent());
