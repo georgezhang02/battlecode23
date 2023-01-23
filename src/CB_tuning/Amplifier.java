@@ -102,7 +102,11 @@ public strictfp class Amplifier {
 
 
     static void writeComms(RobotController rc) throws GameActionException{
+
         if(rc.canWriteSharedArray(0,0)){
+            if(nearestEnemyMil != null){
+                Comms.setAttackCommand(rc, nearestEnemyMil.getLocation(), nearestEnemyMil.getType() );
+            }
             Database.uploadSymmetry(rc);
             Database.uploadLocations(rc);
         }

@@ -64,7 +64,7 @@ public strictfp class Carrier {
 
     static void onUnitInit(RobotController rc) throws GameActionException {
         allies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam());
-        smallMap = rc.getMapWidth() <= 30 && rc.getMapHeight() <= 30;
+        smallMap = rc.getMapWidth() <= 40 || rc.getMapHeight() <= 40;
         for (RobotInfo ally : allies) {
             if (ally.getType() == RobotType.HEADQUARTERS) {
                 HQ_LOCATION = ally.getLocation();
