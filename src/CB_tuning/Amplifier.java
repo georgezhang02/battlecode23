@@ -157,7 +157,8 @@ public strictfp class Amplifier {
         islands  = rc.senseNearbyIslands();
         boolean commandSent = false;
         for(int i = 0; i < islands.length; i++){
-            if(numEnemyMil == 0 && !commandSent && rc.canWriteSharedArray(0,0)){
+            if(numEnemyMil == 0 && !commandSent && rc.senseTeamOccupyingIsland(islands[i]) != rc.getTeam()
+                    && rc.canWriteSharedArray(0,0)){
                 commandSent = true;
                 Comms.setAnchorCommand(rc, rc.senseNearbyIslandLocations(islands[i])[0]);
             }
