@@ -211,7 +211,7 @@ public class Database {
     }
 
     public static void uploadSymmetry(RobotController rc) throws GameActionException {
-        if(symmetryUpload && rc.canWriteSharedArray(0,0)) {
+        if(symmetryUpload && rc.canWriteSharedArray(0,0) && Clock.getBytecodesLeft() > BYTECODE_LIMIT) {
             Comms.setSymmetries(rc, rotational, horizontal, vertical);
             symmetryUpload = false;
         }
