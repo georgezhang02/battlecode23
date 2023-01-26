@@ -460,7 +460,7 @@ public strictfp class Carrier {
                 }
             }
         } else if(anchorCommand != null || searchAnchorCommands(rc) != null
-            || !rc.canSenseLocation(anchorCommand)){
+            && !rc.canSenseLocation(anchorCommand)){
             if(rc.isMovementReady()){
                 Direction moveDir = Pathfinder.pathBug(rc, anchorCommand);
                 if(moveDir != null && rc.canMove(moveDir)){
