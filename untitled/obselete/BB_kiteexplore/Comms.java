@@ -1,6 +1,7 @@
-package BB_carrierchangesv2;
+package BB_kiteexplore;
 
 import battlecode.common.*;
+import battlecode.world.Inventory;
 
 public class Comms {
     private static final int COUNT_OFFSET = 0;
@@ -128,13 +129,13 @@ public class Comms {
             MapLocation loc = well.getMapLocation();
             int wellType = 0;
             switch (well.getResourceType()) {
-                case ADAMANTIUM:
+                case ResourceType.ADAMANTIUM:
                     wellType = 1;
                     break;
-                case MANA:
+                case ResourceType.MANA:
                     wellType = 2;
                     break;
-                case ELIXIR:
+                case ResourceType.ELIXIR:
                     wellType = 3;
                     break;
             }

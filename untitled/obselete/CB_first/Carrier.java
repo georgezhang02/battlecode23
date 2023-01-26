@@ -1,10 +1,10 @@
-package CB_merged;
+package CB_first;
 
 import battlecode.common.*;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
+import java.util.HashSet;
 
 public strictfp class Carrier {
 
@@ -29,7 +29,9 @@ public strictfp class Carrier {
     static int assignedType = -1;
     static MapLocation[] knownADWells;
     static MapLocation[] knownMNWells;
+    static WellInfo[] discoveredWells = new WellInfo[288];
     static int discoveredWellCount = 0;
+    static int reportedWellCount = 0;
     static int exploreCounter = 0;
     static boolean smallMap;
     static MapLocation closestAD;
@@ -44,22 +46,16 @@ public strictfp class Carrier {
     static Direction turn;
     static MapLocation secondStep;
 
-    static MapLocation anchorCommand;
-
     static void run(RobotController rc) throws GameActionException {
-        readComms(rc);
         if(!initialized){
             onUnitInit(rc); // first time starting the bot, do some setup
             initialized = true;
         }
-
+        comms(rc);
         sense(rc);
         updateState(rc);
         runState(rc);
         rc.setIndicatorString(state + " " + discoveredWellCount + " " + assignedWell);
-
-        writeComms(rc);
-        Database.checkSymmetries(rc);
     }
 
     static void onUnitInit(RobotController rc) throws GameActionException {
@@ -71,9 +67,10 @@ public strictfp class Carrier {
                 HQIndex = Comms.getHQIndexByID(rc, ally.getID());
             }
         }
-        knownADWells = Database.getKnownADLocations();
+
+        knownADWells = Comms.getAllADWells(rc);
         closestAD = Helper.getClosest(knownADWells, HQ_LOCATION);
-        knownMNWells = Database.getKnownManaLocations();
+        knownMNWells = Comms.getAllManaWells(rc);
         closestMN = Helper.getClosest(knownMNWells, HQ_LOCATION);
 
         // Don't see any ad wells, explore
@@ -119,22 +116,10 @@ public strictfp class Carrier {
         }
     }
 
-    static void readComms(RobotController rc) throws GameActionException {
-        Database.init(rc);
-        Database.downloadSymmetry(rc);
-        Database.downloadLocations(rc);
-
+    static void comms(RobotController rc) throws GameActionException {
+        knownADWells = Comms.getAllADWells(rc);
+        knownMNWells = Comms.getAllManaWells(rc);
     }
-
-    static void writeComms(RobotController rc) throws GameActionException {
-
-        if(rc.canWriteSharedArray(0,0)){
-            Database.uploadSymmetry(rc);
-            Database.uploadLocations(rc);
-        }
-    }
-
-
 
     static void sense(RobotController rc) throws GameActionException{
         location = rc.getLocation();
@@ -143,27 +128,44 @@ public strictfp class Carrier {
         manaAmount = rc.getResourceAmount(ResourceType.MANA);
         elixirAmount = rc.getResourceAmount(ResourceType.ELIXIR);
 
-
-
         WellInfo[] wells = rc.senseNearbyWells();
         for (WellInfo well : wells) {
             rc.setIndicatorDot(well.getMapLocation(), 255, 255, 255);
-            boolean known = Database.globalKnownLocations.contains(well.getMapLocation())
-                    || Database.localKnownLocations.contains(well.getMapLocation());
-
+            boolean known = false;
+            MapLocation wellLocation = well.getMapLocation();
+            for (MapLocation ADWell : knownADWells) {
+                if (ADWell.equals(wellLocation)) {
+                    known = true;
+                    break;
+                }
+            }
+            //first, check through all known mana wells and set to true if it's a known place
+            if (!known) {
+                for (MapLocation MNWell : knownMNWells) {
+                    if (MNWell.equals(wellLocation)) {
+                        known = true;
+                        break;
+                    }
+                }
+            }
+            //if this is a well that was previously discovered by this unit, then break
+            if (!known) {
+                for (int i = 0; i < discoveredWellCount; i++) {
+                    if (discoveredWells[i].getMapLocation().equals(wellLocation)) {
+                        known = true;
+                        break;
+                    }
+                }
+            }
             //otherwise, mark this as known and return to base
             if (!known) {
-                Database.addWell(rc, well);
-                discoveredWellCount++;
+                discoveredWells[discoveredWellCount++] = well;
             }
         }
 
         if (discoveredWellCount > 0) {
             state = CarrierState.Returning;
         }
-
-        knownADWells = Database.getKnownADLocations();
-        knownMNWells = Database.getKnownManaLocations();
     }
 
 
@@ -171,11 +173,9 @@ public strictfp class Carrier {
         enemies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam().opponent());
         boolean enemiesFound = false;
         for (RobotInfo enemy : enemies) {
-            if (!(enemy.getType() == RobotType.HEADQUARTERS || enemy.getType() == RobotType.CARRIER || enemy.getType() == RobotType.AMPLIFIER)) {
+            if (!(enemy.getType() == RobotType.HEADQUARTERS || enemy.getType() == RobotType.CARRIER)) {
                 enemiesFound = true;
-            }
-            if(enemy.getType()== RobotType.HEADQUARTERS){
-                Database.addEnemyHQ(rc, enemy);
+                break;
             }
         }
         return enemiesFound;
@@ -236,12 +236,12 @@ public strictfp class Carrier {
         } else if (location.distanceSquaredTo(assignedWell) <= 10){
             //THIS SECTION IS INTENDED TO MAKE IT SO THAT THE CARRIERS SWITCH THE WELL THEY'RE ASSIGNED TO IF IT'S FULL
             MapLocation[] aroundWell = rc.getAllLocationsWithinRadiusSquared(assignedWell, 2);
-            int ADlimit = 3;
+            int ADlimit = 4;
             int MNlimit = 4;
             if (smallMap) {
                 MNlimit = 8;
             }
-            if (rc.getRoundNum() > 200) {
+            if (rc.getRoundNum() > 100) {
                 ADlimit = 8;
                 MNlimit = 8;
             }
@@ -310,9 +310,6 @@ public strictfp class Carrier {
             if (rc.canCollectResource(assignedWell, -1)) {
                 rc.collectResource(assignedWell, -1);
             }
-            if (rc.canCollectResource(assignedWell, -1)) {
-                rc.collectResource(assignedWell, -1);
-            }
             pathWell(rc);
         } else {
             pathTowards(rc, assignedWell);
@@ -345,15 +342,12 @@ public strictfp class Carrier {
 
     static void returnUpdate(RobotController rc) throws GameActionException {
         //HQ_LOCATION.distanceSquaredTo(location) <= 2 &&
-        if (adAmount == 0 && manaAmount == 0 && elixirAmount == 0) {
+        if (reportedWellCount == discoveredWellCount && adAmount == 0 && manaAmount == 0 && elixirAmount == 0) {
             // Get anchor if available
             if (rc.canTakeAnchor(HQ_LOCATION, Anchor.STANDARD)) {
                 rc.takeAnchor(HQ_LOCATION, Anchor.STANDARD);
                 state = CarrierState.Anchoring;
-            } else if (rc.getNumAnchors(Anchor.STANDARD) > 0) {
-                state = CarrierState.Anchoring;
-            }
-            else if (assignedWell == null) {
+            } else if (assignedWell == null) {
                 assignClosest(rc);
             } else {
                 state = CarrierState.Gathering;
@@ -397,11 +391,20 @@ public strictfp class Carrier {
 
         // If within comms range and has discovered well, report well.
         if (rc.canWriteSharedArray(0, 0)) {
+            while (reportedWellCount < discoveredWellCount) {
+                //AD ID = 1
+                if(discoveredWells[reportedWellCount].getResourceType().resourceID == 1){
+                    Comms.setADWell(rc, discoveredWells[reportedWellCount++].getMapLocation());
+                }
+                //MN ID = 2
+                else if(discoveredWells[reportedWellCount].getResourceType().resourceID == 2){
+                    Comms.setManaWell(rc, discoveredWells[reportedWellCount++].getMapLocation());
+                }
+            }
             discoveredWellCount = 0;
+            reportedWellCount = 0;
         }
     }
-
-
 
     static void anchorUpdate(RobotController rc) throws GameActionException {
         //If the robot no longer has an anchor (thrown), explore
@@ -411,6 +414,7 @@ public strictfp class Carrier {
     }
 
     static void anchor(RobotController rc) throws GameActionException{
+
         // If I have an anchor singularly focus on getting it to the first island I see
         int[] islands = rc.senseNearbyIslands();
         int inc = 0;
@@ -428,52 +432,24 @@ public strictfp class Carrier {
                 }
             }
             if (islandLocs.size() > 0) {
-                anchorCommand = null;
                 MapLocation islandLocation = islandLocs.iterator().next();
                 pathTowards(rc, islandLocation);
 
                 if (rc.canPlaceAnchor()) {
                     rc.placeAnchor();
-                    anchorCommand = null;
-
-                    if(rc.canWriteSharedArray(0, 0)){
-                        Comms.reportIslandLocation(rc, rc.getLocation(), rc.getTeam());
-                    }
                     if (discoveredWellCount > 0) {
-                        state = Carrier.CarrierState.Returning;
+                        state = CarrierState.Returning;
                     } else {
-                        state = Carrier.CarrierState.Exploring;
+                        state = CarrierState.Exploring;
                     }
-                }
-            }
-        } else if(anchorCommand != null || searchAnchorCommands(rc) != null &&
-            rc.getLocation().distanceSquaredTo(anchorCommand) <= rc.getType().visionRadiusSquared){
-            if(rc.isMovementReady()){
-                Direction moveDir = Pathfinder.pathBug(rc, anchorCommand);
-                if(moveDir != null && rc.canMove(moveDir)){
-                    rc.move(moveDir);
                 }
             }
         }
+
         //Otherwise, Explore until you find an island
         else{
-            anchorCommand = null;
             pathExplore(rc);
         }
-    }
-
-    static MapLocation searchAnchorCommands(RobotController rc) throws GameActionException {
-        MapLocation[] commands = Comms.getAllAnchorCommands(rc);
-        int minDist = 10000;
-
-        for(MapLocation command: commands){
-            if(rc.getLocation().distanceSquaredTo(command) < minDist){
-                anchorCommand = command;
-                minDist = rc.getLocation().distanceSquaredTo(anchorCommand);
-            }
-        }
-
-        return anchorCommand;
     }
 
     /*
@@ -551,28 +527,28 @@ public strictfp class Carrier {
             } else {
                 Direction toMove = null;
                 switch (toWell) {
-                    case NORTH:
+                    case Direction.NORTH:
                         toMove = Direction.WEST;
                         break;
-                    case NORTHEAST:
+                    case Direction.NORTHEAST:
                         toMove = Direction.NORTH;
                         break;
-                    case EAST:
+                    case Direction.EAST:
                         toMove = Direction.NORTH;
                         break;
-                    case SOUTHEAST:
+                    case Direction.SOUTHEAST:
                         toMove = Direction.EAST;
                         break;
-                    case SOUTH:
+                    case Direction.SOUTH:
                         toMove = Direction.EAST;
                         break;
-                    case SOUTHWEST:
+                    case Direction.SOUTHWEST:
                         toMove = Direction.SOUTH;
                         break;
-                    case WEST:
+                    case Direction.WEST:
                         toMove = Direction.SOUTH;
                         break;
-                    case NORTHWEST:
+                    case Direction.NORTHWEST:
                         toMove = Direction.WEST;
                         break;
                 }

@@ -1,4 +1,4 @@
-package CB_basicelxrunits;
+package BB_carrierchangesv2;
 
 import battlecode.common.Clock;
 import battlecode.common.GameActionException;
@@ -23,7 +23,6 @@ public strictfp class RobotPlayer {
         
 
         while (true) {
-
             // This code runs during the entire lifespan of the robot, which is why it is in an infinite
             // loop. If we ever leave this loop and return from run(), the robot dies! At the end of the
             // loop, we call Clock.yield(), signifying that we've done everything we want to do.
@@ -37,12 +36,12 @@ public strictfp class RobotPlayer {
                 // use different strategies on different robots. If you wish, you are free to rewrite
                 // this into a different control structure!
                 switch (rc.getType()) {
-                    case HEADQUARTERS:     HQ.run(rc);  break;
-                    case CARRIER:      Carrier.run(rc);   break;
-                    case LAUNCHER: Launcher.run(rc); break;
-                    case BOOSTER:  Booster.run(rc); break;
-                    case DESTABILIZER: Destabilizer.run(rc); break;
-                    case AMPLIFIER:      break;
+                    case RobotType.HEADQUARTERS:     HQ.run(rc);  break;
+                    case RobotType.CARRIER:      Carrier.run(rc);   break;
+                    case RobotType.LAUNCHER: Launcher.run(rc); break;
+                    case RobotType.BOOSTER: // Examplefuncsplayer doesn't use any of these robot types below.
+                    case RobotType.DESTABILIZER: // You might want to give them a try!
+                    case RobotType.AMPLIFIER:       break;
                 }
 
             } catch (GameActionException e) {

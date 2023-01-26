@@ -128,13 +128,13 @@ public class Comms {
             MapLocation loc = well.getMapLocation();
             int wellType = 0;
             switch (well.getResourceType()) {
-                case ADAMANTIUM:
+                case ResourceType.ADAMANTIUM:
                     wellType = 1;
                     break;
-                case MANA:
+                case ResourceType.MANA:
                     wellType = 2;
                     break;
-                case ELIXIR:
+                case ResourceType.ELIXIR:
                     wellType = 3;
                     break;
             }

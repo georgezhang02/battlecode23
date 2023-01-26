@@ -1,4 +1,4 @@
-package BB_carrierchangesv2;
+package BB_kiteexplore;
 
 import battlecode.common.Clock;
 import battlecode.common.GameActionException;
@@ -36,12 +36,12 @@ public strictfp class RobotPlayer {
                 // use different strategies on different robots. If you wish, you are free to rewrite
                 // this into a different control structure!
                 switch (rc.getType()) {
-                    case HEADQUARTERS:     HQ.run(rc);  break;
-                    case CARRIER:      Carrier.run(rc);   break;
-                    case LAUNCHER: Launcher.run(rc); break;
-                    case BOOSTER: // Examplefuncsplayer doesn't use any of these robot types below.
-                    case DESTABILIZER: // You might want to give them a try!
-                    case AMPLIFIER:       break;
+                    case RobotType.HEADQUARTERS:     HQ.run(rc);  break;
+                    case RobotType.CARRIER:      Carrier.run(rc);   break;
+                    case RobotType.LAUNCHER: Launcher.run(rc); break;
+                    case RobotType.BOOSTER: // Examplefuncsplayer doesn't use any of these robot types below.
+                    case RobotType.DESTABILIZER: // You might want to give them a try!
+                    case RobotType.AMPLIFIER:       break;
                 }
 
             } catch (GameActionException e) {

@@ -6,8 +6,6 @@ import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotType;
 
-import javax.xml.crypto.Data;
-
 public class Explorer {
 
     static boolean HQInit = false;
