@@ -430,6 +430,8 @@ public strictfp class Carrier {
                 inc += 1;
             }
         }
+
+
         Set<MapLocation> islandLocs = new HashSet<>();
         if (islands.length - inc > 0) {
             for (int id : islands) {
@@ -457,8 +459,8 @@ public strictfp class Carrier {
                     }
                 }
             }
-        } else if(anchorCommand != null || searchAnchorCommands(rc) != null &&
-            rc.getLocation().distanceSquaredTo(anchorCommand) <= rc.getType().visionRadiusSquared){
+        } else if(anchorCommand != null || searchAnchorCommands(rc) != null
+            || !rc.canSenseLocation(anchorCommand)){
             if(rc.isMovementReady()){
                 Direction moveDir = Pathfinder.pathBug(rc, anchorCommand);
                 if(moveDir != null && rc.canMove(moveDir)){
