@@ -1,6 +1,5 @@
 package CB_commstest;
 
-import CB_first.Comms;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
@@ -97,10 +96,10 @@ public class Explorer {
     //chooses random on radius
     public static void getExploreTarget(RobotController rc, int tries, int mapWidth, int mapHeight) throws GameActionException {
         if(!HQInit){
-            int numHQs = CB_first.Comms.getNumHQs(rc);
-            HQLoc1 = CB_first.Comms.getTeamHQLocation(rc, 0);
-            if(numHQs <= 2)  HQLoc2 = CB_first.Comms.getTeamHQLocation(rc, 1);
-            if(numHQs <= 3)  HQLoc3 = CB_first.Comms.getTeamHQLocation(rc, 2);
+            int numHQs = Comms.getNumHQs(rc);
+            HQLoc1 = Comms.getTeamHQLocation(rc, 0);
+            if(numHQs <= 2)  HQLoc2 = Comms.getTeamHQLocation(rc, 1);
+            if(numHQs <= 3)  HQLoc3 = Comms.getTeamHQLocation(rc, 2);
             if(numHQs <= 4)  HQLoc4 = Comms.getTeamHQLocation(rc, 3);
         }
 

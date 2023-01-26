@@ -101,6 +101,7 @@ public strictfp class Launcher {
 
         }// sense if other bots have moved
 
+        rc.setIndicatorString(state.name());
 
         //select action based on state
         switch (state){
