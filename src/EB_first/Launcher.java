@@ -101,7 +101,7 @@ public strictfp class Launcher {
 
         }// sense if other bots have moved
 
-        rc.setIndicatorString(state.name());
+
 
         //select action based on state
         switch (state){
@@ -702,16 +702,19 @@ public strictfp class Launcher {
             if(movementChange){
                 detachCD =4;
             }
-            if((movementChange || detachCD > 0)  && numNearbyAllyMil < 5){
+            if((movementChange || detachCD > 0)  && numNearbyAllyMil < 5 &&
+                    rc.getLocation().distanceSquaredTo(followBot.getLocation()) >2){
 
                 dir = Pathfinder.pathBug(rc, followBot.getLocation());
-                //rc.setIndicatorString("following "+followBot.getLocation());
+                rc.setIndicatorString(followBot.getLocation()+" follow the nearest bot");
 
             } else{
                 dir = Pathfinder.pathToExploreHQ(rc);
                 //rc.setIndicatorString("pathing to explore" + Explorer.target);
+                rc.setIndicatorString(Explorer.target+"");
             }
             if(canMoveToExplore(rc, dir)){
+
                 rc.move(dir);
                 sense(rc);
                 if(enemies.length > 0){
