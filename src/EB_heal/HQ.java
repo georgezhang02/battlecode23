@@ -1,4 +1,4 @@
-package EB_first;
+package EB_heal;
 
 import battlecode.common.*;
 
