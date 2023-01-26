@@ -706,12 +706,10 @@ public strictfp class Launcher {
                     rc.getLocation().distanceSquaredTo(followBot.getLocation()) >2){
 
                 dir = Pathfinder.pathBug(rc, followBot.getLocation());
-                rc.setIndicatorString(followBot.getLocation()+" follow the nearest bot");
 
             } else{
                 dir = Pathfinder.pathToExploreHQ(rc);
                 //rc.setIndicatorString("pathing to explore" + Explorer.target);
-                rc.setIndicatorString(Explorer.target+"");
             }
             if(canMoveToExplore(rc, dir)){
 
