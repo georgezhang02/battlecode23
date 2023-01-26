@@ -27,7 +27,7 @@ public strictfp class Carrier {
     static int assignedType = -1;
     static MapLocation[] knownADWells;
     static MapLocation[] knownMNWells;
-    static int discoveredWellCount = 0;
+    static boolean uploaded = true;
     static int exploreCounter = 0;
     static boolean smallMap;
     static MapLocation closestAD;
@@ -53,7 +53,7 @@ public strictfp class Carrier {
         sense(rc);
         updateState(rc);
         runState(rc);
-        rc.setIndicatorString(state + " " + discoveredWellCount + " " + assignedWell);
+        rc.setIndicatorString(state + " " + assignedWell);
 
         writeComms(rc);
         Database.checkSymmetries(rc);
@@ -127,6 +127,7 @@ public strictfp class Carrier {
         if(rc.canWriteSharedArray(0,0)){
             Database.uploadSymmetry(rc);
             Database.uploadLocations(rc);
+            uploaded = true;
         }
     }
 
@@ -148,11 +149,11 @@ public strictfp class Carrier {
             //otherwise, mark this as known and return to base
             if (!known) {
                 Database.addWell(rc, well);
-                discoveredWellCount++;
+                uploaded = false;
             }
         }
 
-        if (discoveredWellCount > 0) {
+        if (!uploaded) {
             state = CarrierState.Returning;
         }
 
@@ -161,10 +162,10 @@ public strictfp class Carrier {
 
         int[] islands  = rc.senseNearbyIslands();
         boolean commandSent = false;
-        for(int i = 0; i < islands.length; i++){
-            if(!enemiesFound(rc) && !commandSent && rc.senseTeamOccupyingIsland(islands[i]) != rc.getTeam()
-                    && rc.canWriteSharedArray(0,0)){
-                Comms.setAnchorCommand(rc, rc.senseNearbyIslandLocations(islands[i])[0]);
+        for (int island : islands) {
+            if (!enemiesFound(rc) && !commandSent && rc.senseTeamOccupyingIsland(island) != rc.getTeam()
+                    && rc.canWriteSharedArray(0, 0)) {
+                Comms.setAnchorCommand(rc, rc.senseNearbyIslandLocations(island)[0]);
                 commandSent = true;
             }
         }
@@ -353,7 +354,7 @@ public strictfp class Carrier {
 
     static void returnUpdate(RobotController rc) throws GameActionException {
         //HQ_LOCATION.distanceSquaredTo(location) <= 2 &&
-        if (adAmount == 0 && manaAmount == 0 && elixirAmount == 0 && discoveredWellCount == 0) {
+        if (adAmount == 0 && manaAmount == 0 && elixirAmount == 0 && uploaded) {
             // Get anchor if available
             if (rc.canTakeAnchor(HQ_LOCATION, Anchor.STANDARD)) {
                 rc.takeAnchor(HQ_LOCATION, Anchor.STANDARD);
@@ -400,14 +401,7 @@ public strictfp class Carrier {
                 rc.transferResource(HQ_LOCATION,ResourceType.ADAMANTIUM, adAmount);
             }
         }
-
-        // If within comms range and has discovered well, report well.
-        if (rc.canWriteSharedArray(0, 0)) {
-            discoveredWellCount = 0;
-        }
     }
-
-
 
     static void anchorUpdate(RobotController rc) throws GameActionException {
         //If the robot no longer has an anchor (thrown), explore
@@ -446,7 +440,7 @@ public strictfp class Carrier {
                     if(rc.canWriteSharedArray(0, 0)){
                         Comms.reportIslandLocation(rc, rc.getLocation(), rc.getTeam());
                     }
-                    if (discoveredWellCount > 0) {
+                    if (!uploaded) {
                         state = CarrierState.Returning;
                     } else {
                         state = CarrierState.Exploring;
