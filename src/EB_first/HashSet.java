@@ -1,4 +1,4 @@
-package CB_tuning2;
+package EB_first;
 
 public class HashSet<E> {
 

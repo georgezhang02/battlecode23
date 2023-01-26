@@ -1,4 +1,4 @@
-package CB_tuning2;
+package EB_first;
 
 import battlecode.common.Direction;
 import battlecode.common.MapLocation;

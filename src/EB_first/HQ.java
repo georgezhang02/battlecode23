@@ -1,4 +1,4 @@
-package CB_tuning2;
+package EB_first;
 
 import battlecode.common.*;
 
@@ -292,14 +292,14 @@ public strictfp class HQ {
                         buildAmp = false;
                     }
                     MapLocation carrierBuildLoc = buildTowards(rc, carrierBuildTarget);
-                    while (rc.getResourceAmount(ResourceType.ADAMANTIUM) > 150 &&
+                    while (rc.getResourceAmount(ResourceType.ADAMANTIUM) > 130 &&
                             rc.canBuildRobot(RobotType.CARRIER, carrierBuildLoc)) {
                         rc.buildRobot(RobotType.CARRIER, carrierBuildLoc);
                         carrierBuildLoc = buildTowards(rc, carrierBuildTarget);
                         carriersBuilt++;
                     }
 
-                    while (rc.getResourceAmount(ResourceType.MANA) > 160 && rc.canBuildRobot(RobotType.LAUNCHER, centerBuildLoc)) {
+                    while (rc.getResourceAmount(ResourceType.MANA) > 125 && rc.canBuildRobot(RobotType.LAUNCHER, centerBuildLoc)) {
                         rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);
                         centerBuildLoc = buildTowards(rc, center);
                         launchersBuilt++;
@@ -322,7 +322,7 @@ public strictfp class HQ {
                         carriersBuilt++;
                     }
 
-                    while (rc.getResourceAmount(ResourceType.MANA) > 90 && rc.canBuildRobot(RobotType.LAUNCHER, centerBuildLoc)) {
+                    while (rc.getResourceAmount(ResourceType.MANA) > 75 && rc.canBuildRobot(RobotType.LAUNCHER, centerBuildLoc)) {
                         rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);
                         centerBuildLoc = buildTowards(rc, center);
                         launchersBuilt++;

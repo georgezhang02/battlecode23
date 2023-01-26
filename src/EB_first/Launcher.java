@@ -1,11 +1,11 @@
-package CB_tuning2;
+package EB_first;
 
 import battlecode.common.*;
 
 
 public strictfp class Launcher {
 
-    static final int ATTACKDMG = 30;
+    static final int ATTACKDMG = 20;
     public enum LauncherState {
         Combat, Pursuing, Exploring, Fallback, FollowingCommand, Camping
     }

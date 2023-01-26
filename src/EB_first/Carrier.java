@@ -1,4 +1,4 @@
-package CB_tuning2;
+package EB_first;
 
 import battlecode.common.*;
 
@@ -323,9 +323,6 @@ public strictfp class Carrier {
 
     static void gather(RobotController rc) throws GameActionException {
         if(assignedWell.distanceSquaredTo(location) <= 2){
-            if (rc.canCollectResource(assignedWell, -1)) {
-                rc.collectResource(assignedWell, -1);
-            }
             if (rc.canCollectResource(assignedWell, -1)) {
                 rc.collectResource(assignedWell, -1);
             }

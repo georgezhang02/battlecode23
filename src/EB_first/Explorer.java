@@ -1,4 +1,4 @@
-package CB_tuning2;
+package EB_first;
 
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
