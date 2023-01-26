@@ -49,6 +49,8 @@ public class Database {
     static boolean symmetryUpload = false;
     static boolean symmetryFound = false;
 
+    public static boolean uploadedAllLocations = false;
+
     static int globalSymmetryCount = 3;
     static HashSet<MapLocation> globalKnownLocations;
     static HashSet<MapLocation> localKnownLocations;
@@ -281,6 +283,9 @@ public class Database {
                 }
             }
         }
+        if(Clock.getBytecodesLeft() >BYTECODE_LIMIT){
+            uploadedAllLocations = true;
+        }
     }
 
     public static void addWell(RobotController rc, WellInfo info) throws GameActionException{
@@ -297,6 +302,7 @@ public class Database {
 
                             unprocessedADWells[genADSymmetries] = info.getMapLocation();
                             genADSymmetries++;
+
                         }
 
                     } else if (info.getResourceType().equals(ResourceType.MANA) && numGlobalMana < 8){
@@ -322,6 +328,9 @@ public class Database {
 
                             unprocessedADWells[genADSymmetries] = info.getMapLocation();
                             genADSymmetries++;
+
+                            uploadedAllLocations = false;
+
                         }
 
                     } else if (info.getResourceType().equals(ResourceType.MANA) && numLocalManaWells < 8){
@@ -330,6 +339,8 @@ public class Database {
                             localManaWells[index] = info.getMapLocation();
                             localKnownLocations.add(info.getMapLocation());
                             numLocalManaWells++;
+
+                            uploadedAllLocations = false;
 
                             unprocessedManaWells[genManaSymmetries] = info.getMapLocation();
                             genManaSymmetries++;
@@ -370,6 +381,8 @@ public class Database {
                         localEnemyHQs[index] = info;
                         localKnownLocations.add(info.getLocation());
                         numLocalHQs++;
+
+                        uploadedAllLocations = false;
                     }
                 }
                 uncheckedEnemyHQs[numUncheckedHQs] = info.getLocation();
