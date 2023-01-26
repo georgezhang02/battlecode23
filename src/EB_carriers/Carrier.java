@@ -7,9 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public strictfp class Carrier {
-
     static boolean initialized  = false;
-
     private enum CarrierState {
         None, Exploring, Returning, Anchoring, Gathering, Runaway
     }
@@ -36,7 +34,7 @@ public strictfp class Carrier {
     static boolean ADInRange;
     static MapLocation closestMN;
     static boolean MNInRange;
-    static Set<MapLocation> visitedWells = new HashSet<MapLocation>();
+    static Set<MapLocation> visitedWells = new HashSet<>();
 
     static Direction away;
     static MapLocation firstStep;
@@ -126,14 +124,11 @@ public strictfp class Carrier {
     }
 
     static void writeComms(RobotController rc) throws GameActionException {
-
         if(rc.canWriteSharedArray(0,0)){
             Database.uploadSymmetry(rc);
             Database.uploadLocations(rc);
         }
     }
-
-
 
     static void sense(RobotController rc) throws GameActionException{
         location = rc.getLocation();
@@ -175,7 +170,6 @@ public strictfp class Carrier {
         }
     }
 
-
     static boolean enemiesFound(RobotController rc) throws GameActionException {
         enemies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam().opponent());
         boolean enemiesFound = false;
@@ -205,6 +199,7 @@ public strictfp class Carrier {
         // Check enemies
         if(enemiesFound(rc)){
             state = CarrierState.Returning;
+            assignedWell = null;
         } else {
             // Update states
             switch (state) {
@@ -431,7 +426,6 @@ public strictfp class Carrier {
             }
         }
 
-
         Set<MapLocation> islandLocs = new HashSet<>();
         if (islands.length - inc > 0) {
             for (int id : islands) {
@@ -521,7 +515,6 @@ public strictfp class Carrier {
     private static void assignClosest(RobotController rc) {
         closestAD = Helper.getClosest(knownADWells, HQ_LOCATION);
         closestMN = Helper.getClosest(knownMNWells, HQ_LOCATION);
-
         int range;
         int round = rc.getRoundNum();
         if (round <= 4) {
