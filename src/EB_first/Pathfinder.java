@@ -17,7 +17,7 @@ public strictfp class Pathfinder {
 
     static MapLocation lastTarget;
     static boolean exploring;
-
+    static boolean robotWall = false;
 
 
     public static Direction pathBF(RobotController rc, MapLocation target) throws GameActionException {
@@ -179,25 +179,30 @@ public strictfp class Pathfinder {
             rotatingBug = false;
         }
 
-
         if(rotatingBug){
+            Direction moveDir = rc.getLocation().directionTo(target);
             if(wallLeft){
                 Direction leftWallDir = lastBugDir.rotateLeft().rotateLeft();
-                if((canMoveThrough(rc, lastBugDir, rc.getLocation().add(leftWallDir) )
-                        && canMoveThrough(rc, leftWallDir, rc.getLocation().add(leftWallDir)))
-                        || !rc.onTheMap(rc.getLocation().add(leftWallDir)))
-                {
+                if(!rc.onTheMap(rc.getLocation().add(leftWallDir))){
+                    rotatingBug = false;
+                }
+                else if(canMoveThrough(rc, lastBugDir, rc.getLocation().add(leftWallDir) )
+                        && canMoveThrough(rc, leftWallDir, rc.getLocation().add(leftWallDir))) {
+                    if(rc.canMove(moveDir) || !robotWall){
                         rotatingBug = false;
-
+                    }
                     //rc.setIndicatorString("can move through now");
                 }
             } else{
                 Direction rightWallDir = lastBugDir.rotateRight().rotateRight();
-                if((canMoveThrough(rc, lastBugDir, rc.getLocation().add(rightWallDir)) &&
-                        canMoveThrough(rc, rightWallDir, rc.getLocation().add(rightWallDir)))
-                        || !rc.onTheMap(rc.getLocation().add(rightWallDir))) {
+                if(!rc.onTheMap(rc.getLocation().add(rightWallDir))){
+                    rotatingBug = false;
+                }
+                else if(canMoveThrough(rc, lastBugDir, rc.getLocation().add(rightWallDir)) &&
+                        canMoveThrough(rc, rightWallDir, rc.getLocation().add(rightWallDir))) {
+                    if(rc.canMove(moveDir) || !robotWall){
                         rotatingBug = false;
-
+                    }
                     //rc.setIndicatorString("can move through now");
                 }
             }
@@ -239,7 +244,7 @@ public strictfp class Pathfinder {
             return Direction.CENTER;
 
         } else{
-
+            robotWall = false;
             Direction moveDir = rc.getLocation().directionTo(target);
             if(canMoveThrough(rc,moveDir, rc.getLocation().add(moveDir))){
                 //rc.setIndicatorString("i can move to "+target.toString() + " "+moveDir.toString());
@@ -310,7 +315,9 @@ public strictfp class Pathfinder {
     }
 
     static boolean canMoveThrough(RobotController rc, Direction dir, MapLocation loc) throws GameActionException{
-
+        if(rc.canSenseLocation(loc) && rc.isLocationOccupied(loc)){
+            robotWall = true;
+        }
         if(rc.canSenseLocation(loc) && rc.sensePassability(loc) && !rc.isLocationOccupied(loc)){
             MapInfo info = rc.senseMapInfo(loc);
             Direction current = info.getCurrentDirection();
