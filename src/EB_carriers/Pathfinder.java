@@ -327,6 +327,12 @@ public strictfp class Pathfinder {
                 Direction oppositeLeft = opposite.rotateLeft();
                 Direction oppositeRight = opposite.rotateRight();
                 if(current == opposite || current == oppositeLeft || current == oppositeRight){
+                    if(rc.getType().equals(RobotType.CARRIER) &&
+                            (rc.getResourceAmount(ResourceType.ADAMANTIUM)
+                            + rc.getResourceAmount(ResourceType.MANA)
+                            + rc.getResourceAmount(ResourceType.ELIXIR) <= 8)) {
+                        return true;
+                    }
                     return false;
                 }
                 return true;
