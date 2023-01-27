@@ -265,12 +265,20 @@ public strictfp class Launcher {
             }
         }
 
-
-
-        if(state == LauncherState.Fallback) {
+        if (enemiesFound){
             attackCommand = null;
             pursuitLocation = null;
-            if (rc.getLocation().distanceSquaredTo(fallbackIsland) <= RobotType.LAUNCHER.visionRadiusSquared) {
+            combatCD =5;
+            state = LauncherState.Combat;
+        } else if(state == LauncherState.Fallback) {
+            attackCommand = null;
+            pursuitLocation = null;
+            if(fallbackIsland == null){
+                fallbackIsland = getFallback(rc);
+                if(fallbackIsland == null){
+                    state = LauncherState.Exploring;
+                }
+            } else if (rc.getLocation().distanceSquaredTo(fallbackIsland) <= RobotType.LAUNCHER.visionRadiusSquared) {
                 if (rc.canSenseLocation(fallbackIsland)) {
                     if (rc.senseTeamOccupyingIsland(rc.senseIsland(fallbackIsland)) != rc.getTeam()) {
                         if(rc.canWriteSharedArray(0,0)){
@@ -285,21 +293,12 @@ public strictfp class Launcher {
             if (rc.getHealth() == RobotType.LAUNCHER.getMaxHealth()) {
                 state = LauncherState.Exploring;
             }
-        }
-
-
-
-        if (enemiesFound){
-            attackCommand = null;
-            pursuitLocation = null;
-            combatCD =5;
-            state = LauncherState.Combat;
-        }  /*else if (fallbackIsland != null && rc.getHealth() < RobotType.LAUNCHER.getMaxHealth()/4
+        } else if (fallbackIsland != null && rc.getHealth() < RobotType.LAUNCHER.getMaxHealth()/2
             && Math.sqrt(rc.getLocation().distanceSquaredTo(fallbackIsland)) <= diagonal/2){
             attackCommand = null;
             pursuitLocation = null;
             state = LauncherState.Fallback;
-        }*/
+        }
         else if( combatCD >0 && pursuitLocation!=null &&
                 rc.getLocation().distanceSquaredTo(pursuitLocation) > 5 ){
             attackCommand = null;
