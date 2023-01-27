@@ -122,7 +122,6 @@ public strictfp class Carrier {
         Database.init(rc);
         Database.downloadSymmetry(rc);
         Database.downloadLocations(rc);
-
     }
 
     static void writeComms(RobotController rc) throws GameActionException {
@@ -253,7 +252,15 @@ public strictfp class Carrier {
         //if a carrier cannot get anymore resources, return to base
         if(adAmount + manaAmount + elixirAmount == 40){
             state = CarrierState.Returning;
-        } else if (location.distanceSquaredTo(assignedWell) <= 10){
+
+        } else if(location.distanceSquaredTo(assignedWell) >= 49 && rc.getRoundNum() < 80){
+            if(closestMN != null){
+                if(location.distanceSquaredTo(assignedWell) > location.distanceSquaredTo(closestMN)){
+                    assignedWell = closestMN;
+                }
+            }
+        }
+        else if (location.distanceSquaredTo(assignedWell) <= 10){
             //THIS SECTION IS INTENDED TO MAKE IT SO THAT THE CARRIERS SWITCH THE WELL THEY'RE ASSIGNED TO IF IT'S FULL
             MapLocation[] aroundWell = rc.getAllLocationsWithinRadiusSquared(assignedWell, 2);
             int ADlimit = 3;
