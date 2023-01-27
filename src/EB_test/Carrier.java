@@ -55,7 +55,7 @@ public strictfp class Carrier {
         sense(rc);
         updateState(rc);
         runState(rc);
-        rc.setIndicatorString(state + " " + discoveredWellCount + " " + assignedWell);
+        //rc.setIndicatorString(state + " " + discoveredWellCount + " " + assignedWell);
 
         writeComms(rc);
         Database.checkSymmetries(rc);
@@ -450,7 +450,9 @@ public strictfp class Carrier {
                     anchorCommand = null;
 
                     if(rc.canWriteSharedArray(0, 0)){
+
                         Comms.reportIslandLocation(rc, rc.getLocation(), rc.getTeam());
+
                     }
                     if (discoveredWellCount > 0) {
                         state = CarrierState.Returning;

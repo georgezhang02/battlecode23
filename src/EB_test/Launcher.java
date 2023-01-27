@@ -126,12 +126,17 @@ public strictfp class Launcher {
                 break;
         }
 
-
-
         writeComms(rc);
         Database.checkSymmetries(rc);
 
         cloudAttack(rc);
+
+        String printString = Comms.getNumIslands(rc)+"";
+        Comms.Island[]arr = Comms.getAllIslands(rc);
+        for(int i =0; i< arr.length; i++){
+            printString += arr[i].location+" ";
+        }
+        rc.setIndicatorString(printString);
 
 
     }
@@ -283,7 +288,7 @@ public strictfp class Launcher {
                 if (rc.canSenseLocation(fallbackIsland)) {
                     if (rc.senseTeamOccupyingIsland(rc.senseIsland(fallbackIsland)) != rc.getTeam()) {
                         if(rc.canWriteSharedArray(0,0)){
-                            Comms.reportIslandLocation(rc, fallbackIsland, null);
+                           // Comms.reportIslandLocation(rc, fallbackIsland, null);
                         }
 
                         fallbackIsland = getFallback(rc);

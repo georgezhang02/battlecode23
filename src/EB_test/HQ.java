@@ -180,7 +180,7 @@ public strictfp class HQ {
     static void wipeComms(RobotController rc) throws GameActionException{
         Comms.Island[] teamIslands = Comms.getAllIslands(rc);
         Comms.Island[] reports = Comms.getAllIslandReports(rc);
-        rc.setIndicatorString(teamIslands.length+"");
+
 
         if(!Comms.isCommsCleaned(rc)){
             Comms.wipeComms(rc);
