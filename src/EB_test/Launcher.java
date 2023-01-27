@@ -667,7 +667,7 @@ public strictfp class Launcher {
             int range = rc.getLocation().distanceSquaredTo(attackCommands[i].location);
             if(range > rc.getType().actionRadiusSquared &&
                     (loc.distanceSquaredTo(rc.getLocation()) <=50 ||
-                            Math.sqrt(loc.distanceSquaredTo(rc.getLocation()))< diagonal/6)){
+                            Math.sqrt(loc.distanceSquaredTo(rc.getLocation()))< diagonal/4)){
 
                 if(prio > maxPrio){
                     attackCommand = attackCommands[i];
