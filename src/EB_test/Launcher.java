@@ -131,20 +131,23 @@ public strictfp class Launcher {
 
         cloudAttack(rc);
 
-        String printString = Comms.getNumIslands(rc)+"";
+        String printString = state +"";
         Comms.Island[]arr = Comms.getAllIslands(rc);
         for(int i =0; i< arr.length; i++){
             printString += arr[i].location+" ";
+
+        }
+        if(fallbackIsland != null){
+            rc.setIndicatorString(printString +" fb: " + fallbackIsland);
         }
         rc.setIndicatorString(printString);
-
 
     }
 
     static void onUnitInit(RobotController rc) throws GameActionException{
         state = LauncherState.Exploring;
         diagonal= (float) Math.sqrt(rc.getMapHeight()* rc.getMapHeight()+rc.getMapWidth()* rc.getMapHeight());
-
+        fallbackIsland = null;
     }
 
     static void onTurnStart(RobotController rc) throws GameActionException{
@@ -166,12 +169,6 @@ public strictfp class Launcher {
         Database.init(rc);
         Database.downloadSymmetry(rc);
         Database.downloadLocations(rc);
-        //if you dont have a fallback, find the island through comms
-        if(fallbackIsland == null ||
-                (Math.sqrt(rc.getLocation().distanceSquaredTo(fallbackIsland)) > diagonal/2
-                        && Math.sqrt(rc.getLocation().distanceSquaredTo(fallbackIsland)) >15)){
-            fallbackIsland = getFallback(rc);
-        }
     }
     static void sense(RobotController rc) throws GameActionException{
         int minRange = RobotType.LAUNCHER.visionRadiusSquared+1;
@@ -234,8 +231,8 @@ public strictfp class Launcher {
         boolean commandSent = false;
         for(int i = 0; i < islands.length; i++){
 
-            if(rc.senseTeamOccupyingIsland(islands[i]) == rc.getTeam()){
-                fallbackIsland = rc.senseNearbyIslandLocations(islands[i])[0];;
+            if(rc.senseTeamOccupyingIsland(islands[i]) == rc.getTeam() && fallbackIsland == null){
+                fallbackIsland = rc.senseNearbyIslandLocations(islands[i])[0];
             } else if(numEnemyMil == 0 && !commandSent && rc.canWriteSharedArray(0,0)){
                 commandSent = true;
                 Comms.setAnchorCommand(rc, rc.senseNearbyIslandLocations(islands[i])[0]);
@@ -280,18 +277,13 @@ public strictfp class Launcher {
             attackCommand = null;
             pursuitLocation = null;
             if(fallbackIsland == null){
-                fallbackIsland = getFallback(rc);
-                if(fallbackIsland == null){
-                    state = LauncherState.Exploring;
-                }
+                state = LauncherState.Exploring;
             } else if (rc.getLocation().distanceSquaredTo(fallbackIsland) <= RobotType.LAUNCHER.visionRadiusSquared) {
                 if (rc.canSenseLocation(fallbackIsland)) {
                     if (rc.senseTeamOccupyingIsland(rc.senseIsland(fallbackIsland)) != rc.getTeam()) {
                         if(rc.canWriteSharedArray(0,0)){
                            // Comms.reportIslandLocation(rc, fallbackIsland, null);
                         }
-
-                        fallbackIsland = getFallback(rc);
                         state = LauncherState.Exploring;
                     }
                 }
@@ -343,15 +335,6 @@ public strictfp class Launcher {
         //path to an open spot
         if(rc.senseIsland(rc.getLocation()) > 0){
             fallbackIsland = rc.getLocation();
-        } else if(rc.getLocation().isWithinDistanceSquared(fallbackIsland, 2)
-                && rc.isLocationOccupied(fallbackIsland)){
-            MapLocation[] possibleLocations = rc.senseNearbyIslandLocations(rc.senseIsland(fallbackIsland));
-            for(int i = 0; i < possibleLocations.length; i++){
-                if(!rc.isLocationOccupied(possibleLocations[i])){
-                    fallbackIsland = possibleLocations[i];
-                    break;
-                }
-            }
         }
         //move towards the fallbackIsland spot
         Direction dir = Pathfinder.pathBug(rc, fallbackIsland);
@@ -782,20 +765,14 @@ public strictfp class Launcher {
     //Find closest capped island
     static MapLocation getFallback(RobotController rc) throws GameActionException{
         Comms.Island[] islands = Comms.getAllIslands(rc);
-        String s = "";
-        fallbackIsland = null;
         int min = Integer.MAX_VALUE;
         for(int i = 0; i < islands.length; i++){
-            if(islands[i].owner == rc.getTeam()){
-                s += " " + islands[i].location;
                 int dist = rc.getLocation().distanceSquaredTo(islands[i].location);
                 if(dist < min){
                     fallbackIsland = islands[i].location;
                     min = dist;
                 }
-            }
         }
-        rc.setIndicatorString(s);
         return fallbackIsland;
     }
 
@@ -818,8 +795,6 @@ public strictfp class Launcher {
             Database.uploadLocations(rc);
         }
     }
-
-
 
     static boolean canMove(RobotController rc, Direction dir) throws GameActionException{
         return dir != null && rc.canMove(dir);
