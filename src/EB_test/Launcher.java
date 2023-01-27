@@ -94,6 +94,7 @@ public strictfp class Launcher {
         // sense part
         sense(rc);
         updateDatabase(rc);
+        getFallback(rc);
         selectState(rc);
 
         if(state == LauncherState.Exploring && alliesPrevious != null ){
@@ -569,7 +570,7 @@ public strictfp class Launcher {
         if(!attackSent && enemyToAttack != null){
             if(rc.canWriteSharedArray(0,0)){
                 Comms.setAttackCommand(rc, enemyToAttack.getLocation(), enemyToAttack.getType());
-                rc.setIndicatorString("sending attack command");
+                //rc.setIndicatorString("sending attack command");
                 attackSent = true;
             }
         }
@@ -624,7 +625,7 @@ public strictfp class Launcher {
 
         MapLocation target= attackCommand.location;
 
-        rc.setIndicatorString(Comms.getNumACEven(rc)+" "+ Comms.getNumACOdd(rc));
+        //rc.setIndicatorString(Comms.getNumACEven(rc)+" "+ Comms.getNumACOdd(rc));
         if(!rc.canSenseLocation(target) || rc.getLocation().distanceSquaredTo(target) > rc.getType().actionRadiusSquared){
             if(rc.isMovementReady()){
                 Direction moveDir = Pathfinder.pathBug(rc, target);
@@ -776,15 +777,20 @@ public strictfp class Launcher {
     //Find closest capped island
     static MapLocation getFallback(RobotController rc) throws GameActionException{
         Comms.Island[] islands = Comms.getAllIslands(rc);
+        String s = "";
         fallbackIsland = null;
         int min = Integer.MAX_VALUE;
         for(int i = 0; i < islands.length; i++){
-            int dist = rc.getLocation().distanceSquaredTo(islands[i].location);
-            if(dist < min){
-                fallbackIsland = islands[i].location;
-                min = dist;
+            if(islands[i].owner == rc.getTeam()){
+                s += " " + islands[i].location;
+                int dist = rc.getLocation().distanceSquaredTo(islands[i].location);
+                if(dist < min){
+                    fallbackIsland = islands[i].location;
+                    min = dist;
+                }
             }
         }
+        rc.setIndicatorString(s);
         return fallbackIsland;
     }
 
