@@ -60,7 +60,6 @@ public strictfp class HQ {
         //act part should be triggered by think part, see methods below
         build(rc);
 
-        rc.setIndicatorString(Database.rotational+" "+ Database.horizontal+" "+ Database.vertical);
 
         writeComms(rc);
         Database.checkSymmetries(rc);
@@ -180,71 +179,21 @@ public strictfp class HQ {
 
     static void wipeComms(RobotController rc) throws GameActionException{
         Comms.Island[] teamIslands = Comms.getAllIslands(rc);
+        Comms.Island[] reports = Comms.getAllIslandReports(rc);
+        rc.setIndicatorString(teamIslands.length+"");
 
-        Comms.Island[]reports = Comms.getAllIslandReports(rc);
-
+        if(!Comms.isCommsCleaned(rc)){
+            Comms.wipeComms(rc);
+        }
         boolean removed = false;
-        boolean added = false;
 
-        //reading island report comms
-        for(int j = 0; j<reports.length; j++){
-            Comms.Island report = reports[j];
-            if(report.owner == null || !report.owner.equals(rc.getTeam())){
-                // the owner is not us
-                boolean toRemove = false;
-                for(int i = 0; i< teamIslands.length; i++){
-                    if(report.location.distanceSquaredTo(teamIslands[i].location) <= 5){
-                        teamIslands[i] = null;
-                        removed = true;
-                        toRemove = true;
-                    }
-                }
-                if(toRemove) reports[j] = null;
-                // check for removal of islands based off of losing reports
-            } else {
-                for(int i = 0; i< teamIslands.length; i++){
-                    if(report.location.distanceSquaredTo(teamIslands[i].location) <= 5){
-                        reports[j]  = null;
-                    } else{
-                        added = true;
-                    }
-                }
-                // check for islands to add outside of already available team island locations
+        for(int i = 0; i<reports.length; i++){
+            if(reports[i].owner == rc.getTeam()){
+                Comms.setIsland(rc, reports[i].location, rc.getTeam());
             }
         }
 
-        if(removed){
-            if(!Comms.isCommsCleaned(rc)){
-                Comms.wipeComms(rc, false, false, true);
-            }
-            //wipe team island comms
 
-            for(int i = 0; i< teamIslands.length; i++){
-                if(teamIslands[i]!= null){
-                    Comms.setIsland(rc, teamIslands[i].location, rc.getTeam());
-                }
-            } // original island array needs updating due to removals
-            for(int i = 0; i< reports.length; i++){
-                if(reports[i]!= null){
-                    Comms.setIsland(rc, reports[i].location, rc.getTeam());
-                }
-            } // add in all reports
-        } else if(added){
-            if(!Comms.isCommsCleaned(rc)){
-                Comms.wipeComms(rc);
-            }
-            //wipe comms regularly
-            for(int i = 0; i< reports.length; i++){
-                if(reports[i]!= null){
-                    Comms.setIsland(rc, reports[i].location, rc.getTeam());
-                }
-            } // add in team reports
-        } else{
-            if(!Comms.isCommsCleaned(rc)){
-                Comms.wipeComms(rc);
-            }
-            // wipe comms
-        }
     }
 
     static void build(RobotController rc) throws GameActionException{
