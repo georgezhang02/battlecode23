@@ -130,6 +130,8 @@ public strictfp class Launcher {
         writeComms(rc);
         Database.checkSymmetries(rc);
 
+        cloudAttack(rc);
+
 
     }
 
@@ -356,11 +358,6 @@ public strictfp class Launcher {
                 if(enemy!= null && rc.canAttack(enemy.getLocation())){
                     rc.attack(enemy.getLocation());
                 }
-            }else{
-                MapLocation attackLoc = findCloudAttack(rc);
-                if(attackLoc != null){
-                    rc.attack(attackLoc);
-                }
             }
         }
     }
@@ -581,19 +578,24 @@ public strictfp class Launcher {
         return enemyToAttack;
     }
 
-    static MapLocation findCloudAttack(RobotController rc) throws GameActionException {
+    static void cloudAttack(RobotController rc) throws GameActionException {
         int minDist = 10000;
         MapLocation attackLoc = null;
-        if (rc.senseMapInfo(rc.getLocation()).getCooldownMultiplier(rc.getTeam()) <= 1){
-            for (int i = 0; i < clouds.length; i++) {
+        if (rc.isActionReady() && rc.senseMapInfo(rc.getLocation()).getCooldownMultiplier(rc.getTeam()) <= 1){
+            for (int i = 0; i < clouds.length && Clock.getBytecodesLeft() > 500; i++) {
                 int range = rc.getLocation().distanceSquaredTo(clouds[i]);
                 if (rc.canAttack(clouds[i]) && range > 4 && range < minDist) {
                     minDist = range;
                     attackLoc = clouds[i];
                 }
             }
+
+            if(attackLoc!= null){
+                rc.attack(attackLoc);
+            }
         }
-        return attackLoc;
+
+
 
 
     }
@@ -611,11 +613,6 @@ public strictfp class Launcher {
                     RobotInfo enemy = findAttack(rc);
                     if(enemy!= null && rc.canAttack(enemy.getLocation())){
                         rc.attack(enemy.getLocation());
-                    }
-                } else{
-                    MapLocation attackLoc = findCloudAttack(rc);
-                    if(attackLoc != null){
-                        rc.attack(attackLoc);
                     }
                 }
             }
@@ -640,11 +637,6 @@ public strictfp class Launcher {
                     RobotInfo enemy = findAttack(rc);
                     if(enemy!= null && rc.canAttack(enemy.getLocation())){
                         rc.attack(enemy.getLocation());
-                    }
-                }else{
-                    MapLocation attackLoc = findCloudAttack(rc);
-                    if(attackLoc != null){
-                        rc.attack(attackLoc);
                     }
                 }
 
@@ -720,11 +712,6 @@ public strictfp class Launcher {
                     if(enemy!= null && rc.canAttack(enemy.getLocation())){
                         rc.attack(enemy.getLocation());
                     }
-                } else{
-                    MapLocation attackLoc = findCloudAttack(rc);
-                    if(attackLoc != null){
-                        rc.attack(attackLoc);
-                    }
                 }
             }
 
@@ -746,11 +733,6 @@ public strictfp class Launcher {
                 RobotInfo enemy = findAttack(rc);
                 if(enemy!= null && rc.canAttack(enemy.getLocation())){
                     rc.attack(enemy.getLocation());
-                }
-            } else{
-                MapLocation attackLoc = findCloudAttack(rc);
-                if(attackLoc != null){
-                    rc.attack(attackLoc);
                 }
             }
         }
