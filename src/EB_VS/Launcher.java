@@ -1,4 +1,4 @@
-package EB_test;
+package EB_VS;
 
 import battlecode.common.*;
 
@@ -291,7 +291,7 @@ public strictfp class Launcher {
             if (rc.getHealth() == RobotType.LAUNCHER.getMaxHealth()) {
                 state = LauncherState.Exploring;
             }
-        } else if (fallbackIsland != null && rc.getHealth() < RobotType.LAUNCHER.getMaxHealth()/2
+        } else if (fallbackIsland != null && rc.getHealth() < RobotType.LAUNCHER.getMaxHealth()
             && Math.sqrt(rc.getLocation().distanceSquaredTo(fallbackIsland)) <= diagonal/2){
             attackCommand = null;
             pursuitLocation = null;

@@ -1,4 +1,4 @@
-package EB_test;
+package EB_VS;
 
 import battlecode.common.*;
 
@@ -464,7 +464,7 @@ public strictfp class Carrier {
         } else if(rc.getLocation().equals(anchorCommand)) {
             anchorCommand = null;
             pathExplore(rc);
-        } else if(anchorCommand != null || searchAnchorCommands(rc) != null
+        }else if(anchorCommand != null || searchAnchorCommands(rc) != null
             && !rc.canSenseLocation(anchorCommand)){
             if(rc.isMovementReady()){
                 Direction moveDir = Pathfinder.pathBug(rc, anchorCommand);
