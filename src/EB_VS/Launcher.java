@@ -131,16 +131,7 @@ public strictfp class Launcher {
 
         cloudAttack(rc);
 
-        String printString = state +"";
-        Comms.Island[]arr = Comms.getAllIslands(rc);
-        for(int i =0; i< arr.length; i++){
-            printString += arr[i].location+" ";
 
-        }
-        if(fallbackIsland != null){
-            rc.setIndicatorString(printString +" fb: " + fallbackIsland);
-        }
-        rc.setIndicatorString(printString);
 
     }
 
@@ -282,7 +273,7 @@ public strictfp class Launcher {
                 if (rc.canSenseLocation(fallbackIsland)) {
                     if (rc.senseTeamOccupyingIsland(rc.senseIsland(fallbackIsland)) != rc.getTeam()) {
                         if(rc.canWriteSharedArray(0,0)){
-                           // Comms.reportIslandLocation(rc, fallbackIsland, null);
+                            Comms.reportIslandLocation(rc, fallbackIsland, null);
                         }
                         state = LauncherState.Exploring;
                     }
@@ -291,7 +282,7 @@ public strictfp class Launcher {
             if (rc.getHealth() == RobotType.LAUNCHER.getMaxHealth()) {
                 state = LauncherState.Exploring;
             }
-        } else if (fallbackIsland != null && rc.getHealth() < RobotType.LAUNCHER.getMaxHealth()
+        } else if (fallbackIsland != null && rc.getHealth() < RobotType.LAUNCHER.getMaxHealth()/2
             && Math.sqrt(rc.getLocation().distanceSquaredTo(fallbackIsland)) <= diagonal/2){
             attackCommand = null;
             pursuitLocation = null;
@@ -337,7 +328,7 @@ public strictfp class Launcher {
             fallbackIsland = rc.getLocation();
         }
         //move towards the fallbackIsland spot
-        Direction dir = Pathfinder.pathBug(rc, fallbackIsland);
+        Direction dir = Pathfinder.pathGreedy(rc, fallbackIsland);
         if(rc.canMove(dir)) {
             rc.move(dir);
             sense(rc);
@@ -382,23 +373,21 @@ public strictfp class Launcher {
             // no action available, run from enemies
             if(nearestEnemyMil != null &&
                     (nearestEnemyMil.getLocation().distanceSquaredTo(rc.getLocation()) <= 16 && rc.getActionCooldownTurns()<=1)){
-               // rc.setIndicatorString("no actions, run");
+
                 return Pathfinder.pathAwayFrom(rc, nearestEnemyMil.getLocation());
             }  else if(attackRobot!= null){
-                //rc.setIndicatorString("pursue");
+
                 pursuitLocation = attackRobot.getLocation();
                 pursue(rc);
             }
         } else{
             // action ready
-            //rc.setIndicatorString(attackRobot+"");
             if(attackRobot!= null){
 
                 MapLocation attackLoc = attackRobot.getLocation();
 
                 if(rc.canAttack(attackLoc)){
                     // if attack already in radius, attack and kite
-                  //  rc.setIndicatorString("attack and kite");
                     rc.attack(attackLoc);
                     moveFirst = false;
                     if(nearestEnemyMil != null){
@@ -466,7 +455,7 @@ public strictfp class Launcher {
 
 
                     if(moveToAttack){
-                        //rc.setIndicatorString("move and hit to kill");
+
                         moveFirst = true;
                         return Pathfinder.pathBug(rc, attackLoc);
                     }
@@ -558,7 +547,6 @@ public strictfp class Launcher {
         if(!attackSent && enemyToAttack != null){
             if(rc.canWriteSharedArray(0,0)){
                 Comms.setAttackCommand(rc, enemyToAttack.getLocation(), enemyToAttack.getType());
-                //rc.setIndicatorString("sending attack command");
                 attackSent = true;
             }
         }
@@ -591,8 +579,7 @@ public strictfp class Launcher {
     static void pursue(RobotController rc) throws GameActionException{
 
         if(rc.isMovementReady()){
-           // rc.setIndicatorString(pursuitLocation+"");
-            Direction moveDir = Pathfinder.pathBug(rc, pursuitLocation);
+            Direction moveDir = Pathfinder.pathGreedy(rc, pursuitLocation);
 
             if(canMove(rc, moveDir)){
                 rc.move(moveDir);
@@ -613,10 +600,9 @@ public strictfp class Launcher {
 
         MapLocation target= attackCommand.location;
 
-        //rc.setIndicatorString(Comms.getNumACEven(rc)+" "+ Comms.getNumACOdd(rc));
         if(!rc.canSenseLocation(target) || rc.getLocation().distanceSquaredTo(target) > rc.getType().actionRadiusSquared){
             if(rc.isMovementReady()){
-                Direction moveDir = Pathfinder.pathBug(rc, target);
+                Direction moveDir = Pathfinder.pathGreedy(rc, target);
                 if(canMove(rc, moveDir)){
                     rc.move(moveDir);
                 }
@@ -647,7 +633,7 @@ public strictfp class Launcher {
             int range = rc.getLocation().distanceSquaredTo(attackCommands[i].location);
             if(range > rc.getType().actionRadiusSquared &&
                     (loc.distanceSquaredTo(rc.getLocation()) <=50 ||
-                            Math.sqrt(loc.distanceSquaredTo(rc.getLocation()))< diagonal/4)){
+                            Math.sqrt(loc.distanceSquaredTo(rc.getLocation()))< diagonal/3)){
 
                 if(prio > maxPrio){
                     attackCommand = attackCommands[i];
@@ -669,7 +655,7 @@ public strictfp class Launcher {
         if(RobotPlayer.turnCount < 2 && numAllyMil > 0 &&
                 nearestAllyMil.getLocation().distanceSquaredTo(rc.getLocation()) >=2){
             canExplore = true;
-            dir = Pathfinder.pathBug(rc, nearestAllyMil.getLocation());
+            dir = Pathfinder.pathGreedy(rc, nearestAllyMil.getLocation());
             if(canMoveToExplore(rc, dir)) {
                 rc.move(dir);
             }
@@ -683,13 +669,14 @@ public strictfp class Launcher {
                 detachCD =4;
             }
             if((movementChange || detachCD > 0)  && numNearbyAllyMil < 5 &&
-                    rc.getLocation().distanceSquaredTo(followBot.getLocation()) >2){
+                    rc.getLocation().distanceSquaredTo(followBot.getLocation()) >2
+                        && (!Pathfinder.rotatingBug && !Pathfinder.directBug)){
 
-                dir = Pathfinder.pathBug(rc, followBot.getLocation());
+                dir = Pathfinder.pathGreedy(rc, followBot.getLocation());
 
             } else{
                 dir = Pathfinder.pathToExploreHQ(rc);
-                //rc.setIndicatorString("pathing to explore" + Explorer.target);
+
             }
             if(canMoveToExplore(rc, dir)){
 

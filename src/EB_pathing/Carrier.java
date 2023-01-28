@@ -56,7 +56,7 @@ public strictfp class Carrier {
         sense(rc);
         updateState(rc);
         runState(rc);
-        rc.setIndicatorString(state + " " + discoveredWellCount + " " + assignedWell);
+        rc.setIndicatorString(state + " " + rc.getAnchor() + " " + assignedWell);
         //rc.setIndicatorString(turnsStuck +"");
         writeComms(rc);
         Database.checkSymmetries(rc);
@@ -380,7 +380,7 @@ public strictfp class Carrier {
             if (rc.canTakeAnchor(HQ_LOCATION, Anchor.STANDARD)) {
                 rc.takeAnchor(HQ_LOCATION, Anchor.STANDARD);
                 state = CarrierState.Anchoring;
-            } else if (rc.getNumAnchors(Anchor.STANDARD) > 0) {
+            } else if (rc.getAnchor() != null) {
                 state = CarrierState.Anchoring;
             }
             else if (assignedWell == null) {

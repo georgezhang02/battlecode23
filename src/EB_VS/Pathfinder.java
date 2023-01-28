@@ -20,6 +20,8 @@ public strictfp class Pathfinder {
     static boolean robotWall = false;
 
 
+
+
     public static Direction pathBF(RobotController rc, MapLocation target) throws GameActionException {
 
         if(!target.equals(lastTarget)){
@@ -38,10 +40,8 @@ public strictfp class Pathfinder {
 
             if(moveDir ==null || moveDir == Direction.CENTER || rc.getLocation().add(moveDir).equals(lastLocation)){
                 directBug = true;
-
                 return pathBug(rc, target);
             }
-
 
             lastLocation = rc.getLocation();
 
@@ -86,7 +86,7 @@ public strictfp class Pathfinder {
             Explorer.getHQExploreTarget(rc);
         }
         //rc.setIndicatorString(Explorer.target+"");
-        Direction dir = pathBug(rc, Explorer.target);
+        Direction dir = pathGreedy(rc, Explorer.target);
 
         exploring = true;
         return dir;
@@ -97,7 +97,7 @@ public strictfp class Pathfinder {
         if(!exploring || rc.getLocation().distanceSquaredTo(Explorer.target) <= 16){
             Explorer.getExploreTarget(rc, 10, rc.getMapWidth(), rc.getMapHeight());
         }
-        //rc.setIndicatorString(Explorer.target+"");
+        rc.setIndicatorLine(rc.getLocation(), Explorer.target, 0, 255, 255);
         Direction dir = pathBug(rc, Explorer.target);
 
 
@@ -143,64 +143,224 @@ public strictfp class Pathfinder {
         int distYToTarget = target.y - curLoc.y;
 
         MapLocation runawayTarget = new MapLocation(curLoc.x-distXToTarget, curLoc.y-distYToTarget);
-        return pathBug(rc, runawayTarget);
+        return pathGreedy(rc, runawayTarget);
 
     }
     public static Direction pathGreedy(RobotController rc, MapLocation target)throws GameActionException {
         exploring = false;
-        if (directBug){
-            return pathBug(rc, target);
-        } else{
-            return pathGreedyDepth(rc,  target, 2);
-        }
+        return pathGreedyDepth(rc, rc.getLocation(),  target, 2);
 
     }
 
-    public static Direction pathGreedyDepth(RobotController rc, MapLocation target, int depth)throws GameActionException {
-        exploring = false;
-        if (directBug){
-            return pathBug(rc, target);
+    public static double pathGreedyHelper(RobotController rc, MapLocation loc, MapLocation target, int depth) throws GameActionException {
+
+        double lowestCost = 10000;
+        Direction moveDir = loc.directionTo(target);
+        Direction left = moveDir.rotateLeft();
+        Direction right = moveDir.rotateRight();
+        Direction left_left = left.rotateLeft();
+        Direction right_right = right.rotateRight();
+        if(depth == 1){
+
+
+            if(canMoveThrough(rc, moveDir, loc.add(moveDir) )){
+                double cost = 10 * rc.senseMapInfo(loc.add(moveDir)).getCooldownMultiplier(rc.getTeam());
+                if(cost < lowestCost){
+                    lowestCost = cost;
+                }
+            }
+            if(canMoveThrough(rc, left, loc.add(left) )){
+                double cost = 10 * rc.senseMapInfo(loc.add(left)).getCooldownMultiplier(rc.getTeam());
+                if(cost < lowestCost){
+                    lowestCost = cost;
+                }
+            }
+
+            if(canMoveThrough(rc, right, loc.add(right) )){
+                double cost = 10 * rc.senseMapInfo(loc.add(right)).getCooldownMultiplier(rc.getTeam());
+                if(cost < lowestCost){
+                    lowestCost = cost;
+                }
+            }
+            if(canMoveThrough(rc, right, loc.add(left_left) )){
+                double cost = 10 * rc.senseMapInfo(loc.add(left_left)).getCooldownMultiplier(rc.getTeam());
+                if(cost < lowestCost){
+                    lowestCost = cost;
+                }
+            }
+            if(canMoveThrough(rc, right, loc.add(right_right) )){
+                double cost = 10 * rc.senseMapInfo(loc.add(right_right)).getCooldownMultiplier(rc.getTeam());
+                if(cost < lowestCost){
+                    lowestCost = cost;
+                }
+            }
+
+        } else{
+
+            if(canMoveThrough(rc, moveDir, loc.add(moveDir) )){
+                double cost = 10 * rc.senseMapInfo(loc.add(moveDir)).getCooldownMultiplier(rc.getTeam());
+                cost += pathGreedyHelper(rc, loc.add(moveDir), target, depth-1);
+                if(cost < lowestCost){
+                    lowestCost = cost;
+                }
+            }
+            if(canMoveThrough(rc, left, loc.add(left) )){
+                double cost = 10 * rc.senseMapInfo(loc.add(left)).getCooldownMultiplier(rc.getTeam());
+                cost += pathGreedyHelper(rc, loc.add(left), target, depth-1);
+                if(cost < lowestCost){
+                    lowestCost = cost;
+                }
+            }
+
+            if(canMoveThrough(rc, right, loc.add(right) )){
+                double cost = 10 * rc.senseMapInfo(loc.add(right)).getCooldownMultiplier(rc.getTeam());
+                cost += pathGreedyHelper(rc, loc.add(right), target, depth-1);
+                if(cost < lowestCost){
+                    lowestCost = cost;
+                }
+            }
+            if(canMoveThrough(rc, right, loc.add(left_left) )){
+                double cost = 10 * rc.senseMapInfo(loc.add(left_left)).getCooldownMultiplier(rc.getTeam());
+                cost += pathGreedyHelper(rc, loc.add(left_left), target, depth-1);
+                if(cost < lowestCost){
+                    lowestCost = cost;
+                }
+            }
+            if(canMoveThrough(rc, right, loc.add(right_right) )){
+                double cost = 10 * rc.senseMapInfo(loc.add(right_right)).getCooldownMultiplier(rc.getTeam());
+                cost += pathGreedyHelper(rc, loc.add(right_right), target, depth-1);
+                if(cost < lowestCost){
+                    lowestCost = cost;
+                }
+            }
         }
-        return pathBug(rc, target);
+        return lowestCost;
+
+    }
+
+    public static Direction pathGreedyDepth(RobotController rc, MapLocation loc, MapLocation target, int depth)throws GameActionException {
+        exploring = false;
+        if(!target.equals(lastTarget)){
+            rotatingBug = false;
+            directBug = false;
+        }
+        lastTarget=target;
+
+        if(directBug || (rotatingBug && currentDist>=lowestDist)){
+            //rc.setIndicatorString("pathing bug, alreadypathing bug " + target);
+            Direction moveDir = pathBugHelper(rc, target);
+            if(directBug || rotatingBug){
+                return moveDir;
+            }
+
+        }
+
+        rc.setIndicatorString("pathing Greedy" + target);
+
+        double lowestCost = 10000;
+
+        Direction dir = null;
+
+        Direction moveDir = loc.directionTo(target);
+        Direction left = moveDir.rotateLeft();
+        Direction right = moveDir.rotateRight();
+
+        if(canMoveThrough(rc, moveDir, loc.add(moveDir) )){
+            double cost = 10 * rc.senseMapInfo(loc.add(moveDir)).getCooldownMultiplier(rc.getTeam());
+            cost += pathGreedyHelper(rc, loc.add(moveDir), target, depth-1);
+
+            if(cost < lowestCost){
+                dir = moveDir;
+                lowestCost = cost;
+            }
+        }
+        if(canMoveThrough(rc, left, loc.add(left) )){
+            double cost = 10 * rc.senseMapInfo(loc.add(left)).getCooldownMultiplier(rc.getTeam());
+            cost += pathGreedyHelper(rc, loc.add(left), target, depth-1);
+
+            if(cost < lowestCost){
+                dir = left;
+                lowestCost = cost;
+            }
+        }
+        if(canMoveThrough(rc, right, loc.add(right) )){
+            double cost = 10 * rc.senseMapInfo(loc.add(right)).getCooldownMultiplier(rc.getTeam());
+            cost += pathGreedyHelper(rc, loc.add(right), target, depth-1);
+
+            if(cost < lowestCost){
+                dir = right;
+                lowestCost = cost;
+            }
+        }
+
+
+        if(dir!= null && lowestCost <1000){
+            return dir;
+        } else{
+            directBug = true;
+            rotatingBug = false;
+            //rc.setIndicatorString("greedy fail, pathing bug" + target);
+            return pathBugHelper(rc, target);
+        }
 
     }
 
     public static Direction pathBug(RobotController rc, MapLocation target)throws GameActionException {
         exploring = false;
-        boolean found = false;
-        currentDist = Math.sqrt(rc.getLocation().distanceSquaredTo(target));
+        directBug = true;
 
         if(!target.equals(lastTarget)){
             rotatingBug = false;
         }
         lastTarget=target;
 
-        if(currentDist < lowestDist){
+        return pathBugHelper(rc, target);
+
+
+    }
+
+    public static Direction pathBugHelper(RobotController rc, MapLocation target) throws GameActionException {
+        currentDist = Math.sqrt(rc.getLocation().distanceSquaredTo(target));
+
+
+        if(rotatingBug && rotationCount>=4){
+            rotationCount = 0;
             rotatingBug = false;
+            directBug = false;
+
         }
 
         if(rotatingBug){
             Direction moveDir = rc.getLocation().directionTo(target);
             if(wallLeft){
                 Direction leftWallDir = lastBugDir.rotateLeft().rotateLeft();
-                if(!rc.onTheMap(rc.getLocation().add(leftWallDir))){
-                    rotatingBug = false;
-                }
-                else if(canMoveThrough(rc, lastBugDir, rc.getLocation().add(leftWallDir) )
+                if(canMoveThrough(rc, lastBugDir, rc.getLocation().add(leftWallDir) )
                         && canMoveThrough(rc, leftWallDir, rc.getLocation().add(leftWallDir))) {
-                    if(rc.canMove(moveDir) || !robotWall){
+                    if(!rc.onTheMap(rc.getLocation().add(leftWallDir))){
+                        rotatingBug = false;
+                        directBug = false;
+                        rc.setIndicatorString("off the map");
+                    }
+                    else if(robotWall){
+                        robotWall = false;
+                        return leftWallDir;
+                    } else{
                         rotatingBug = false;
                     }
                     //rc.setIndicatorString("can move through now");
                 }
             } else{
                 Direction rightWallDir = lastBugDir.rotateRight().rotateRight();
-                if(!rc.onTheMap(rc.getLocation().add(rightWallDir))){
-                    rotatingBug = false;
-                }
-                else if(canMoveThrough(rc, lastBugDir, rc.getLocation().add(rightWallDir)) &&
+                if(canMoveThrough(rc, lastBugDir, rc.getLocation().add(rightWallDir)) &&
                         canMoveThrough(rc, rightWallDir, rc.getLocation().add(rightWallDir))) {
-                    if(rc.canMove(moveDir) || !robotWall){
+                    if(!rc.onTheMap(rc.getLocation().add(rightWallDir))){
+                        rotatingBug = false;
+                        directBug = false;
+                        rc.setIndicatorString("off the map");
+                    } else if(robotWall){
+                        robotWall = false;
+                        return rightWallDir;
+                    } else{
                         rotatingBug = false;
                     }
                     //rc.setIndicatorString("can move through now");
@@ -210,12 +370,23 @@ public strictfp class Pathfinder {
 
         if(rotatingBug){
             if(wallLeft){
+
                 rc.setIndicatorDot(rc.getLocation().add(lastBugDir.rotateLeft().rotateLeft()), 255, 255, 0);
                 int count = 0;
                 while( count <4){
-                    if(canMoveThrough(rc, lastBugDir.rotateLeft(), rc.getLocation().add(lastBugDir.rotateLeft()))){
+                    MapLocation moveTo = rc.getLocation().add(lastBugDir);
+                    if(!rc.onTheMap(moveTo)){
+                        rc.setIndicatorString("off the map, swapping to wall right");
+                        lastBugDir = lastBugDir.rotateRight().rotateRight().rotateRight().rotateRight();
+                        rotationCount = 0;
+                        wallLeft = false;
+                        break;
+                    }else if(canMoveThrough(rc, lastBugDir.rotateLeft(), rc.getLocation().add(lastBugDir.rotateLeft()))){
                         Direction ans = lastBugDir.rotateLeft();
                         lastBugDir = lastBugDir.rotateLeft().rotateLeft();
+                        rc.setIndicatorString("turning corner " + target+" "
+                            +currentDist +" "+lowestDist);
+                        rotationCount ++;
                         return ans;
                     } else if(canMoveThrough(rc, lastBugDir, rc.getLocation().add(lastBugDir))){
                         return lastBugDir;
@@ -227,9 +398,19 @@ public strictfp class Pathfinder {
                 rc.setIndicatorDot(rc.getLocation().add(lastBugDir.rotateRight().rotateRight()), 255, 255, 0);
                 int count = 0;
                 while( count <4){
-                    if(canMoveThrough(rc, lastBugDir.rotateRight(), rc.getLocation().add(lastBugDir.rotateRight()))){
+                    MapLocation moveTo = rc.getLocation().add(lastBugDir);
+                    if(!rc.onTheMap(moveTo)){
+                        rc.setIndicatorString("off the map, swapping to wall left");
+                        lastBugDir = lastBugDir.rotateRight().rotateRight().rotateRight().rotateRight();
+                        rotationCount = 0;
+                        wallLeft = true;
+                        break;
+                    } else if(canMoveThrough(rc, lastBugDir.rotateRight(), rc.getLocation().add(lastBugDir.rotateRight()))){
                         Direction ans = lastBugDir.rotateRight();
                         lastBugDir = lastBugDir.rotateRight().rotateRight();
+                        rotationCount ++;
+                        rc.setIndicatorString("turning corner " + target+" "
+                                +currentDist);
                         return ans;
                     } else if(canMoveThrough(rc, lastBugDir, rc.getLocation().add(lastBugDir))){
                         return lastBugDir;
@@ -239,13 +420,12 @@ public strictfp class Pathfinder {
                 }
 
             }
-
-
             return Direction.CENTER;
 
-        } else{
+        } else if (directBug){
             robotWall = false;
             Direction moveDir = rc.getLocation().directionTo(target);
+            directBug = true;
             if(canMoveThrough(rc,moveDir, rc.getLocation().add(moveDir))){
                 //rc.setIndicatorString("i can move to "+target.toString() + " "+moveDir.toString());
                 return moveDir;
@@ -284,8 +464,7 @@ public strictfp class Pathfinder {
                         } else{
                             lastBugDir= left;
                         }
-                        /*rc.setIndicatorString("starting rotation left"+target.toString() +" "+lastBugDir.toString()+
-                                " ");*/
+                        //rc.setIndicatorString("starting rotation wall right"+target.toString() +" "+lastBugDir.toString()+ " ");
 
 
 
@@ -298,8 +477,7 @@ public strictfp class Pathfinder {
                             lastBugDir= right;
                         }
 
-                       /* rc.setIndicatorString("starting rotation right"+target.toString() +" "+lastBugDir.toString()+
-                                " ");*/
+                        //rc.setIndicatorString("starting rotation wall left"+target.toString() +" "+lastBugDir.toString()+ " ");
 
 
                         return right;
@@ -311,7 +489,7 @@ public strictfp class Pathfinder {
                 }
             }
         }
-
+        return Direction.CENTER;
     }
 
     static boolean canMoveThrough(RobotController rc, Direction dir, MapLocation loc) throws GameActionException{

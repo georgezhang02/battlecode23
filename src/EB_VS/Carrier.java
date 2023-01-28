@@ -43,6 +43,7 @@ public strictfp class Carrier {
     static Direction turn;
     static MapLocation secondStep;
 
+    static int turnsStuck;
     static MapLocation anchorCommand;
 
     static void run(RobotController rc) throws GameActionException {
@@ -55,8 +56,8 @@ public strictfp class Carrier {
         sense(rc);
         updateState(rc);
         runState(rc);
-        //rc.setIndicatorString(state + " " + discoveredWellCount + " " + assignedWell);
-
+        rc.setIndicatorString(state + " " + discoveredWellCount + " " + assignedWell);
+        //rc.setIndicatorString(turnsStuck +"");
         writeComms(rc);
         Database.checkSymmetries(rc);
     }
@@ -122,7 +123,6 @@ public strictfp class Carrier {
         Database.init(rc);
         Database.downloadSymmetry(rc);
         Database.downloadLocations(rc);
-
     }
 
     static void writeComms(RobotController rc) throws GameActionException {
@@ -253,7 +253,15 @@ public strictfp class Carrier {
         //if a carrier cannot get anymore resources, return to base
         if(adAmount + manaAmount + elixirAmount == 40){
             state = CarrierState.Returning;
-        } else if (location.distanceSquaredTo(assignedWell) <= 10){
+
+        } else if(location.distanceSquaredTo(assignedWell) >= 49 && rc.getRoundNum() < 80){
+            if(closestMN != null){
+                if(location.distanceSquaredTo(assignedWell) > location.distanceSquaredTo(closestMN)){
+                    assignedWell = closestMN;
+                }
+            }
+        }
+        else if (location.distanceSquaredTo(assignedWell) <= 10){
             //THIS SECTION IS INTENDED TO MAKE IT SO THAT THE CARRIERS SWITCH THE WELL THEY'RE ASSIGNED TO IF IT'S FULL
             MapLocation[] aroundWell = rc.getAllLocationsWithinRadiusSquared(assignedWell, 2);
             int ADlimit = 3;
@@ -298,8 +306,11 @@ public strictfp class Carrier {
                         if (nextWell != null) {
                             assignedWell = nextWell;
                             assignedType = 0;
-                        } else {
+                        } else if(turnsStuck > 2 || rc.getRoundNum() > 10){
                             state = CarrierState.Exploring;
+                            turnsStuck = 0;
+                        }else{
+                            turnsStuck++;
                         }
                     }
                 } else {
@@ -312,11 +323,17 @@ public strictfp class Carrier {
                         if (nextWell != null) {
                             assignedWell = nextWell;
                             assignedType = 1;
-                        } else {
+                        } else if(turnsStuck > 2 || rc.getRoundNum() > 10){
                             state = CarrierState.Exploring;
+                            turnsStuck = 0;
+                        } else {
+                            turnsStuck++;
                         }
                     }
                 }
+            }
+            else{
+                turnsStuck = 0;
             }
         }
     }
@@ -461,13 +478,10 @@ public strictfp class Carrier {
                     }
                 }
             }
-        } else if(rc.getLocation().equals(anchorCommand)) {
-            anchorCommand = null;
-            pathExplore(rc);
-        }else if(anchorCommand != null || searchAnchorCommands(rc) != null
+        }  else if(anchorCommand != null || searchAnchorCommands(rc) != null
             && !rc.canSenseLocation(anchorCommand)){
             if(rc.isMovementReady()){
-                Direction moveDir = Pathfinder.pathBug(rc, anchorCommand);
+                Direction moveDir = Pathfinder.pathGreedy(rc, anchorCommand);
                 if(moveDir != null && rc.canMove(moveDir)){
                     rc.move(moveDir);
                 }
@@ -515,7 +529,7 @@ public strictfp class Carrier {
 
     static void pathTowards(RobotController rc, MapLocation target) throws GameActionException {
         if(rc.isMovementReady()) {
-            Direction moveDir = Pathfinder.pathBug(rc, target);
+            Direction moveDir = Pathfinder.pathGreedy(rc, target);
             if(moveDir != null && rc.canMove(moveDir)){
                 rc.move(moveDir);
                 run(rc);
