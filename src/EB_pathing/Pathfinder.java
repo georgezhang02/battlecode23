@@ -20,6 +20,8 @@ public strictfp class Pathfinder {
     static boolean robotWall = false;
 
 
+
+
     public static Direction pathBF(RobotController rc, MapLocation target) throws GameActionException {
 
         if(!target.equals(lastTarget)){
@@ -38,10 +40,8 @@ public strictfp class Pathfinder {
 
             if(moveDir ==null || moveDir == Direction.CENTER || rc.getLocation().add(moveDir).equals(lastLocation)){
                 directBug = true;
-
                 return pathBug(rc, target);
             }
-
 
             lastLocation = rc.getLocation();
 
@@ -246,12 +246,13 @@ public strictfp class Pathfinder {
         }
         lastTarget=target;
 
-        if(directBug|| rotatingBug){
+        if(directBug || (rotatingBug && currentDist>=lowestDist)){
             //rc.setIndicatorString("pathing bug, alreadypathing bug " + target);
             Direction moveDir = pathBugHelper(rc, target);
             if(directBug || rotatingBug){
                 return moveDir;
             }
+
         }
 
         rc.setIndicatorString("pathing Greedy" + target);
@@ -321,8 +322,12 @@ public strictfp class Pathfinder {
     public static Direction pathBugHelper(RobotController rc, MapLocation target) throws GameActionException {
         currentDist = Math.sqrt(rc.getLocation().distanceSquaredTo(target));
 
-        if(currentDist < lowestDist){
+
+        if(rotatingBug && rotationCount>=4){
+            rotationCount = 0;
             rotatingBug = false;
+            directBug = false;
+
         }
 
         if(rotatingBug){
@@ -331,7 +336,15 @@ public strictfp class Pathfinder {
                 Direction leftWallDir = lastBugDir.rotateLeft().rotateLeft();
                 if(canMoveThrough(rc, lastBugDir, rc.getLocation().add(leftWallDir) )
                         && canMoveThrough(rc, leftWallDir, rc.getLocation().add(leftWallDir))) {
-                    if(rc.canMove(moveDir) || !robotWall){
+                    if(!rc.onTheMap(rc.getLocation().add(leftWallDir))){
+                        rotatingBug = false;
+                        directBug = false;
+                        rc.setIndicatorString("off the map");
+                    }
+                    else if(robotWall){
+                        robotWall = false;
+                        return leftWallDir;
+                    } else{
                         rotatingBug = false;
                     }
                     //rc.setIndicatorString("can move through now");
@@ -340,7 +353,14 @@ public strictfp class Pathfinder {
                 Direction rightWallDir = lastBugDir.rotateRight().rotateRight();
                 if(canMoveThrough(rc, lastBugDir, rc.getLocation().add(rightWallDir)) &&
                         canMoveThrough(rc, rightWallDir, rc.getLocation().add(rightWallDir))) {
-                    if(rc.canMove(moveDir) || !robotWall){
+                    if(!rc.onTheMap(rc.getLocation().add(rightWallDir))){
+                        rotatingBug = false;
+                        directBug = false;
+                        rc.setIndicatorString("off the map");
+                    } else if(robotWall){
+                        robotWall = false;
+                        return rightWallDir;
+                    } else{
                         rotatingBug = false;
                     }
                     //rc.setIndicatorString("can move through now");
@@ -356,13 +376,17 @@ public strictfp class Pathfinder {
                 while( count <4){
                     MapLocation moveTo = rc.getLocation().add(lastBugDir);
                     if(!rc.onTheMap(moveTo)){
-                        rc.setIndicatorString("off the map");
+                        rc.setIndicatorString("off the map, swapping to wall right");
                         lastBugDir = lastBugDir.rotateRight().rotateRight().rotateRight().rotateRight();
+                        rotationCount = 0;
                         wallLeft = false;
                         break;
                     }else if(canMoveThrough(rc, lastBugDir.rotateLeft(), rc.getLocation().add(lastBugDir.rotateLeft()))){
                         Direction ans = lastBugDir.rotateLeft();
                         lastBugDir = lastBugDir.rotateLeft().rotateLeft();
+                        rc.setIndicatorString("turning corner " + target+" "
+                            +currentDist +" "+lowestDist);
+                        rotationCount ++;
                         return ans;
                     } else if(canMoveThrough(rc, lastBugDir, rc.getLocation().add(lastBugDir))){
                         return lastBugDir;
@@ -376,13 +400,17 @@ public strictfp class Pathfinder {
                 while( count <4){
                     MapLocation moveTo = rc.getLocation().add(lastBugDir);
                     if(!rc.onTheMap(moveTo)){
-                        rc.setIndicatorString("off the map");
+                        rc.setIndicatorString("off the map, swapping to wall left");
                         lastBugDir = lastBugDir.rotateRight().rotateRight().rotateRight().rotateRight();
+                        rotationCount = 0;
                         wallLeft = true;
                         break;
                     } else if(canMoveThrough(rc, lastBugDir.rotateRight(), rc.getLocation().add(lastBugDir.rotateRight()))){
                         Direction ans = lastBugDir.rotateRight();
                         lastBugDir = lastBugDir.rotateRight().rotateRight();
+                        rotationCount ++;
+                        rc.setIndicatorString("turning corner " + target+" "
+                                +currentDist);
                         return ans;
                     } else if(canMoveThrough(rc, lastBugDir, rc.getLocation().add(lastBugDir))){
                         return lastBugDir;
