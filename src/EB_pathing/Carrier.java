@@ -478,7 +478,7 @@ public strictfp class Carrier {
                     }
                 }
             }
-        }  else if(anchorCommand != null || searchAnchorCommands(rc) != null
+        }  else if( (anchorCommand != null || searchAnchorCommands(rc) != null)
             && !rc.canSenseLocation(anchorCommand)){
             if(rc.isMovementReady()){
                 Direction moveDir = Pathfinder.pathGreedy(rc, anchorCommand);
@@ -486,7 +486,7 @@ public strictfp class Carrier {
                     rc.move(moveDir);
                 }
             }
-        }
+        } 
         //Otherwise, Explore until you find an island
         else{
             anchorCommand = null;
