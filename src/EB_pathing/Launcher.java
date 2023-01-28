@@ -459,7 +459,7 @@ public strictfp class Launcher {
                     if(moveToAttack){
                         //rc.setIndicatorString("move and hit to kill");
                         moveFirst = true;
-                        return Pathfinder.pathGreedy(rc, attackLoc);
+                        return Pathfinder.pathBug(rc, attackLoc);
                     }
 
                 }

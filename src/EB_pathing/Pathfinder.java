@@ -143,7 +143,7 @@ public strictfp class Pathfinder {
         int distYToTarget = target.y - curLoc.y;
 
         MapLocation runawayTarget = new MapLocation(curLoc.x-distXToTarget, curLoc.y-distYToTarget);
-        return pathBug(rc, runawayTarget);
+        return pathGreedy(rc, runawayTarget);
 
     }
     public static Direction pathGreedy(RobotController rc, MapLocation target)throws GameActionException {
@@ -359,8 +359,6 @@ public strictfp class Pathfinder {
                         rc.setIndicatorString("off the map");
                         lastBugDir = lastBugDir.rotateRight().rotateRight().rotateRight().rotateRight();
                         wallLeft = false;
-                        break;
-                    } else if(rc.isLocationOccupied(moveTo)){
                         break;
                     }else if(canMoveThrough(rc, lastBugDir.rotateLeft(), rc.getLocation().add(lastBugDir.rotateLeft()))){
                         Direction ans = lastBugDir.rotateLeft();
