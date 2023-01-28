@@ -292,6 +292,8 @@ public strictfp class Carrier {
                         if (bot.getResourceAmount(assignedType) > 0) {
                             robotCount++;
                         }
+                    } else{
+                        availableSquares++;
                     }
                 } else if (rc.canSenseLocation(loc) && rc.sensePassability(loc)) {
                     availableSquares++;
