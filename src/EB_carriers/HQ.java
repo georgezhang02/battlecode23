@@ -93,7 +93,7 @@ public strictfp class HQ {
         HQIndex = Comms.setTeamHQLocation(rc, location, id);
         width = rc.getMapWidth();
         height = rc.getMapHeight();
-        smallMap = width <= 35 || height <= 35;
+        smallMap = width <= 40 || height <= 40;
         center = new MapLocation(width / 2, height / 2);  // Get map center
 
         // Find any enemy HQs

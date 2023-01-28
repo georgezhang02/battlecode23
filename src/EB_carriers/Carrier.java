@@ -44,6 +44,8 @@ public strictfp class Carrier {
     static MapLocation anchorCommand;
 
     static int carrierCount;
+    static int ADlimit;
+    static int MNlimit;
 
     static void run(RobotController rc) throws GameActionException {
         readComms(rc);
@@ -55,7 +57,7 @@ public strictfp class Carrier {
         sense(rc);
         updateState(rc);
         runState(rc);
-        rc.setIndicatorString(state + " " + assignedWell + " " + carrierCount);
+        rc.setIndicatorString(state + " " + assignedWell + " " + carrierCount + " " + ADlimit + " " + MNlimit);
 
         writeComms(rc);
         Database.checkSymmetries(rc);
@@ -261,18 +263,17 @@ public strictfp class Carrier {
         } else if (location.distanceSquaredTo(assignedWell) <= 10) {
             //THIS SECTION IS INTENDED TO MAKE IT SO THAT THE CARRIERS SWITCH THE WELL THEY'RE ASSIGNED TO IF IT'S FULL
             MapLocation[] aroundWell = rc.getAllLocationsWithinRadiusSquared(assignedWell, 2);
-            int ADlimit;
-            int MNlimit;
-            if (carrierCount <= 4) {
+            int ManaIncrement = Math.max(0, (1600 - rc.getMapWidth() * rc.getMapHeight()) / 240);
+            if (carrierCount <= 4 + ManaIncrement) {
                 ADlimit = 0;
                 MNlimit = 4;
-            } else if (carrierCount <= 6) {
+            } else if (carrierCount <= 6 + ManaIncrement) {
                 ADlimit = 2;
                 MNlimit = 4;
-            } else if (carrierCount <= 10) {
+            } else if (carrierCount <= 10 + Math.min(1, MNlimit)) {
                 ADlimit = 2;
                 MNlimit = 8;
-            } else if (carrierCount <= 11) {
+            } else if (carrierCount <= 11 + Math.min(1, MNlimit)) {
                 ADlimit = 3;
                 MNlimit = 8;
             } else {
@@ -280,6 +281,8 @@ public strictfp class Carrier {
                 MNlimit = 9;
             }
             MNlimit += Math.max(0, (1600 - rc.getMapWidth() * rc.getMapHeight()) / 240);
+            MNlimit = Math.min(9, MNlimit);
+
             int robotCount = 0;
             int availableSquares = 0;
             for (MapLocation loc : aroundWell) {
