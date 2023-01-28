@@ -43,6 +43,7 @@ public strictfp class Carrier {
     static Direction turn;
     static MapLocation secondStep;
 
+    static int turnsStuck;
     static MapLocation anchorCommand;
 
     static void run(RobotController rc) throws GameActionException {
@@ -55,8 +56,8 @@ public strictfp class Carrier {
         sense(rc);
         updateState(rc);
         runState(rc);
-        //rc.setIndicatorString(state + " " + discoveredWellCount + " " + assignedWell);
-
+        rc.setIndicatorString(state + " " + discoveredWellCount + " " + assignedWell);
+        //rc.setIndicatorString(turnsStuck +"");
         writeComms(rc);
         Database.checkSymmetries(rc);
     }
@@ -305,8 +306,11 @@ public strictfp class Carrier {
                         if (nextWell != null) {
                             assignedWell = nextWell;
                             assignedType = 0;
-                        } else {
-                            state = CarrierState.Exploring;
+                        } else if(turnsStuck > 2 || rc.getRoundNum() > 10){
+                            state = Carrier.CarrierState.Exploring;
+                            turnsStuck = 0;
+                        }else{
+                            turnsStuck++;
                         }
                     }
                 } else {
@@ -319,11 +323,17 @@ public strictfp class Carrier {
                         if (nextWell != null) {
                             assignedWell = nextWell;
                             assignedType = 1;
+                        } else if(turnsStuck > 2 || rc.getRoundNum() > 10){
+                            state = Carrier.CarrierState.Exploring;
+                            turnsStuck = 0;
                         } else {
-                            state = CarrierState.Exploring;
+                            turnsStuck++;
                         }
                     }
                 }
+            }
+            else{
+                turnsStuck = 0;
             }
         }
     }
