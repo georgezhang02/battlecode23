@@ -175,6 +175,9 @@ public strictfp class HQ {
     static void writeComms(RobotController rc) throws GameActionException {
         Database.uploadSymmetry(rc);
         Database.uploadLocations(rc);
+        if (carriersBuilt <= 12) {
+            Comms.writeHQCommand(rc, HQIndex, new MapLocation(0, 0), carriersBuilt);
+        }
     }
 
     static void wipeComms(RobotController rc) throws GameActionException{

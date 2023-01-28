@@ -222,6 +222,17 @@ public class Comms {
         return -1;
     }
 
+    public static int getHQIndexByLocation(RobotController rc, MapLocation location) throws GameActionException {
+        for (int i = 0; i < getNumHQs(rc); i++) {
+            int x = decode(rc.readSharedArray(i + ALLY_HQ_OFFSET), 0);
+            int y = decode(rc.readSharedArray(i + ALLY_HQ_OFFSET), 1);
+            if (location.x == x && location.y == y) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     /**
      * Returns the location of the closest team HQ location
      */
