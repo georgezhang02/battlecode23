@@ -1,4 +1,4 @@
-package EB_test;
+package EB_pathing;
 
 import battlecode.common.*;
 
@@ -86,7 +86,7 @@ public strictfp class Pathfinder {
             Explorer.getHQExploreTarget(rc);
         }
         //rc.setIndicatorString(Explorer.target+"");
-        Direction dir = pathBug(rc, Explorer.target);
+        Direction dir = pathGreedy(rc, Explorer.target);
 
         exploring = true;
         return dir;

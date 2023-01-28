@@ -1,4 +1,4 @@
-package EB_test;
+package EB_pathing;
 
 import battlecode.common.*;
 
@@ -328,7 +328,7 @@ public strictfp class Launcher {
             fallbackIsland = rc.getLocation();
         }
         //move towards the fallbackIsland spot
-        Direction dir = Pathfinder.pathBug(rc, fallbackIsland);
+        Direction dir = Pathfinder.pathGreedy(rc, fallbackIsland);
         if(rc.canMove(dir)) {
             rc.move(dir);
             sense(rc);
@@ -459,7 +459,7 @@ public strictfp class Launcher {
                     if(moveToAttack){
                         //rc.setIndicatorString("move and hit to kill");
                         moveFirst = true;
-                        return Pathfinder.pathBug(rc, attackLoc);
+                        return Pathfinder.pathGreedy(rc, attackLoc);
                     }
 
                 }
@@ -583,7 +583,7 @@ public strictfp class Launcher {
 
         if(rc.isMovementReady()){
            // rc.setIndicatorString(pursuitLocation+"");
-            Direction moveDir = Pathfinder.pathBug(rc, pursuitLocation);
+            Direction moveDir = Pathfinder.pathGreedy(rc, pursuitLocation);
 
             if(canMove(rc, moveDir)){
                 rc.move(moveDir);
@@ -607,7 +607,7 @@ public strictfp class Launcher {
         //rc.setIndicatorString(Comms.getNumACEven(rc)+" "+ Comms.getNumACOdd(rc));
         if(!rc.canSenseLocation(target) || rc.getLocation().distanceSquaredTo(target) > rc.getType().actionRadiusSquared){
             if(rc.isMovementReady()){
-                Direction moveDir = Pathfinder.pathBug(rc, target);
+                Direction moveDir = Pathfinder.pathGreedy(rc, target);
                 if(canMove(rc, moveDir)){
                     rc.move(moveDir);
                 }
@@ -660,7 +660,7 @@ public strictfp class Launcher {
         if(RobotPlayer.turnCount < 2 && numAllyMil > 0 &&
                 nearestAllyMil.getLocation().distanceSquaredTo(rc.getLocation()) >=2){
             canExplore = true;
-            dir = Pathfinder.pathBug(rc, nearestAllyMil.getLocation());
+            dir = Pathfinder.pathGreedy(rc, nearestAllyMil.getLocation());
             if(canMoveToExplore(rc, dir)) {
                 rc.move(dir);
             }
@@ -676,7 +676,7 @@ public strictfp class Launcher {
             if((movementChange || detachCD > 0)  && numNearbyAllyMil < 5 &&
                     rc.getLocation().distanceSquaredTo(followBot.getLocation()) >2){
 
-                dir = Pathfinder.pathBug(rc, followBot.getLocation());
+                dir = Pathfinder.pathGreedy(rc, followBot.getLocation());
 
             } else{
                 dir = Pathfinder.pathToExploreHQ(rc);
