@@ -44,7 +44,6 @@ public strictfp class HQ {
     public static void run(RobotController rc) throws GameActionException {
 
         checkEnemies(rc);
-
         readComms(rc);
 
         if(!initialized){
