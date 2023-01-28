@@ -31,8 +31,6 @@ public strictfp class HQ {
     static int anchorsBuilt = 0;
     static int ampsBuilt = 0;
 
-    static MapLocation[] ADWells;
-    static MapLocation closestAD;
     static MapLocation[] MNWells;
     static MapLocation closestMN;
 
@@ -60,11 +58,10 @@ public strictfp class HQ {
         //act part should be triggered by think part, see methods below
         build(rc);
 
+        rc.setIndicatorString(Database.rotational+" "+ Database.horizontal+" "+ Database.vertical);
 
         writeComms(rc);
         Database.checkSymmetries(rc);
-
-
 
     }
 
@@ -94,9 +91,8 @@ public strictfp class HQ {
         HQIndex = Comms.setTeamHQLocation(rc, location, id);
         width = rc.getMapWidth();
         height = rc.getMapHeight();
+        smallMap = width <= 40 || height <= 40;
         center = new MapLocation(width / 2, height / 2);  // Get map center
-
-        smallMap = Math.sqrt(rc.getLocation().distanceSquaredTo(center)) <= 20; //
 
         // Find any enemy HQs
         for (RobotInfo enemy : enemies) {
@@ -113,53 +109,23 @@ public strictfp class HQ {
             Database.addWell(rc, well);
         }
 
-        ADWells = Comms.getAllADWells(rc);
-        closestAD = Helper.getClosest(ADWells, location);
         MNWells = Comms.getAllManaWells(rc);
         closestMN = Helper.getClosest(MNWells, location);
 
         // Don't see any ad wells, explore
-        boolean ADInRange = closestAD != null && closestAD.isWithinDistanceSquared(location, 34);
         boolean MNInRange = closestMN != null && closestMN.isWithinDistanceSquared(location, 34);
 
-        if (!ADInRange && !MNInRange) {
-            buildExplore = true;
-        }
-        // Only see mana
-        else if (!ADInRange) {
-            // Go to mana
+        if (MNInRange) {
             carrierBuildTarget = closestMN;
         }
-        // Only see ad
-        else if (!MNInRange) {
-            // Explore on small map
-            if (smallMap) {
-                buildExplore = true;
-            }
-            // Go ad on big maps
-            else {
-                carrierBuildTarget = closestAD;
-            }
-        }
-        // See both wells
+        // Only see mana
         else {
-            MapLocation closestWell;
-            // Mana first on small maps
-            if (smallMap) {
-                closestWell = closestMN;
-            }
-            // Ad first on big maps
-            else {
-                closestWell = closestAD;
-            }
-            carrierBuildTarget = closestWell;
+            buildExplore = true;
         }
     }
 
     static void sense(RobotController rc) throws GameActionException {
         totalAnchorCount = rc.senseRobot(id).getTotalAnchors();
-        ADWells = Database.getKnownADLocations();
-        closestAD = Helper.getClosest(ADWells, location);
         MNWells = Database.getKnownManaLocations();
         closestMN = Helper.getClosest(MNWells, location);
     }
@@ -177,6 +143,9 @@ public strictfp class HQ {
     static void writeComms(RobotController rc) throws GameActionException {
         Database.uploadSymmetry(rc);
         Database.uploadLocations(rc);
+        if (carriersBuilt <= 12) {
+            Comms.writeHQCommand(rc, HQIndex, new MapLocation(0, 0), carriersBuilt);
+        }
     }
 
     static void wipeComms(RobotController rc) throws GameActionException{
@@ -246,15 +215,14 @@ public strictfp class HQ {
         } else {
             MapLocation centerBuildLoc = buildTowards(rc, center);
             MapLocation carrierBuildTarget;
-            if (smallMap) {
-                carrierBuildTarget = closestMN;
-            } else {
-                carrierBuildTarget = closestAD;
+            carrierBuildTarget = closestMN;
+            if (carrierBuildTarget == null) {
+                carrierBuildTarget = center;
             }
 
             if(totalAnchorCount == 0 &&
                     !buildAnchor  && rc.getRobotCount() > 5 * Comms.getNumHQs(rc) && anchorsBuilt < 20 * carriersBuilt
-                        && rc.getRobotCount() >= ANCHOR_BUILD_THRESHOLD && carrierCounter >= 20){
+                    && rc.getRobotCount() >= ANCHOR_BUILD_THRESHOLD && carrierCounter >= 20){
                 buildAnchor = true;
                 buildAmp = false;
                 carrierCounter = 0;
@@ -325,7 +293,7 @@ public strictfp class HQ {
                         rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);
                         centerBuildLoc = buildTowards(rc, center);
                         launchersBuilt++;
-               //
+                        //
                         if(rc.getRoundNum() > 100){
                             launcherCounter++;
                         }
