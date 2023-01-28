@@ -373,23 +373,21 @@ public strictfp class Launcher {
             // no action available, run from enemies
             if(nearestEnemyMil != null &&
                     (nearestEnemyMil.getLocation().distanceSquaredTo(rc.getLocation()) <= 16 && rc.getActionCooldownTurns()<=1)){
-               // rc.setIndicatorString("no actions, run");
+
                 return Pathfinder.pathAwayFrom(rc, nearestEnemyMil.getLocation());
             }  else if(attackRobot!= null){
-                //rc.setIndicatorString("pursue");
+
                 pursuitLocation = attackRobot.getLocation();
                 pursue(rc);
             }
         } else{
             // action ready
-            //rc.setIndicatorString(attackRobot+"");
             if(attackRobot!= null){
 
                 MapLocation attackLoc = attackRobot.getLocation();
 
                 if(rc.canAttack(attackLoc)){
                     // if attack already in radius, attack and kite
-                  //  rc.setIndicatorString("attack and kite");
                     rc.attack(attackLoc);
                     moveFirst = false;
                     if(nearestEnemyMil != null){
@@ -457,7 +455,7 @@ public strictfp class Launcher {
 
 
                     if(moveToAttack){
-                        //rc.setIndicatorString("move and hit to kill");
+
                         moveFirst = true;
                         return Pathfinder.pathBug(rc, attackLoc);
                     }
@@ -549,7 +547,6 @@ public strictfp class Launcher {
         if(!attackSent && enemyToAttack != null){
             if(rc.canWriteSharedArray(0,0)){
                 Comms.setAttackCommand(rc, enemyToAttack.getLocation(), enemyToAttack.getType());
-                //rc.setIndicatorString("sending attack command");
                 attackSent = true;
             }
         }
@@ -582,7 +579,6 @@ public strictfp class Launcher {
     static void pursue(RobotController rc) throws GameActionException{
 
         if(rc.isMovementReady()){
-           // rc.setIndicatorString(pursuitLocation+"");
             Direction moveDir = Pathfinder.pathGreedy(rc, pursuitLocation);
 
             if(canMove(rc, moveDir)){
@@ -604,7 +600,6 @@ public strictfp class Launcher {
 
         MapLocation target= attackCommand.location;
 
-        //rc.setIndicatorString(Comms.getNumACEven(rc)+" "+ Comms.getNumACOdd(rc));
         if(!rc.canSenseLocation(target) || rc.getLocation().distanceSquaredTo(target) > rc.getType().actionRadiusSquared){
             if(rc.isMovementReady()){
                 Direction moveDir = Pathfinder.pathGreedy(rc, target);
@@ -638,7 +633,7 @@ public strictfp class Launcher {
             int range = rc.getLocation().distanceSquaredTo(attackCommands[i].location);
             if(range > rc.getType().actionRadiusSquared &&
                     (loc.distanceSquaredTo(rc.getLocation()) <=50 ||
-                            Math.sqrt(loc.distanceSquaredTo(rc.getLocation()))< diagonal/4)){
+                            Math.sqrt(loc.distanceSquaredTo(rc.getLocation()))< diagonal/3)){
 
                 if(prio > maxPrio){
                     attackCommand = attackCommands[i];
@@ -674,13 +669,14 @@ public strictfp class Launcher {
                 detachCD =4;
             }
             if((movementChange || detachCD > 0)  && numNearbyAllyMil < 5 &&
-                    rc.getLocation().distanceSquaredTo(followBot.getLocation()) >2){
+                    rc.getLocation().distanceSquaredTo(followBot.getLocation()) >2
+                        && (!Pathfinder.rotatingBug && !Pathfinder.directBug)){
 
                 dir = Pathfinder.pathGreedy(rc, followBot.getLocation());
 
             } else{
                 dir = Pathfinder.pathToExploreHQ(rc);
-                //rc.setIndicatorString("pathing to explore" + Explorer.target);
+
             }
             if(canMoveToExplore(rc, dir)){
 

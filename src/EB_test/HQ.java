@@ -64,8 +64,6 @@ public strictfp class HQ {
         writeComms(rc);
         Database.checkSymmetries(rc);
 
-
-
     }
 
     static void checkEnemies(RobotController rc) throws GameActionException {
@@ -183,47 +181,17 @@ public strictfp class HQ {
         Comms.Island[] teamIslands = Comms.getAllIslands(rc);
         Comms.Island[] reports = Comms.getAllIslandReports(rc);
 
-        MapLocation[]islands = new MapLocation[teamIslands.length + reports.length];
 
+        if(!Comms.isCommsCleaned(rc)){
+            Comms.wipeComms(rc);
+        }
         boolean removed = false;
 
         for(int i = 0; i<reports.length; i++){
-            if(reports[i].owner != rc.getTeam()){
-                for(int j = 0; j< teamIslands.length; j++){
-                    if(teamIslands[j] != null) {
-                        if (teamIslands[j].location.distanceSquaredTo(reports[i].location) <=5) {
-                            teamIslands[j] = null;
-                            reports[i] = null;
-                            removed = true;
-                            break;
-                        }
-                    }
-                }
+            if(reports[i].owner == rc.getTeam()){
+                Comms.setIsland(rc, reports[i].location, rc.getTeam());
             }
         }
-
-        if(removed){
-            if(!Comms.isCommsCleaned(rc)){
-                Comms.wipeComms(rc, false, false, true);
-            }
-            for (Comms.Island teamIsland : teamIslands) {
-                if (teamIsland != null) {
-                    Comms.setIsland(rc, teamIsland.location, rc.getTeam());
-                }
-            }
-        } else{
-            if(!Comms.isCommsCleaned(rc)){
-                Comms.wipeComms(rc);
-            }
-        }
-        for (Comms.Island report : reports) {
-            if (report != null && report.owner == rc.getTeam()) {
-                Comms.setIsland(rc, report.location, rc.getTeam());
-            }
-        }
-
-
-
 
 
     }

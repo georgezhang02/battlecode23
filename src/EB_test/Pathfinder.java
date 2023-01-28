@@ -337,5 +337,3 @@ public strictfp class Pathfinder {
 
     }
 }
-
-
