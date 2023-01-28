@@ -1,4 +1,4 @@
-package FB_merged;
+package FB_VS;
 
 import battlecode.common.*;
 
@@ -224,8 +224,8 @@ public strictfp class Launcher {
 
             if(rc.senseTeamOccupyingIsland(islands[i]) == rc.getTeam() && fallbackIsland == null){
                 fallbackIsland = rc.senseNearbyIslandLocations(islands[i])[0];
-            } else if(rc.senseTeamOccupyingIsland(islands[i]) != rc.getTeam() &&numEnemyMil == 0
-                    && !commandSent && rc.canWriteSharedArray(0,0)){
+            } else if(rc.senseTeamOccupyingIsland(islands[i]) != rc.getTeam() && numEnemyMil == 0 &&
+                    !commandSent && rc.canWriteSharedArray(0,0)){
                 commandSent = true;
                 Comms.setAnchorCommand(rc, rc.senseNearbyIslandLocations(islands[i])[0]);
             }
