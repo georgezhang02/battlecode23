@@ -220,9 +220,9 @@ public strictfp class HQ {
                 carrierBuildTarget = center;
             }
 
-            if(totalAnchorCount == 0 &&
-                    !buildAnchor  && rc.getRobotCount() > 5 * Comms.getNumHQs(rc) && anchorsBuilt < 20 * carriersBuilt
-                    && rc.getRobotCount() >= ANCHOR_BUILD_THRESHOLD && carrierCounter >= 20){
+            if((rc.getRoundNum() == 250 || (anchorsBuilt < 20 * carriersBuilt
+                    && rc.getRobotCount() >= ANCHOR_BUILD_THRESHOLD && carrierCounter >= 20)) &&
+                    totalAnchorCount == 0 && !buildAnchor  && rc.getRobotCount() > 5 * Comms.getNumHQs(rc)){
                 buildAnchor = true;
                 buildAmp = false;
                 carrierCounter = 0;

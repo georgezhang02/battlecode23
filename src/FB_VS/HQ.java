@@ -43,9 +43,6 @@ public strictfp class HQ {
 
     public static void run(RobotController rc) throws GameActionException {
 
-        if(rc.getRoundNum() > 1000){
-            //rc.resign();
-        }
         checkEnemies(rc);
 
         readComms(rc);
@@ -223,11 +220,13 @@ public strictfp class HQ {
                 carrierBuildTarget = center;
             }
 
-            if(rc.getRoundNum() == 225 || (totalAnchorCount == 0 &&
-                   !buildAnchor  && rc.getRobotCount() > 5 * Comms.getNumHQs(rc) && carrierCounter >= 20)){
+            if(((anchorsBuilt < 20 * carriersBuilt
+                    && rc.getRobotCount() >= ANCHOR_BUILD_THRESHOLD && carrierCounter >= 20)) &&
+                    totalAnchorCount == 0 && !buildAnchor  && rc.getRobotCount() > 5 * FB_merged.Comms.getNumHQs(rc)){
                 buildAnchor = true;
                 buildAmp = false;
                 carrierCounter = 0;
+                System.out.println("bad");
             }
 
             if(!buildAnchor  && rc.getRobotCount() > 10 * Comms.getNumHQs(rc) && ampsBuilt < 10 * launchersBuilt

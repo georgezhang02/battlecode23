@@ -53,9 +53,6 @@ public strictfp class Carrier {
             onUnitInit(rc); // first time starting the bot, do some setup
             initialized = true;
         }
-        if(rc.getRoundNum() > 1200){
-            rc.resign();
-        }
         sense(rc);
         updateState(rc);
         runState(rc);
@@ -466,7 +463,7 @@ public strictfp class Carrier {
                 MapLocation islandLocation = islandLocs.iterator().next();
                 pathTowards(rc, islandLocation);
 
-                if (rc.canPlaceAnchor()) {
+                if (rc.canPlaceAnchor() && rc.senseTeamOccupyingIsland(rc.senseIsland(location)) != rc.getTeam()) {
                     rc.placeAnchor();
                     anchorCommand = null;
 
