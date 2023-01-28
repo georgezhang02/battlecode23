@@ -459,7 +459,7 @@ public strictfp class Carrier {
                 MapLocation islandLocation = islandLocs.iterator().next();
                 pathTowards(rc, islandLocation);
 
-                if (rc.canPlaceAnchor()) {
+                if (rc.canPlaceAnchor() && rc.senseTeamOccupyingIsland(rc.senseIsland(location)) != rc.getTeam()) {
                     rc.placeAnchor();
                     anchorCommand = null;
 
