@@ -120,7 +120,7 @@ public strictfp class Pathfinder {
         }
 
         if(!exploring || rc.getLocation().distanceSquaredTo(Explorer.target) <= 4){
-            CB_launcherheal.Explorer.getExploreTarget(rc, 10, rc.getMapWidth(), rc.getMapHeight());
+            Explorer.getExploreTarget(rc, 10, rc.getMapWidth(), rc.getMapHeight());
         }
         Direction dir = pathBF(rc, Explorer.target);
         exploring = true;
