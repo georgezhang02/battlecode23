@@ -474,7 +474,7 @@ public strictfp class Carrier {
         } else if(anchorCommand != null || searchAnchorCommands(rc) != null
             && !rc.canSenseLocation(anchorCommand)){
             if(rc.isMovementReady()){
-                Direction moveDir = Pathfinder.pathBug(rc, anchorCommand);
+                Direction moveDir = Pathfinder.pathGreedy(rc, anchorCommand);
                 if(moveDir != null && rc.canMove(moveDir)){
                     rc.move(moveDir);
                 }
@@ -522,7 +522,7 @@ public strictfp class Carrier {
 
     static void pathTowards(RobotController rc, MapLocation target) throws GameActionException {
         if(rc.isMovementReady()) {
-            Direction moveDir = Pathfinder.pathBug(rc, target);
+            Direction moveDir = Pathfinder.pathGreedy(rc, target);
             if(moveDir != null && rc.canMove(moveDir)){
                 rc.move(moveDir);
                 run(rc);
