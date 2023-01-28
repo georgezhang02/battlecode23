@@ -282,7 +282,7 @@ public strictfp class Launcher {
                 if (rc.canSenseLocation(fallbackIsland)) {
                     if (rc.senseTeamOccupyingIsland(rc.senseIsland(fallbackIsland)) != rc.getTeam()) {
                         if(rc.canWriteSharedArray(0,0)){
-                           // Comms.reportIslandLocation(rc, fallbackIsland, null);
+                            Comms.reportIslandLocation(rc, fallbackIsland, null);
                         }
                         state = LauncherState.Exploring;
                     }
