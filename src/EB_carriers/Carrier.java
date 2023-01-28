@@ -30,8 +30,6 @@ public strictfp class Carrier {
     static boolean uploaded = true;
     static int exploreCounter = 0;
     static boolean smallMap;
-    static MapLocation closestAD;
-    static boolean ADInRange;
     static MapLocation closestMN;
     static boolean MNInRange;
     static Set<MapLocation> visitedWells = new HashSet<>();
@@ -57,7 +55,7 @@ public strictfp class Carrier {
         sense(rc);
         updateState(rc);
         runState(rc);
-        rc.setIndicatorString(state + " " + assignedWell + " " + carrierCount + " " + ADlimit + " " + MNlimit);
+        rc.setIndicatorString(state + " " + assignedWell + " " + carrierCount + " " + ADlimit + " " + MNlimit + " " + HQ_LOCATION);
 
         writeComms(rc);
         Database.checkSymmetries(rc);
@@ -531,7 +529,6 @@ public strictfp class Carrier {
     }
 
     private static void assignClosest(RobotController rc) {
-        closestAD = Helper.getClosest(knownADWells, HQ_LOCATION);
         closestMN = Helper.getClosest(knownMNWells, HQ_LOCATION);
         int range;
         int round = rc.getRoundNum();
@@ -542,24 +539,11 @@ public strictfp class Carrier {
         } else {
             range = 10000;
         }
-        ADInRange = closestAD != null && closestAD.isWithinDistanceSquared(HQ_LOCATION, range);
         MNInRange = closestMN != null && closestMN.isWithinDistanceSquared(HQ_LOCATION, range);
-        if (smallMap && MNInRange){
+        if (MNInRange){
             state = CarrierState.Gathering;
             assignedWell = closestMN;
             assignedType = ResourceType.MANA;
-        } else if (!smallMap & ADInRange) {
-            state = CarrierState.Gathering;
-            assignedWell = closestAD;
-            assignedType = ResourceType.ADAMANTIUM;
-        } else if (MNInRange) {
-            state = CarrierState.Gathering;
-            assignedWell = closestMN;
-            assignedType = ResourceType.MANA;
-        } else if (ADInRange) {
-            state = CarrierState.Gathering;
-            assignedWell = closestAD;
-            assignedType = ResourceType.ADAMANTIUM;
         } else {
             state = CarrierState.Exploring;
         }

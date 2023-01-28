@@ -31,8 +31,6 @@ public strictfp class HQ {
     static int anchorsBuilt = 0;
     static int ampsBuilt = 0;
 
-    static MapLocation[] ADWells;
-    static MapLocation closestAD;
     static MapLocation[] MNWells;
     static MapLocation closestMN;
 
@@ -111,53 +109,23 @@ public strictfp class HQ {
             Database.addWell(rc, well);
         }
 
-        ADWells = Comms.getAllADWells(rc);
-        closestAD = Helper.getClosest(ADWells, location);
         MNWells = Comms.getAllManaWells(rc);
         closestMN = Helper.getClosest(MNWells, location);
 
         // Don't see any ad wells, explore
-        boolean ADInRange = closestAD != null && closestAD.isWithinDistanceSquared(location, 34);
         boolean MNInRange = closestMN != null && closestMN.isWithinDistanceSquared(location, 34);
 
-        if (!ADInRange && !MNInRange) {
-            buildExplore = true;
-        }
-        // Only see mana
-        else if (!ADInRange) {
-            // Go to mana
+        if (MNInRange) {
             carrierBuildTarget = closestMN;
         }
-        // Only see ad
-        else if (!MNInRange) {
-            // Explore on small map
-            if (smallMap) {
-                buildExplore = true;
-            }
-            // Go ad on big maps
-            else {
-                carrierBuildTarget = closestAD;
-            }
-        }
-        // See both wells
+        // Only see mana
         else {
-            MapLocation closestWell;
-            // Mana first on small maps
-            if (smallMap) {
-                closestWell = closestMN;
-            }
-            // Ad first on big maps
-            else {
-                closestWell = closestAD;
-            }
-            carrierBuildTarget = closestWell;
+            buildExplore = true;
         }
     }
 
     static void sense(RobotController rc) throws GameActionException {
         totalAnchorCount = rc.senseRobot(id).getTotalAnchors();
-        ADWells = Database.getKnownADLocations();
-        closestAD = Helper.getClosest(ADWells, location);
         MNWells = Database.getKnownManaLocations();
         closestMN = Helper.getClosest(MNWells, location);
     }
@@ -267,10 +235,9 @@ public strictfp class HQ {
         } else {
             MapLocation centerBuildLoc = buildTowards(rc, center);
             MapLocation carrierBuildTarget;
-            if (smallMap) {
-                carrierBuildTarget = closestMN;
-            } else {
-                carrierBuildTarget = closestAD;
+            carrierBuildTarget = closestMN;
+            if (carrierBuildTarget == null) {
+                carrierBuildTarget = center;
             }
 
             if(totalAnchorCount == 0 &&
