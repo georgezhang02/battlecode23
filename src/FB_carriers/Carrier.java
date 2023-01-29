@@ -1,0 +1,605 @@
+package FB_carriers;
+
+import FB_merged.Comms;
+import FB_merged.Database;
+import FB_merged.Helper;
+import FB_merged.Pathfinder;
+import battlecode.common.*;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
+public strictfp class Carrier {
+    static boolean initialized  = false;
+    private enum CarrierState {
+        None, Exploring, Returning, Anchoring, Gathering, Runaway
+    }
+    static CarrierState state = CarrierState.None;
+
+    static MapLocation location;
+    static RobotInfo[] allies;
+    static RobotInfo[] enemies;
+    static int adAmount;
+    static int manaAmount;
+    static int elixirAmount;
+
+    static MapLocation HQ_LOCATION = null;
+    static int HQIndex;
+
+    static MapLocation assignedWell = null;
+    static ResourceType assignedType = ResourceType.NO_RESOURCE;
+    static MapLocation[] knownADWells;
+    static MapLocation[] knownMNWells;
+    static boolean uploaded = true;
+    static int exploreCounter = 0;
+    static boolean smallMap;
+    static MapLocation closestMN;
+    static boolean MNInRange;
+    static Set<MapLocation> visitedWells = new HashSet<>();
+
+    static Direction away;
+    static MapLocation firstStep;
+    static Direction turn;
+    static MapLocation secondStep;
+
+    static MapLocation anchorCommand;
+
+    static int carrierCount;
+    static int ADlimit;
+    static int MNlimit;
+
+    static int turnsStuck;
+
+    static void run(RobotController rc) throws GameActionException {
+        readComms(rc);
+        if(!initialized){
+            onUnitInit(rc); // first time starting the bot, do some setup
+            initialized = true;
+        }
+
+        sense(rc);
+        updateState(rc);
+        runState(rc);
+
+
+        writeComms(rc);
+        FB_merged.Database.checkSymmetries(rc);
+    }
+
+    static void onUnitInit(RobotController rc) throws GameActionException {
+        allies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam());
+        smallMap = rc.getMapWidth() <= 40 || rc.getMapHeight() <= 40;
+        for (RobotInfo ally : allies) {
+            if (ally.getType() == RobotType.HEADQUARTERS) {
+                HQ_LOCATION = ally.getLocation();
+                HQIndex = FB_merged.Comms.getHQIndexByID(rc, ally.getID());
+            }
+        }
+        knownADWells = FB_merged.Database.getKnownADLocations();
+        //closestAD = Helper.getClosest(knownADWells, HQ_LOCATION);
+        knownMNWells = FB_merged.Database.getKnownManaLocations();
+        //closestMN = Helper.getClosest(knownMNWells, HQ_LOCATION);
+
+        assignClosest(rc);
+
+        /*
+        // Don't see any ad wells, explore
+        boolean ADInRange = closestAD != null && closestAD.isWithinDistanceSquared(HQ_LOCATION, 34);
+        boolean MNInRange = closestMN != null && closestMN.isWithinDistanceSquared(HQ_LOCATION, 34);
+
+        if (!ADInRange && !MNInRange) {
+            state = CarrierState.Exploring;
+        }
+        // Only see mana
+        else if (!ADInRange) {
+            // Go to mana
+            state = CarrierState.Gathering;
+            assignedWell = closestMN;
+            assignedType = 1;
+        }
+        // Only see ad
+        else if (!MNInRange) {
+            // Explore on small map
+            if (smallMap) {
+                state = CarrierState.Exploring;
+            }
+            // Go ad on big maps
+            else {
+                state = CarrierState.Gathering;
+                assignedWell = closestAD;
+                assignedType = 0;
+            }
+        }
+        // See both wells
+        else {
+            state = CarrierState.Gathering;
+            // Go mn on small maps
+            if (smallMap) {
+                assignedWell = closestMN;
+                assignedType = 1;
+            }
+            // Go ad on big maps
+            else {
+                assignedWell = closestAD;
+                assignedType = 0;
+            }
+        }
+
+         */
+    }
+
+    static void readComms(RobotController rc) throws GameActionException {
+        FB_merged.Database.init(rc);
+        FB_merged.Database.downloadSymmetry(rc);
+        FB_merged.Database.downloadLocations(rc);
+        carrierCount = FB_merged.Comms.getHQCommand(rc, HQIndex).num;
+    }
+
+    static void writeComms(RobotController rc) throws GameActionException {
+        if(rc.canWriteSharedArray(0,0)){
+            FB_merged.Database.uploadSymmetry(rc);
+            FB_merged.Database.uploadLocations(rc);
+            uploaded = true;
+        }
+    }
+
+    static void sense(RobotController rc) throws GameActionException{
+        location = rc.getLocation();
+        allies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam());
+        adAmount = rc.getResourceAmount(ResourceType.ADAMANTIUM);
+        manaAmount = rc.getResourceAmount(ResourceType.MANA);
+        elixirAmount = rc.getResourceAmount(ResourceType.ELIXIR);
+
+        HQ_LOCATION = FB_merged.Comms.getClosestTeamHQLocation(rc, location);
+        HQIndex = FB_merged.Comms.getHQIndexByLocation(rc, HQ_LOCATION);
+
+        WellInfo[] wells = rc.senseNearbyWells();
+        for (WellInfo well : wells) {
+            boolean known = FB_merged.Database.globalKnownLocations.contains(well.getMapLocation())
+                    || FB_merged.Database.localKnownLocations.contains(well.getMapLocation());
+
+            //otherwise, mark this as known and return to base
+            if (!known) {
+                FB_merged.Database.addWell(rc, well);
+                uploaded = false;
+            }
+        }
+
+        if (!uploaded) {
+            state = CarrierState.Returning;
+        }
+
+        knownADWells = FB_merged.Database.getKnownADLocations();
+        knownMNWells = FB_merged.Database.getKnownManaLocations();
+
+        int[] islands  = rc.senseNearbyIslands();
+        boolean commandSent = false;
+        for (int island : islands) {
+            if (!enemiesFound(rc) && !commandSent && rc.senseTeamOccupyingIsland(island) != rc.getTeam()
+                    && rc.canWriteSharedArray(0, 0)) {
+                FB_merged.Comms.setAnchorCommand(rc, rc.senseNearbyIslandLocations(island)[0]);
+                commandSent = true;
+            }
+        }
+    }
+
+    static boolean enemiesFound(RobotController rc) throws GameActionException {
+        enemies = rc.senseNearbyRobots(RobotType.CARRIER.visionRadiusSquared, rc.getTeam().opponent());
+        boolean enemiesFound = false;
+        boolean attackSent = false;
+        for (RobotInfo enemy : enemies) {
+            if(enemy.getType() == RobotType.CARRIER){
+                if(rc.canWriteSharedArray(0,0) && !attackSent){
+                    FB_merged.Comms.setAttackCommand(rc, enemy.getLocation(), enemy.getType());
+                    attackSent = true;
+                }
+            }
+            if (!(enemy.getType() == RobotType.HEADQUARTERS || enemy.getType() == RobotType.CARRIER || enemy.getType() == RobotType.AMPLIFIER)) {
+                enemiesFound = true;
+                if(rc.canWriteSharedArray(0,0) && !attackSent){
+                    FB_merged.Comms.setAttackCommand(rc, enemy.getLocation(), enemy.getType());
+                    attackSent = true;
+                }
+            }
+            if(enemy.getType()== RobotType.HEADQUARTERS){
+                Database.addEnemyHQ(rc, enemy);
+            }
+        }
+        return enemiesFound;
+    }
+
+    static void updateState(RobotController rc) throws GameActionException {
+        // Check enemies
+        if(enemiesFound(rc)){
+            state = CarrierState.Returning;
+            assignedWell = null;
+            visitedWells = new HashSet<>();
+        } else {
+            // Update states
+            switch (state) {
+                case Gathering:
+                    gatherUpdate(rc);
+                    break;
+                case Exploring:
+                    exploreUpdate(rc);
+                    break;
+                case Returning:
+                    returnUpdate(rc);
+                    break;
+                case Anchoring:
+                    anchorUpdate(rc);
+                    break;
+            /* case Runaway:
+                runawayUpdate(rc);
+                break;
+             */
+            }
+        }
+    }
+
+    static void runState(RobotController rc) throws GameActionException {
+        switch (state) {
+            case Gathering:
+                gather(rc);
+                break;
+            case Exploring:
+                explore(rc);
+                break;
+            case Returning:
+                returnToHQ(rc);
+                break;
+            case Anchoring:
+                anchor(rc);
+                break;
+            /* case Runaway:
+                runaway(rc);
+                break;
+             */
+        }
+    }
+
+    static void gatherUpdate(RobotController rc) throws GameActionException {
+        //if a carrier cannot get anymore resources, return to base
+        if(adAmount + manaAmount + elixirAmount == 40){
+            state = CarrierState.Returning;
+        } else if (location.distanceSquaredTo(assignedWell) <= 10) {
+            //THIS SECTION IS INTENDED TO MAKE IT SO THAT THE CARRIERS SWITCH THE WELL THEY'RE ASSIGNED TO IF IT'S FULL
+            MapLocation[] aroundWell = rc.getAllLocationsWithinRadiusSquared(assignedWell, 2);
+            int ManaIncrement = Math.max(0, (1600 - rc.getMapWidth() * rc.getMapHeight()) / 240);
+            if (carrierCount <= 4 + ManaIncrement) {
+                ADlimit = 0;
+                MNlimit = 4;
+            } else if (carrierCount <= 6 + ManaIncrement) {
+                ADlimit = 2;
+                MNlimit = 4;
+            } else if (carrierCount <= 10 + Math.min(1, MNlimit)) {
+                ADlimit = 2;
+                MNlimit = 8;
+            } else if (carrierCount <= 11 + Math.min(1, MNlimit)) {
+                ADlimit = 3;
+                MNlimit = 8;
+            } else {
+                ADlimit = 9;
+                MNlimit = 9;
+            }
+            MNlimit += Math.max(0, (1600 - rc.getMapWidth() * rc.getMapHeight()) / 240);
+            MNlimit = Math.min(9, MNlimit);
+
+            int robotCount = 0;
+            int availableSquares = 0;
+            for (MapLocation loc : aroundWell) {
+                if (rc.canSenseRobotAtLocation(loc)) {
+                    RobotInfo bot = rc.senseRobotAtLocation(loc);
+                    if (bot.team == rc.getTeam() && bot.type == RobotType.CARRIER) {
+                        if (bot.getResourceAmount(assignedType) > 0) {
+                            robotCount++;
+                        }
+                    } else{
+                        availableSquares++;
+                    }
+                } else if (rc.canSenseLocation(loc) && rc.sensePassability(loc)) {
+                    availableSquares++;
+                }
+            }
+            int limit = 8;
+            switch(assignedType) {
+                case ADAMANTIUM:
+                    limit = ADlimit;
+                    break;
+                case MANA:
+                    limit = MNlimit;
+                    break;
+            }
+            if ((robotCount >= limit || availableSquares <= 0) && location.distanceSquaredTo(assignedWell) > 2) {
+                visitedWells.add(assignedWell);
+                if (assignedType == ResourceType.ADAMANTIUM) {
+                    MapLocation nextWell = FB_merged.Helper.getClosest(knownMNWells, HQ_LOCATION, visitedWells);
+                    if (nextWell != null) {
+                        assignedWell = nextWell;
+                        assignedType = ResourceType.MANA;
+                    } else {
+                        nextWell = FB_merged.Helper.getClosest(knownADWells, HQ_LOCATION, visitedWells);
+                        if (nextWell != null) {
+                            assignedWell = nextWell;
+                            assignedType = ResourceType.ADAMANTIUM;
+                        } else {
+                            state = CarrierState.Exploring;
+                        }
+                    }
+                } else {
+                    MapLocation nextWell = FB_merged.Helper.getClosest(knownADWells, HQ_LOCATION, visitedWells);
+                    if (nextWell != null) {
+                        assignedWell = nextWell;
+                        assignedType = ResourceType.ADAMANTIUM;
+                    } else {
+                        nextWell = FB_merged.Helper.getClosest(knownMNWells, HQ_LOCATION, visitedWells);
+                        if (nextWell != null) {
+                            assignedWell = nextWell;
+                            assignedType = ResourceType.MANA;
+                        } else {
+                            state = CarrierState.Exploring;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    static void gather(RobotController rc) throws GameActionException {
+        if(assignedWell.distanceSquaredTo(location) <= 2){
+            if (rc.canCollectResource(assignedWell, -1)) {
+                rc.collectResource(assignedWell, -1);
+            }
+            pathWell(rc);
+        } else {
+            pathTowards(rc, assignedWell);
+        }
+    }
+
+    static void exploreUpdate(RobotController rc) {
+        if (assignedWell == null) {
+            assignClosest(rc);
+        }
+    }
+
+    static void explore(RobotController rc) throws GameActionException{
+        if (exploreCounter == 0) {
+            away = location.directionTo(HQ_LOCATION).opposite();
+            firstStep = location.add(away).add(away);
+            turn = away.rotateLeft().rotateLeft();
+            secondStep = firstStep.add(turn).add(turn).add(turn).add(turn);
+            exploreCounter++;
+        }
+        if (exploreCounter <= 1) {
+            pathTowards(rc, firstStep);
+            exploreCounter++;
+        } else if (exploreCounter <= 5) {
+            exploreCounter++;
+            pathTowards(rc, secondStep);
+        }
+        pathExplore(rc);
+    }
+
+    static void returnUpdate(RobotController rc) throws GameActionException {
+        //HQ_LOCATION.distanceSquaredTo(location) <= 2 &&
+        if (adAmount == 0 && manaAmount == 0 && elixirAmount == 0 && uploaded) {
+            // Get anchor if available
+            if (rc.canTakeAnchor(HQ_LOCATION, Anchor.STANDARD)) {
+                rc.takeAnchor(HQ_LOCATION, Anchor.STANDARD);
+                state = CarrierState.Anchoring;
+            } else if (rc.getAnchor()!=null) {
+                state = CarrierState.Anchoring;
+            }
+            else if (assignedWell == null) {
+                assignClosest(rc);
+            } else {
+                state = CarrierState.Gathering;
+            }
+        }
+    }
+
+    static void returnToHQ(RobotController rc) throws GameActionException{
+        // If lower than maxHealth and can throw, throw
+        if(rc.getHealth() < RobotType.CARRIER.getMaxHealth()) {
+            for (RobotInfo enemy : enemies) {
+                if(enemy.getType()!= RobotType.HEADQUARTERS && enemy.getType() != RobotType.AMPLIFIER && enemy.getType() != RobotType.CARRIER){
+                    if (rc.canAttack(enemy.getLocation())) {
+                        rc.attack(enemy.getLocation());
+                        break;
+                    }
+                }
+
+            }
+        }
+
+        //move back to HQ
+        if(HQ_LOCATION.distanceSquaredTo(location) > 2){
+            pathTowards(rc, HQ_LOCATION);
+        }
+
+        //If the hq location is in action range, deposit resources to HQ
+        if (HQ_LOCATION.distanceSquaredTo(location) <= 2){
+            if(rc.canTransferResource(HQ_LOCATION, ResourceType.ELIXIR, elixirAmount) && elixirAmount != 0){
+                rc.transferResource(HQ_LOCATION,ResourceType.ELIXIR, elixirAmount);
+            }
+            else if(rc.canTransferResource(HQ_LOCATION, ResourceType.MANA, manaAmount) && manaAmount != 0){
+                rc.transferResource(HQ_LOCATION,ResourceType.MANA, manaAmount);
+            }
+            else if(rc.canTransferResource(HQ_LOCATION, ResourceType.ADAMANTIUM, adAmount) && adAmount != 0){
+                rc.transferResource(HQ_LOCATION,ResourceType.ADAMANTIUM, adAmount);
+            }
+        }
+    }
+
+    static void anchorUpdate(RobotController rc) throws GameActionException {
+        //If the robot no longer has an anchor (thrown), explore
+        if (rc.getAnchor() == null) {
+            state = CarrierState.Exploring;
+        }
+    }
+
+    static void anchor(RobotController rc) throws GameActionException{
+        // If I have an anchor singularly focus on getting it to the first island I see
+        int[] islands = rc.senseNearbyIslands();
+        int inc = 0;
+        for (int id : islands) {
+            if(rc.senseTeamOccupyingIsland(id) == rc.getTeam()){
+                inc += 1;
+            }
+        }
+
+        Set<MapLocation> islandLocs = new HashSet<>();
+        if (islands.length - inc > 0) {
+            for (int id : islands) {
+                if(rc.senseTeamOccupyingIsland(id) != rc.getTeam()){
+                    MapLocation[] thisIslandLocs = rc.senseNearbyIslandLocations(id);
+                    islandLocs.addAll(Arrays.asList(thisIslandLocs));
+                }
+            }
+            if (islandLocs.size() > 0) {
+                anchorCommand = null;
+                MapLocation islandLocation = islandLocs.iterator().next();
+                pathTowards(rc, islandLocation);
+
+                if (rc.canPlaceAnchor() && rc.senseTeamOccupyingIsland(rc.senseIsland(location)) != rc.getTeam()) {
+                    rc.placeAnchor();
+                    anchorCommand = null;
+
+                    if(rc.canWriteSharedArray(0, 0)){
+                        FB_merged.Comms.reportIslandLocation(rc, rc.getLocation(), rc.getTeam());
+                    }
+                    if (!uploaded) {
+                        state = CarrierState.Returning;
+                    } else {
+                        state = CarrierState.Exploring;
+                    }
+                }
+            }
+        } else if( (anchorCommand != null || searchAnchorCommands(rc) != null)
+                && !rc.canSenseLocation(anchorCommand)){
+            if(rc.isMovementReady()){
+                Direction moveDir = FB_merged.Pathfinder.pathGreedy(rc, anchorCommand);
+                if(moveDir != null && rc.canMove(moveDir)){
+                    rc.move(moveDir);
+                }
+            }
+        }
+        //Otherwise, Explore until you find an island
+        else{
+            anchorCommand = null;
+            pathExplore(rc);
+        }
+    }
+
+    static MapLocation searchAnchorCommands(RobotController rc) throws GameActionException {
+        MapLocation[] commands = Comms.getAllAnchorCommands(rc);
+        int minDist = 10000;
+
+        for(MapLocation command: commands){
+            if(rc.getLocation().distanceSquaredTo(command) < minDist){
+                anchorCommand = command;
+                minDist = rc.getLocation().distanceSquaredTo(anchorCommand);
+            }
+        }
+
+        return anchorCommand;
+    }
+
+    /*
+    static void runaway(RobotController rc) throws GameActionException{
+        if(rc.getHealth() < RobotType.CARRIER.getMaxHealth()/2 && rc.canAttack(enemies[0].getLocation())){
+            rc.attack(enemies[0].getLocation());
+        }
+        if(rc.isMovementReady()) {
+            Direction moveDir = Pathfinder.pathAwayFrom(rc, enemies[0].getLocation());
+            if(moveDir != null && rc.canMove(moveDir)){
+                rc.move(moveDir);
+            }
+        }
+    }
+    */
+
+    static void pathExplore(RobotController rc) throws GameActionException {
+        if(rc.isMovementReady()) {
+            Direction moveDir = FB_merged.Pathfinder.pathToExplore(rc);
+            if(moveDir != null && rc.canMove(moveDir)){
+                rc.move(moveDir);
+                run(rc);
+            }
+        }
+    }
+
+    static void pathTowards(RobotController rc, MapLocation target) throws GameActionException {
+        if(rc.isMovementReady()) {
+            Direction moveDir = Pathfinder.pathGreedy(rc, target);
+            if(moveDir != null && rc.canMove(moveDir)){
+                rc.move(moveDir);
+                run(rc);
+            }
+        }
+    }
+
+    private static void assignClosest(RobotController rc) {
+        closestMN = Helper.getClosest(knownMNWells, HQ_LOCATION);
+        int range;
+        int round = rc.getRoundNum();
+        if (round <= 4) {
+            range = 50;
+        } else if (round <= 15){
+            range = 100;
+        } else {
+            range = 10000;
+        }
+        MNInRange = closestMN != null && closestMN.isWithinDistanceSquared(HQ_LOCATION, range);
+        if (MNInRange){
+            state = CarrierState.Gathering;
+            assignedWell = closestMN;
+            assignedType = ResourceType.MANA;
+        } else {
+            state = CarrierState.Exploring;
+        }
+    }
+
+    private static void pathWell(RobotController rc) throws GameActionException {
+        if (!location.equals(assignedWell)) {
+            Direction toWell = location.directionTo(assignedWell);
+            if (rc.canMove(toWell)) {
+                rc.move(toWell);
+            } else {
+                Direction toMove = null;
+                switch (toWell) {
+                    case NORTH:
+                        toMove = Direction.WEST;
+                        break;
+                    case NORTHEAST:
+                        toMove = Direction.NORTH;
+                        break;
+                    case EAST:
+                        toMove = Direction.NORTH;
+                        break;
+                    case SOUTHEAST:
+                        toMove = Direction.EAST;
+                        break;
+                    case SOUTH:
+                        toMove = Direction.EAST;
+                        break;
+                    case SOUTHWEST:
+                        toMove = Direction.SOUTH;
+                        break;
+                    case WEST:
+                        toMove = Direction.SOUTH;
+                        break;
+                    case NORTHWEST:
+                        toMove = Direction.WEST;
+                        break;
+                }
+                if (toMove != null && rc.canMove(toMove) &&
+                        rc.canSenseLocation(location.add(toMove)) && rc.senseMapInfo(location.add(toMove)).getCurrentDirection() == Direction.CENTER) {
+                    rc.move(toMove);
+                }
+            }
+        }
+    }
+
+}
