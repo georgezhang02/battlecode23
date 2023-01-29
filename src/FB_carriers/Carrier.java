@@ -160,6 +160,9 @@ public strictfp class Carrier {
             if (!known) {
                 Database.addWell(rc, well);
                 uploaded = false;
+                if (assignedWell != null) {
+                    assignClosest(rc);
+                }
             }
         }
 
@@ -358,7 +361,7 @@ public strictfp class Carrier {
     }
 
     static void exploreUpdate(RobotController rc) {
-        if (assignedWell == null) {
+        if (assignedWell == null && exploreCounter > 5) {
             assignClosest(rc);
         }
     }
