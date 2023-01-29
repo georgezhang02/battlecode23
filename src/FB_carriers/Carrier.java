@@ -324,7 +324,7 @@ public strictfp class Carrier {
                     limit = MNlimit;
                     break;
             }
-            if ((robotCount >= limit || availableSquares <= 0) && rc.getResourceAmount(assignedType) == 0) {
+            if ((robotCount >= limit || availableSquares <= 0) && (rc.getResourceAmount(assignedType) == 0 || limit == 0)) {
                 visitedWells.add(assignedWell);
                 if (assignedType == ResourceType.ADAMANTIUM) {
                     MapLocation nextWell = Helper.getClosest(knownMNWells, HQ_LOCATION, visitedWells);
