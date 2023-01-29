@@ -310,7 +310,7 @@ public strictfp class Carrier {
                     availableSquares++;
                 }
             }
-            int limit = 8;
+            int limit = 9;
             switch(assignedType) {
                 case ADAMANTIUM:
                     limit = ADlimit;
