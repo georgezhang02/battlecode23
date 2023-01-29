@@ -44,7 +44,6 @@ public strictfp class HQ {
     public static void run(RobotController rc) throws GameActionException {
 
         checkEnemies(rc);
-
         readComms(rc);
 
         if(!initialized){
@@ -220,17 +219,19 @@ public strictfp class HQ {
                 carrierBuildTarget = center;
             }
 
-            if(((anchorsBuilt < 20 * carriersBuilt
-                    && rc.getRobotCount() >= ANCHOR_BUILD_THRESHOLD && carrierCounter >= 20)) &&
+            //P much every 30 launchers build an anchor
+            if(anchorsBuilt * 30 < launchersBuilt && carrierCounter >= 10 &&
                     totalAnchorCount == 0 && !buildAnchor  && rc.getRobotCount() > 5 * FB_merged.Comms.getNumHQs(rc)){
+                System.out.println("anchor scale");
                 buildAnchor = true;
                 buildAmp = false;
                 carrierCounter = 0;
-                System.out.println("bad");
             }
 
-            if(!buildAnchor  && rc.getRobotCount() > 10 * Comms.getNumHQs(rc) && ampsBuilt < 10 * launchersBuilt
-                    && rc.getRobotCount() >= AMP_BUILD_THRESHOLD && launcherCounter >= 10){
+            //P much every 15 * x launchers built an amp (where x is number of amps + 1)
+            if(!buildAnchor && rc.getRobotCount() > 10 + (5 * FB_merged.Comms.getNumHQs(rc))
+                    && (launcherCounter >= 15 * (ampsBuilt + 1))){
+                System.out.println("amps descale");
                 buildAmp = true;
                 launcherCounter = 0;
             }

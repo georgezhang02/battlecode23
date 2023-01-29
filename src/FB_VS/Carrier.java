@@ -53,18 +53,12 @@ public strictfp class Carrier {
             onUnitInit(rc); // first time starting the bot, do some setup
             initialized = true;
         }
+
         sense(rc);
         updateState(rc);
         runState(rc);
-        //rc.setIndicatorString(state + " " + assignedWell + " " + carrierCount + " " + ADlimit + " " + MNlimit + " " + HQ_LOCATION);
-        MapLocation[] commands = Comms.getAllAnchorCommands(rc);
-        String s ="";
-        if(rc.getAnchor() != null){
-            for(int i = 0; i < commands.length; i++){
-                s += commands[i] + " ";
-            }
-            rc.setIndicatorString(state + " " + anchorCommand + " " + s);
-        }
+
+
         writeComms(rc);
         Database.checkSymmetries(rc);
     }
@@ -158,7 +152,6 @@ public strictfp class Carrier {
 
         WellInfo[] wells = rc.senseNearbyWells();
         for (WellInfo well : wells) {
-            //rc.setIndicatorDot(well.getMapLocation(), 255, 255, 255);
             boolean known = Database.globalKnownLocations.contains(well.getMapLocation())
                     || Database.localKnownLocations.contains(well.getMapLocation());
 
@@ -298,6 +291,8 @@ public strictfp class Carrier {
                         if (bot.getResourceAmount(assignedType) > 0) {
                             robotCount++;
                         }
+                    } else{
+                        availableSquares++;
                     }
                 } else if (rc.canSenseLocation(loc) && rc.sensePassability(loc)) {
                     availableSquares++;
@@ -522,8 +517,13 @@ public strictfp class Carrier {
     */
 
     static void pathExplore(RobotController rc) throws GameActionException {
-        MapLocation target = Pathfinder.locationToExplore(rc);
-        pathTowards(rc, target);
+        if(rc.isMovementReady()) {
+            Direction moveDir = Pathfinder.pathToExplore(rc);
+            if(moveDir != null && rc.canMove(moveDir)){
+                rc.move(moveDir);
+                run(rc);
+            }
+        }
     }
 
     static void pathTowards(RobotController rc, MapLocation target) throws GameActionException {
