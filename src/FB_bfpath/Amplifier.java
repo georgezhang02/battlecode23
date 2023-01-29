@@ -15,7 +15,6 @@ public strictfp class Amplifier {
     static boolean initialized = false;
 
     static RobotInfo nearestEnemyMil;
-
     static int numEnemyMil;
 
     static int numAllyMil;
@@ -243,7 +242,7 @@ public strictfp class Amplifier {
         if(ampInRange){
             dir = Pathfinder.pathAwayFrom(rc, closestAmp);
         } else{
-            dir = Pathfinder.pathToExploreBug(rc);
+            dir = Pathfinder.pathToExplore(rc);
         }
         if (rc.canMove(dir)) {
             rc.move(dir);
