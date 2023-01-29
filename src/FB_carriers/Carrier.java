@@ -267,8 +267,13 @@ public strictfp class Carrier {
             //THIS SECTION IS INTENDED TO MAKE IT SO THAT THE CARRIERS SWITCH THE WELL THEY'RE ASSIGNED TO IF IT'S FULL
             MapLocation[] aroundWell = rc.getAllLocationsWithinRadiusSquared(assignedWell, 2);
             if (carrierCount <= 4) {
-                ADlimit = 1;
-                MNlimit = 3;
+                if (smallMap) {
+                    ADlimit = 0;
+                    MNlimit = 4;
+                } else {
+                    ADlimit = 1;
+                    MNlimit = 3;
+                }
             } else if (carrierCount <= 6) {
                 ADlimit = 2;
                 MNlimit = 4;
