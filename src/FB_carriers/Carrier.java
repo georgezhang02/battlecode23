@@ -293,6 +293,10 @@ public strictfp class Carrier {
                 ADlimit = 9;
                 MNlimit = 9;
             }
+            if (Comms.getNumHQs(rc) - Comms.getNumManaWells(rc) > 0) {
+                MNlimit += (Comms.getNumHQs(rc) * 4) / Comms.getNumManaWells(rc);
+            }
+            MNlimit = Math.min(9, MNlimit);
 
             int robotCount = 0;
             int availableSquares = 0;
