@@ -61,6 +61,7 @@ public strictfp class Carrier {
 
         writeComms(rc);
         Database.checkSymmetries(rc);
+        rc.setIndicatorString(state + " " + assignedWell + " " + ADlimit + " " + MNlimit);
     }
 
     static void onUnitInit(RobotController rc) throws GameActionException {
@@ -262,30 +263,33 @@ public strictfp class Carrier {
         } else if (location.distanceSquaredTo(assignedWell) <= 10) {
             //THIS SECTION IS INTENDED TO MAKE IT SO THAT THE CARRIERS SWITCH THE WELL THEY'RE ASSIGNED TO IF IT'S FULL
             MapLocation[] aroundWell = rc.getAllLocationsWithinRadiusSquared(assignedWell, 2);
-            int ManaIncrement = Math.max(0, (1600 - rc.getMapWidth() * rc.getMapHeight()) / 240);
-            if (carrierCount <= 4 + ManaIncrement) {
-                ADlimit = 0;
-                MNlimit = 4;
-            } else if (carrierCount <= 6 + ManaIncrement) {
+            if (carrierCount <= 4) {
+                ADlimit = 1;
+                MNlimit = 3;
+            } else if (carrierCount <= 6) {
                 ADlimit = 2;
                 MNlimit = 4;
-            } else if (carrierCount <= 10 + Math.min(1, MNlimit)) {
+            } else if (carrierCount <= 8) {
                 ADlimit = 2;
+                MNlimit = 6;
+            } else if (carrierCount <= 10) {
+                ADlimit = 3;
+                MNlimit = 7;
+            } else if (carrierCount <= 11) {
+                ADlimit = 3;
                 MNlimit = 8;
-            } else if (carrierCount <= 11 + Math.min(1, MNlimit)) {
+            } else if (carrierCount <= 14) {
                 ADlimit = 3;
                 MNlimit = 8;
             } else {
                 ADlimit = 9;
                 MNlimit = 9;
             }
-            MNlimit += Math.max(0, (1600 - rc.getMapWidth() * rc.getMapHeight()) / 240);
-            MNlimit = Math.min(9, MNlimit);
 
             int robotCount = 0;
             int availableSquares = 0;
             for (MapLocation loc : aroundWell) {
-                if (rc.canSenseRobotAtLocation(loc)) {
+                if (rc.canSenseRobotAtLocation(loc) && !loc.equals(location)) {
                     RobotInfo bot = rc.senseRobotAtLocation(loc);
                     if (bot.team == rc.getTeam() && bot.type == RobotType.CARRIER) {
                         if (bot.getResourceAmount(assignedType) > 0) {
@@ -307,7 +311,7 @@ public strictfp class Carrier {
                     limit = MNlimit;
                     break;
             }
-            if ((robotCount >= limit || availableSquares <= 0) && location.distanceSquaredTo(assignedWell) > 2) {
+            if ((robotCount >= limit || availableSquares <= 0) && rc.getResourceAmount(assignedType) == 0) {
                 visitedWells.add(assignedWell);
                 if (assignedType == ResourceType.ADAMANTIUM) {
                     MapLocation nextWell = Helper.getClosest(knownMNWells, HQ_LOCATION, visitedWells);
