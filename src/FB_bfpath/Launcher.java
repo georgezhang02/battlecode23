@@ -691,7 +691,7 @@ public strictfp class Launcher {
                 dir = Pathfinder.pathBF(rc, Pathfinder.lastTarget);
             }
             else if((movementChange || detachCD > 0)  && numNearbyAllyMil < 5 &&
-                    rc.getLocation().distanceSquaredTo(followBot.getLocation()) >2 && followNearby){
+                    rc.getLocation().distanceSquaredTo(followBot.getLocation()) >2){
                 rc.setIndicatorString("Pathing to ally");
                 dir = Pathfinder.pathGreedy(rc, followBot.getLocation());
 
