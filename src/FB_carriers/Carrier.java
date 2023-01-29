@@ -1,4 +1,4 @@
-package FB_VS;
+package FB_carriers;
 
 import battlecode.common.*;
 

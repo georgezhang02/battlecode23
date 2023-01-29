@@ -1,4 +1,4 @@
-package FB_VS;
+package FB_carriers;
 
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
@@ -477,31 +477,48 @@ public strictfp class BFPathing20 {
         ml66 = ml65.add(Direction.SOUTH);
         ml67 = ml66.add(Direction.SOUTH);
         ml68 = ml67.add(Direction.SOUTH);
-        if(Pathfinder.canMoveThrough(rc, Direction.SOUTH, ml1)){
-            dist1 = 10;
+        if(rc.canSenseLocation(ml1) && rc.sensePassability(ml1)){
+            if(!rc.isLocationOccupied(ml1)){
+                dist1 = rc.senseMapInfo(ml1).getCooldownMultiplier(rc.getTeam());;
+            }
         }
-        if(Pathfinder.canMoveThrough(rc, Direction.SOUTHEAST, ml2)){
-            dist2 = 10;
+        if(rc.canSenseLocation(ml2) && rc.sensePassability(ml2)){
+            if(!rc.isLocationOccupied(ml2)){
+                dist2 = rc.senseMapInfo(ml2).getCooldownMultiplier(rc.getTeam());
+            }
         }
-        if(Pathfinder.canMoveThrough(rc, Direction.EAST, ml3)){
-            dist3 = 10;
+        if(rc.canSenseLocation(ml3) && rc.sensePassability(ml3)){
+            if(!rc.isLocationOccupied(ml3)){
+                dist3 = rc.senseMapInfo(ml3).getCooldownMultiplier(rc.getTeam());
+            }
         }
-        if(Pathfinder.canMoveThrough(rc, Direction.NORTHEAST, ml4)){
-            dist4 = 10;
+        if(rc.canSenseLocation(ml4) && rc.sensePassability(ml4)){
+            if(!rc.isLocationOccupied(ml4)){
+                dist4 = rc.senseMapInfo(ml4).getCooldownMultiplier(rc.getTeam());
+            }
         }
-        if(Pathfinder.canMoveThrough(rc, Direction.NORTH, ml5)){
-            dist5 = 10;
+        if(rc.canSenseLocation(ml5) && rc.sensePassability(ml5)){
+            if(!rc.isLocationOccupied(ml5)){
+                dist5 = rc.senseMapInfo(ml5).getCooldownMultiplier(rc.getTeam());
+            }
         }
-        if(Pathfinder.canMoveThrough(rc, Direction.NORTHWEST, ml6)){
-            dist6 = 10;
+        if(rc.canSenseLocation(ml6) && rc.sensePassability(ml6)){
+            if(!rc.isLocationOccupied(ml6)){
+                dist6 = rc.senseMapInfo(ml6).getCooldownMultiplier(rc.getTeam());
+            }
         }
-        if(Pathfinder.canMoveThrough(rc, Direction.WEST, ml7)){
-            dist7 = 10;
+        if(rc.canSenseLocation(ml7) && rc.sensePassability(ml7)){
+            if(!rc.isLocationOccupied(ml7)){
+                dist7 = rc.senseMapInfo(ml7).getCooldownMultiplier(rc.getTeam());
+            }
         }
-        if(Pathfinder.canMoveThrough(rc, Direction.SOUTHWEST, ml8)){
-            dist8 = 10;
+        if(rc.canSenseLocation(ml8) && rc.sensePassability(ml8)){
+            if(!rc.isLocationOccupied(ml8)){
+                dist8 = rc.senseMapInfo(ml8).getCooldownMultiplier(rc.getTeam());
+            }
         }
-        if(rc.canSenseLocation(ml9) && rc.sensePassability(ml9)){
+
+        if(rc.onTheMap(ml9) && (rc.senseCloud(ml9) || rc.sensePassability(ml9))){
             cost9 = 10;
             if(cost9 + dist8 < dist9){
                 dist9 = cost9 + dist8;
@@ -513,7 +530,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml10) && rc.sensePassability(ml10)){
+        if(rc.onTheMap(ml10) && (rc.senseCloud(ml10) || rc.sensePassability(ml10))){
             cost10 = 10;
             if(cost10 + dist8 < dist10){
                 dist10 = cost10 + dist8;
@@ -529,7 +546,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml11) && rc.sensePassability(ml11)){
+        if(rc.onTheMap(ml11) && (rc.senseCloud(ml11) || rc.sensePassability(ml11))){
             cost11 = 10;
             if(cost11 + dist1 < dist11){
                 dist11 = cost11 + dist1;
@@ -545,7 +562,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml12) && rc.sensePassability(ml12)){
+        if(rc.onTheMap(ml12) && (rc.senseCloud(ml12) || rc.sensePassability(ml12))){
             cost12 = 10;
             if(cost12 + dist2 < dist12){
                 dist12 = cost12 + dist2;
@@ -557,7 +574,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml13) && rc.sensePassability(ml13)){
+        if(rc.onTheMap(ml13) && (rc.senseCloud(ml13) || rc.sensePassability(ml13))){
             cost13 = 10;
             if(cost13 + dist3 < dist13){
                 dist13 = cost13 + dist3;
@@ -573,7 +590,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml14) && rc.sensePassability(ml14)){
+        if(rc.onTheMap(ml14) && (rc.senseCloud(ml14) || rc.sensePassability(ml14))){
             cost14 = 10;
             if(cost14 + dist4 < dist14){
                 dist14 = cost14 + dist4;
@@ -589,7 +606,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml15) && rc.sensePassability(ml15)){
+        if(rc.onTheMap(ml15) && (rc.senseCloud(ml15) || rc.sensePassability(ml15))){
             cost15 = 10;
             if(cost15 + dist4 < dist15){
                 dist15 = cost15 + dist4;
@@ -605,7 +622,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml16) && rc.sensePassability(ml16)){
+        if(rc.onTheMap(ml16) && (rc.senseCloud(ml16) || rc.sensePassability(ml16))){
             cost16 = 10;
             if(cost16 + dist4 < dist16){
                 dist16 = cost16 + dist4;
@@ -617,7 +634,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml17) && rc.sensePassability(ml17)){
+        if(rc.onTheMap(ml17) && (rc.senseCloud(ml17) || rc.sensePassability(ml17))){
             cost17 = 10;
             if(cost17 + dist5 < dist17){
                 dist17 = cost17 + dist5;
@@ -633,7 +650,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml18) && rc.sensePassability(ml18)){
+        if(rc.onTheMap(ml18) && (rc.senseCloud(ml18) || rc.sensePassability(ml18))){
             cost18 = 10;
             if(cost18 + dist6 < dist18){
                 dist18 = cost18 + dist6;
@@ -649,7 +666,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml19) && rc.sensePassability(ml19)){
+        if(rc.onTheMap(ml19) && (rc.senseCloud(ml19) || rc.sensePassability(ml19))){
             cost19 = 10;
             if(cost19 + dist18 < dist19){
                 dist19 = cost19 + dist18;
@@ -665,7 +682,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml20) && rc.sensePassability(ml20)){
+        if(rc.onTheMap(ml20) && (rc.senseCloud(ml20) || rc.sensePassability(ml20))){
             cost20 = 10;
             if(cost20 + dist19 < dist20){
                 dist20 = cost20 + dist19;
@@ -677,7 +694,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml21) && rc.sensePassability(ml21)){
+        if(rc.onTheMap(ml21) && (rc.senseCloud(ml21) || rc.sensePassability(ml21))){
             cost21 = 10;
             if(cost21 + dist19 < dist21){
                 dist21 = cost21 + dist19;
@@ -693,7 +710,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml22) && rc.sensePassability(ml22)){
+        if(rc.onTheMap(ml22) && (rc.senseCloud(ml22) || rc.sensePassability(ml22))){
             cost22 = 10;
             if(cost22 + dist6 < dist22){
                 dist22 = cost22 + dist6;
@@ -709,7 +726,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml23) && rc.sensePassability(ml23)){
+        if(rc.onTheMap(ml23) && (rc.senseCloud(ml23) || rc.sensePassability(ml23))){
             cost23 = 10;
             if(cost23 + dist22 < dist23){
                 dist23 = cost23 + dist22;
@@ -729,7 +746,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml24) && rc.sensePassability(ml24)){
+        if(rc.onTheMap(ml24) && (rc.senseCloud(ml24) || rc.sensePassability(ml24))){
             cost24 = 10;
             if(cost24 + dist23 < dist24){
                 dist24 = cost24 + dist23;
@@ -745,7 +762,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml9) && rc.sensePassability(ml9)){
+        if(rc.onTheMap(ml9) && (rc.senseCloud(ml9) || rc.sensePassability(ml9))){
             if(cost9 + dist23 < dist9){
                 dist9 = cost9 + dist23;
                 dir9 = dir23;
@@ -756,70 +773,70 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml11) && rc.sensePassability(ml11)){
+        if(rc.onTheMap(ml11) && (rc.senseCloud(ml11) || rc.sensePassability(ml11))){
             if(cost11 + dist13 < dist11){
                 dist11 = cost11 + dist13;
                 dir11 = dir13;
             }
 
         }
-        if(rc.canSenseLocation(ml12) && rc.sensePassability(ml12)){
+        if(rc.onTheMap(ml12) && (rc.senseCloud(ml12) || rc.sensePassability(ml12))){
             if(cost12 + dist13 < dist12){
                 dist12 = cost12 + dist13;
                 dir12 = dir13;
             }
 
         }
-        if(rc.canSenseLocation(ml13) && rc.sensePassability(ml13)){
+        if(rc.onTheMap(ml13) && (rc.senseCloud(ml13) || rc.sensePassability(ml13))){
             if(cost13 + dist14 < dist13){
                 dist13 = cost13 + dist14;
                 dir13 = dir14;
             }
 
         }
-        if(rc.canSenseLocation(ml15) && rc.sensePassability(ml15)){
+        if(rc.onTheMap(ml15) && (rc.senseCloud(ml15) || rc.sensePassability(ml15))){
             if(cost15 + dist17 < dist15){
                 dist15 = cost15 + dist17;
                 dir15 = dir17;
             }
 
         }
-        if(rc.canSenseLocation(ml16) && rc.sensePassability(ml16)){
+        if(rc.onTheMap(ml16) && (rc.senseCloud(ml16) || rc.sensePassability(ml16))){
             if(cost16 + dist17 < dist16){
                 dist16 = cost16 + dist17;
                 dir16 = dir17;
             }
 
         }
-        if(rc.canSenseLocation(ml17) && rc.sensePassability(ml17)){
+        if(rc.onTheMap(ml17) && (rc.senseCloud(ml17) || rc.sensePassability(ml17))){
             if(cost17 + dist18 < dist17){
                 dist17 = cost17 + dist18;
                 dir17 = dir18;
             }
 
         }
-        if(rc.canSenseLocation(ml19) && rc.sensePassability(ml19)){
+        if(rc.onTheMap(ml19) && (rc.senseCloud(ml19) || rc.sensePassability(ml19))){
             if(cost19 + dist21 < dist19){
                 dist19 = cost19 + dist21;
                 dir19 = dir21;
             }
 
         }
-        if(rc.canSenseLocation(ml20) && rc.sensePassability(ml20)){
+        if(rc.onTheMap(ml20) && (rc.senseCloud(ml20) || rc.sensePassability(ml20))){
             if(cost20 + dist21 < dist20){
                 dist20 = cost20 + dist21;
                 dir20 = dir21;
             }
 
         }
-        if(rc.canSenseLocation(ml21) && rc.sensePassability(ml21)){
+        if(rc.onTheMap(ml21) && (rc.senseCloud(ml21) || rc.sensePassability(ml21))){
             if(cost21 + dist22 < dist21){
                 dist21 = cost21 + dist22;
                 dir21 = dir22;
             }
 
         }
-        if(rc.canSenseLocation(ml25) && rc.sensePassability(ml25)){
+        if(rc.onTheMap(ml25) && (rc.senseCloud(ml25) || rc.sensePassability(ml25))){
             cost25 = 10;
             if(cost25 + dist24 < dist25){
                 dist25 = cost25 + dist24;
@@ -831,7 +848,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml26) && rc.sensePassability(ml26)){
+        if(rc.onTheMap(ml26) && (rc.senseCloud(ml26) || rc.sensePassability(ml26))){
             cost26 = 10;
             if(cost26 + dist24 < dist26){
                 dist26 = cost26 + dist24;
@@ -847,7 +864,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml27) && rc.sensePassability(ml27)){
+        if(rc.onTheMap(ml27) && (rc.senseCloud(ml27) || rc.sensePassability(ml27))){
             cost27 = 10;
             if(cost27 + dist9 < dist27){
                 dist27 = cost27 + dist9;
@@ -863,7 +880,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml28) && rc.sensePassability(ml28)){
+        if(rc.onTheMap(ml28) && (rc.senseCloud(ml28) || rc.sensePassability(ml28))){
             cost28 = 10;
             if(cost28 + dist10 < dist28){
                 dist28 = cost28 + dist10;
@@ -883,7 +900,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml29) && rc.sensePassability(ml29)){
+        if(rc.onTheMap(ml29) && (rc.senseCloud(ml29) || rc.sensePassability(ml29))){
             cost29 = 10;
             if(cost29 + dist11 < dist29){
                 dist29 = cost29 + dist11;
@@ -899,7 +916,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml30) && rc.sensePassability(ml30)){
+        if(rc.onTheMap(ml30) && (rc.senseCloud(ml30) || rc.sensePassability(ml30))){
             cost30 = 10;
             if(cost30 + dist13 < dist30){
                 dist30 = cost30 + dist13;
@@ -915,7 +932,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml31) && rc.sensePassability(ml31)){
+        if(rc.onTheMap(ml31) && (rc.senseCloud(ml31) || rc.sensePassability(ml31))){
             cost31 = 10;
             if(cost31 + dist14 < dist31){
                 dist31 = cost31 + dist14;
@@ -931,7 +948,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml32) && rc.sensePassability(ml32)){
+        if(rc.onTheMap(ml32) && (rc.senseCloud(ml32) || rc.sensePassability(ml32))){
             cost32 = 10;
             if(cost32 + dist15 < dist32){
                 dist32 = cost32 + dist15;
@@ -947,7 +964,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml33) && rc.sensePassability(ml33)){
+        if(rc.onTheMap(ml33) && (rc.senseCloud(ml33) || rc.sensePassability(ml33))){
             cost33 = 10;
             if(cost33 + dist16 < dist33){
                 dist33 = cost33 + dist16;
@@ -967,7 +984,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml34) && rc.sensePassability(ml34)){
+        if(rc.onTheMap(ml34) && (rc.senseCloud(ml34) || rc.sensePassability(ml34))){
             cost34 = 10;
             if(cost34 + dist16 < dist34){
                 dist34 = cost34 + dist16;
@@ -983,7 +1000,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml35) && rc.sensePassability(ml35)){
+        if(rc.onTheMap(ml35) && (rc.senseCloud(ml35) || rc.sensePassability(ml35))){
             cost35 = 10;
             if(cost35 + dist17 < dist35){
                 dist35 = cost35 + dist17;
@@ -999,7 +1016,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml36) && rc.sensePassability(ml36)){
+        if(rc.onTheMap(ml36) && (rc.senseCloud(ml36) || rc.sensePassability(ml36))){
             cost36 = 10;
             if(cost36 + dist18 < dist36){
                 dist36 = cost36 + dist18;
@@ -1015,7 +1032,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml37) && rc.sensePassability(ml37)){
+        if(rc.onTheMap(ml37) && (rc.senseCloud(ml37) || rc.sensePassability(ml37))){
             cost37 = 10;
             if(cost37 + dist19 < dist37){
                 dist37 = cost37 + dist19;
@@ -1031,7 +1048,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml38) && rc.sensePassability(ml38)){
+        if(rc.onTheMap(ml38) && (rc.senseCloud(ml38) || rc.sensePassability(ml38))){
             cost38 = 10;
             if(cost38 + dist37 < dist38){
                 dist38 = cost38 + dist37;
@@ -1051,7 +1068,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml39) && rc.sensePassability(ml39)){
+        if(rc.onTheMap(ml39) && (rc.senseCloud(ml39) || rc.sensePassability(ml39))){
             cost39 = 10;
             if(cost39 + dist38 < dist39){
                 dist39 = cost39 + dist38;
@@ -1067,7 +1084,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml40) && rc.sensePassability(ml40)){
+        if(rc.onTheMap(ml40) && (rc.senseCloud(ml40) || rc.sensePassability(ml40))){
             cost40 = 10;
             if(cost40 + dist39 < dist40){
                 dist40 = cost40 + dist39;
@@ -1083,7 +1100,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml41) && rc.sensePassability(ml41)){
+        if(rc.onTheMap(ml41) && (rc.senseCloud(ml41) || rc.sensePassability(ml41))){
             cost41 = 10;
             if(cost41 + dist20 < dist41){
                 dist41 = cost41 + dist20;
@@ -1099,7 +1116,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml42) && rc.sensePassability(ml42)){
+        if(rc.onTheMap(ml42) && (rc.senseCloud(ml42) || rc.sensePassability(ml42))){
             cost42 = 10;
             if(cost42 + dist21 < dist42){
                 dist42 = cost42 + dist21;
@@ -1115,7 +1132,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml43) && rc.sensePassability(ml43)){
+        if(rc.onTheMap(ml43) && (rc.senseCloud(ml43) || rc.sensePassability(ml43))){
             cost43 = 10;
             if(cost43 + dist42 < dist43){
                 dist43 = cost43 + dist42;
@@ -1135,7 +1152,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml44) && rc.sensePassability(ml44)){
+        if(rc.onTheMap(ml44) && (rc.senseCloud(ml44) || rc.sensePassability(ml44))){
             cost44 = 10;
             if(cost44 + dist43 < dist44){
                 dist44 = cost44 + dist43;
@@ -1155,7 +1172,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml25) && rc.sensePassability(ml25)){
+        if(rc.onTheMap(ml25) && (rc.senseCloud(ml25) || rc.sensePassability(ml25))){
             if(cost25 + dist44 < dist25){
                 dist25 = cost25 + dist44;
                 dir25 = dir44;
@@ -1166,77 +1183,77 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml26) && rc.sensePassability(ml26)){
+        if(rc.onTheMap(ml26) && (rc.senseCloud(ml26) || rc.sensePassability(ml26))){
             if(cost26 + dist27 < dist26){
                 dist26 = cost26 + dist27;
                 dir26 = dir27;
             }
 
         }
-        if(rc.canSenseLocation(ml29) && rc.sensePassability(ml29)){
+        if(rc.onTheMap(ml29) && (rc.senseCloud(ml29) || rc.sensePassability(ml29))){
             if(cost29 + dist30 < dist29){
                 dist29 = cost29 + dist30;
                 dir29 = dir30;
             }
 
         }
-        if(rc.canSenseLocation(ml30) && rc.sensePassability(ml30)){
+        if(rc.onTheMap(ml30) && (rc.senseCloud(ml30) || rc.sensePassability(ml30))){
             if(cost30 + dist31 < dist30){
                 dist30 = cost30 + dist31;
                 dir30 = dir31;
             }
 
         }
-        if(rc.canSenseLocation(ml31) && rc.sensePassability(ml31)){
+        if(rc.onTheMap(ml31) && (rc.senseCloud(ml31) || rc.sensePassability(ml31))){
             if(cost31 + dist32 < dist31){
                 dist31 = cost31 + dist32;
                 dir31 = dir32;
             }
 
         }
-        if(rc.canSenseLocation(ml34) && rc.sensePassability(ml34)){
+        if(rc.onTheMap(ml34) && (rc.senseCloud(ml34) || rc.sensePassability(ml34))){
             if(cost34 + dist35 < dist34){
                 dist34 = cost34 + dist35;
                 dir34 = dir35;
             }
 
         }
-        if(rc.canSenseLocation(ml35) && rc.sensePassability(ml35)){
+        if(rc.onTheMap(ml35) && (rc.senseCloud(ml35) || rc.sensePassability(ml35))){
             if(cost35 + dist36 < dist35){
                 dist35 = cost35 + dist36;
                 dir35 = dir36;
             }
 
         }
-        if(rc.canSenseLocation(ml36) && rc.sensePassability(ml36)){
+        if(rc.onTheMap(ml36) && (rc.senseCloud(ml36) || rc.sensePassability(ml36))){
             if(cost36 + dist37 < dist36){
                 dist36 = cost36 + dist37;
                 dir36 = dir37;
             }
 
         }
-        if(rc.canSenseLocation(ml39) && rc.sensePassability(ml39)){
+        if(rc.onTheMap(ml39) && (rc.senseCloud(ml39) || rc.sensePassability(ml39))){
             if(cost39 + dist40 < dist39){
                 dist39 = cost39 + dist40;
                 dir39 = dir40;
             }
 
         }
-        if(rc.canSenseLocation(ml40) && rc.sensePassability(ml40)){
+        if(rc.onTheMap(ml40) && (rc.senseCloud(ml40) || rc.sensePassability(ml40))){
             if(cost40 + dist41 < dist40){
                 dist40 = cost40 + dist41;
                 dir40 = dir41;
             }
 
         }
-        if(rc.canSenseLocation(ml41) && rc.sensePassability(ml41)){
+        if(rc.onTheMap(ml41) && (rc.senseCloud(ml41) || rc.sensePassability(ml41))){
             if(cost41 + dist42 < dist41){
                 dist41 = cost41 + dist42;
                 dir41 = dir42;
             }
 
         }
-        if(rc.canSenseLocation(ml45) && rc.sensePassability(ml45)){
+        if(rc.onTheMap(ml45) && (rc.senseCloud(ml45) || rc.sensePassability(ml45))){
             cost45 = 10;
             if(cost45 + dist44 < dist45){
                 dist45 = cost45 + dist44;
@@ -1252,7 +1269,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml46) && rc.sensePassability(ml46)){
+        if(rc.onTheMap(ml46) && (rc.senseCloud(ml46) || rc.sensePassability(ml46))){
             cost46 = 10;
             if(cost46 + dist45 < dist46){
                 dist46 = cost46 + dist45;
@@ -1268,7 +1285,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml47) && rc.sensePassability(ml47)){
+        if(rc.onTheMap(ml47) && (rc.senseCloud(ml47) || rc.sensePassability(ml47))){
             cost47 = 10;
             if(cost47 + dist25 < dist47){
                 dist47 = cost47 + dist25;
@@ -1284,7 +1301,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml48) && rc.sensePassability(ml48)){
+        if(rc.onTheMap(ml48) && (rc.senseCloud(ml48) || rc.sensePassability(ml48))){
             cost48 = 10;
             if(cost48 + dist26 < dist48){
                 dist48 = cost48 + dist26;
@@ -1300,7 +1317,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml49) && rc.sensePassability(ml49)){
+        if(rc.onTheMap(ml49) && (rc.senseCloud(ml49) || rc.sensePassability(ml49))){
             cost49 = 10;
             if(cost49 + dist27 < dist49){
                 dist49 = cost49 + dist27;
@@ -1320,7 +1337,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml50) && rc.sensePassability(ml50)){
+        if(rc.onTheMap(ml50) && (rc.senseCloud(ml50) || rc.sensePassability(ml50))){
             cost50 = 10;
             if(cost50 + dist28 < dist50){
                 dist50 = cost50 + dist28;
@@ -1336,7 +1353,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml51) && rc.sensePassability(ml51)){
+        if(rc.onTheMap(ml51) && (rc.senseCloud(ml51) || rc.sensePassability(ml51))){
             cost51 = 10;
             if(cost51 + dist12 < dist51){
                 dist51 = cost51 + dist12;
@@ -1356,7 +1373,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml52) && rc.sensePassability(ml52)){
+        if(rc.onTheMap(ml52) && (rc.senseCloud(ml52) || rc.sensePassability(ml52))){
             cost52 = 10;
             if(cost52 + dist31 < dist52){
                 dist52 = cost52 + dist31;
@@ -1372,7 +1389,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml53) && rc.sensePassability(ml53)){
+        if(rc.onTheMap(ml53) && (rc.senseCloud(ml53) || rc.sensePassability(ml53))){
             cost53 = 10;
             if(cost53 + dist32 < dist53){
                 dist53 = cost53 + dist32;
@@ -1388,7 +1405,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml54) && rc.sensePassability(ml54)){
+        if(rc.onTheMap(ml54) && (rc.senseCloud(ml54) || rc.sensePassability(ml54))){
             cost54 = 10;
             if(cost54 + dist33 < dist54){
                 dist54 = cost54 + dist33;
@@ -1404,7 +1421,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml55) && rc.sensePassability(ml55)){
+        if(rc.onTheMap(ml55) && (rc.senseCloud(ml55) || rc.sensePassability(ml55))){
             cost55 = 10;
             if(cost55 + dist34 < dist55){
                 dist55 = cost55 + dist34;
@@ -1424,7 +1441,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml56) && rc.sensePassability(ml56)){
+        if(rc.onTheMap(ml56) && (rc.senseCloud(ml56) || rc.sensePassability(ml56))){
             cost56 = 10;
             if(cost56 + dist34 < dist56){
                 dist56 = cost56 + dist34;
@@ -1440,7 +1457,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml57) && rc.sensePassability(ml57)){
+        if(rc.onTheMap(ml57) && (rc.senseCloud(ml57) || rc.sensePassability(ml57))){
             cost57 = 10;
             if(cost57 + dist35 < dist57){
                 dist57 = cost57 + dist35;
@@ -1460,7 +1477,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml58) && rc.sensePassability(ml58)){
+        if(rc.onTheMap(ml58) && (rc.senseCloud(ml58) || rc.sensePassability(ml58))){
             cost58 = 10;
             if(cost58 + dist36 < dist58){
                 dist58 = cost58 + dist36;
@@ -1476,7 +1493,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml59) && rc.sensePassability(ml59)){
+        if(rc.onTheMap(ml59) && (rc.senseCloud(ml59) || rc.sensePassability(ml59))){
             cost59 = 10;
             if(cost59 + dist37 < dist59){
                 dist59 = cost59 + dist37;
@@ -1492,7 +1509,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml60) && rc.sensePassability(ml60)){
+        if(rc.onTheMap(ml60) && (rc.senseCloud(ml60) || rc.sensePassability(ml60))){
             cost60 = 10;
             if(cost60 + dist38 < dist60){
                 dist60 = cost60 + dist38;
@@ -1508,7 +1525,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml61) && rc.sensePassability(ml61)){
+        if(rc.onTheMap(ml61) && (rc.senseCloud(ml61) || rc.sensePassability(ml61))){
             cost61 = 10;
             if(cost61 + dist60 < dist61){
                 dist61 = cost61 + dist60;
@@ -1528,7 +1545,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml62) && rc.sensePassability(ml62)){
+        if(rc.onTheMap(ml62) && (rc.senseCloud(ml62) || rc.sensePassability(ml62))){
             cost62 = 10;
             if(cost62 + dist61 < dist62){
                 dist62 = cost62 + dist61;
@@ -1544,7 +1561,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml63) && rc.sensePassability(ml63)){
+        if(rc.onTheMap(ml63) && (rc.senseCloud(ml63) || rc.sensePassability(ml63))){
             cost63 = 10;
             if(cost63 + dist62 < dist63){
                 dist63 = cost63 + dist62;
@@ -1564,7 +1581,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml64) && rc.sensePassability(ml64)){
+        if(rc.onTheMap(ml64) && (rc.senseCloud(ml64) || rc.sensePassability(ml64))){
             cost64 = 10;
             if(cost64 + dist63 < dist64){
                 dist64 = cost64 + dist63;
@@ -1580,7 +1597,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml65) && rc.sensePassability(ml65)){
+        if(rc.onTheMap(ml65) && (rc.senseCloud(ml65) || rc.sensePassability(ml65))){
             cost65 = 10;
             if(cost65 + dist40 < dist65){
                 dist65 = cost65 + dist40;
@@ -1596,7 +1613,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml66) && rc.sensePassability(ml66)){
+        if(rc.onTheMap(ml66) && (rc.senseCloud(ml66) || rc.sensePassability(ml66))){
             cost66 = 10;
             if(cost66 + dist41 < dist66){
                 dist66 = cost66 + dist41;
@@ -1612,7 +1629,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml67) && rc.sensePassability(ml67)){
+        if(rc.onTheMap(ml67) && (rc.senseCloud(ml67) || rc.sensePassability(ml67))){
             cost67 = 10;
             if(cost67 + dist66 < dist67){
                 dist67 = cost67 + dist66;
@@ -1632,7 +1649,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml68) && rc.sensePassability(ml68)){
+        if(rc.onTheMap(ml68) && (rc.senseCloud(ml68) || rc.sensePassability(ml68))){
             cost68 = 10;
             if(cost68 + dist67 < dist68){
                 dist68 = cost68 + dist67;
@@ -1652,7 +1669,7 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml45) && rc.sensePassability(ml45)){
+        if(rc.onTheMap(ml45) && (rc.senseCloud(ml45) || rc.sensePassability(ml45))){
             if(cost45 + dist68 < dist45){
                 dist45 = cost45 + dist68;
                 dir45 = dir68;
@@ -1663,104 +1680,105 @@ public strictfp class BFPathing20 {
             }
 
         }
-        if(rc.canSenseLocation(ml46) && rc.sensePassability(ml46)){
+        if(rc.onTheMap(ml46) && (rc.senseCloud(ml46) || rc.sensePassability(ml46))){
             if(cost46 + dist47 < dist46){
                 dist46 = cost46 + dist47;
                 dir46 = dir47;
             }
 
         }
-        if(rc.canSenseLocation(ml47) && rc.sensePassability(ml47)){
+        if(rc.onTheMap(ml47) && (rc.senseCloud(ml47) || rc.sensePassability(ml47))){
             if(cost47 + dist48 < dist47){
                 dist47 = cost47 + dist48;
                 dir47 = dir48;
             }
 
         }
-        if(rc.canSenseLocation(ml50) && rc.sensePassability(ml50)){
+        if(rc.onTheMap(ml50) && (rc.senseCloud(ml50) || rc.sensePassability(ml50))){
             if(cost50 + dist51 < dist50){
                 dist50 = cost50 + dist51;
                 dir50 = dir51;
             }
 
         }
-        if(rc.canSenseLocation(ml51) && rc.sensePassability(ml51)){
+        if(rc.onTheMap(ml51) && (rc.senseCloud(ml51) || rc.sensePassability(ml51))){
             if(cost51 + dist52 < dist51){
                 dist51 = cost51 + dist52;
                 dir51 = dir52;
             }
 
         }
-        if(rc.canSenseLocation(ml52) && rc.sensePassability(ml52)){
+        if(rc.onTheMap(ml52) && (rc.senseCloud(ml52) || rc.sensePassability(ml52))){
             if(cost52 + dist53 < dist52){
                 dist52 = cost52 + dist53;
                 dir52 = dir53;
             }
 
         }
-        if(rc.canSenseLocation(ml53) && rc.sensePassability(ml53)){
+        if(rc.onTheMap(ml53) && (rc.senseCloud(ml53) || rc.sensePassability(ml53))){
             if(cost53 + dist54 < dist53){
                 dist53 = cost53 + dist54;
                 dir53 = dir54;
             }
 
         }
-        if(rc.canSenseLocation(ml56) && rc.sensePassability(ml56)){
+        if(rc.onTheMap(ml56) && (rc.senseCloud(ml56) || rc.sensePassability(ml56))){
             if(cost56 + dist57 < dist56){
                 dist56 = cost56 + dist57;
                 dir56 = dir57;
             }
 
         }
-        if(rc.canSenseLocation(ml57) && rc.sensePassability(ml57)){
+        if(rc.onTheMap(ml57) && (rc.senseCloud(ml57) || rc.sensePassability(ml57))){
             if(cost57 + dist58 < dist57){
                 dist57 = cost57 + dist58;
                 dir57 = dir58;
             }
 
         }
-        if(rc.canSenseLocation(ml58) && rc.sensePassability(ml58)){
+        if(rc.onTheMap(ml58) && (rc.senseCloud(ml58) || rc.sensePassability(ml58))){
             if(cost58 + dist59 < dist58){
                 dist58 = cost58 + dist59;
                 dir58 = dir59;
             }
 
         }
-        if(rc.canSenseLocation(ml59) && rc.sensePassability(ml59)){
+        if(rc.onTheMap(ml59) && (rc.senseCloud(ml59) || rc.sensePassability(ml59))){
             if(cost59 + dist60 < dist59){
                 dist59 = cost59 + dist60;
                 dir59 = dir60;
             }
 
         }
-        if(rc.canSenseLocation(ml62) && rc.sensePassability(ml62)){
+        if(rc.onTheMap(ml62) && (rc.senseCloud(ml62) || rc.sensePassability(ml62))){
             if(cost62 + dist63 < dist62){
                 dist62 = cost62 + dist63;
                 dir62 = dir63;
             }
 
         }
-        if(rc.canSenseLocation(ml63) && rc.sensePassability(ml63)){
+        if(rc.onTheMap(ml63) && (rc.senseCloud(ml63) || rc.sensePassability(ml63))){
             if(cost63 + dist64 < dist63){
                 dist63 = cost63 + dist64;
                 dir63 = dir64;
             }
 
         }
-        if(rc.canSenseLocation(ml64) && rc.sensePassability(ml64)){
+        if(rc.onTheMap(ml64) && (rc.senseCloud(ml64) || rc.sensePassability(ml64))){
             if(cost64 + dist65 < dist64){
                 dist64 = cost64 + dist65;
                 dir64 = dir65;
             }
 
         }
-        if(rc.canSenseLocation(ml65) && rc.sensePassability(ml65)){
+        if(rc.onTheMap(ml65) && (rc.senseCloud(ml65) || rc.sensePassability(ml65))){
             if(cost65 + dist66 < dist65){
                 dist65 = cost65 + dist66;
                 dir65 = dir66;
             }
 
         }
+
 
 
         int xDiff = target.x - ml0.x;

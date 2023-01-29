@@ -1,4 +1,4 @@
-package FB_VS;
+package FB_carriers;
 
 import battlecode.common.*;
 
@@ -86,28 +86,21 @@ public strictfp class Launcher {
             onUnitInit(rc); // first time starting the bot, do some setup
             initialized = true;
         }
-        int time1 = Clock.getBytecodesLeft();
+
         onTurnStart(rc); // cleanup for when the turn starts
-        int time2 = Clock.getBytecodesLeft();
 
         // interpret overall macro state
         readComms(rc);
-
-        int time3 = Clock.getBytecodesLeft();
         // sense part
         sense(rc);
-        int time4 = Clock.getBytecodesLeft();
         updateDatabase(rc);
         getFallback(rc);
         selectState(rc);
-        int time5 = Clock.getBytecodesLeft();
 
         if(state == LauncherState.Exploring && alliesPrevious != null ){
             checkMovement(rc);
 
         }// sense if other bots have moved
-
-        int time6 = Clock.getBytecodesLeft();
 
 
 
@@ -133,17 +126,10 @@ public strictfp class Launcher {
                 break;
         }
 
-        int time7 = Clock.getBytecodesLeft();
-
         writeComms(rc);
         Database.checkSymmetries(rc);
 
-        int time8 = Clock.getBytecodesLeft();
-
         cloudAttack(rc);
-
-
-        rc.setIndicatorString(time1+" "+time2+" "+time3+" "+time4+" "+time5+" "+time6+" "+time7 +" "+time8);
 
 
 
@@ -238,7 +224,8 @@ public strictfp class Launcher {
 
             if(rc.senseTeamOccupyingIsland(islands[i]) == rc.getTeam() && fallbackIsland == null){
                 fallbackIsland = rc.senseNearbyIslandLocations(islands[i])[0];
-            } else if(numEnemyMil == 0 && !commandSent && rc.canWriteSharedArray(0,0)){
+            } else if(rc.senseTeamOccupyingIsland(islands[i]) != rc.getTeam() &&numEnemyMil == 0
+                    && !commandSent && rc.canWriteSharedArray(0,0)){
                 commandSent = true;
                 Comms.setAnchorCommand(rc, rc.senseNearbyIslandLocations(islands[i])[0]);
             }
@@ -616,7 +603,7 @@ public strictfp class Launcher {
 
         if(!rc.canSenseLocation(target) || rc.getLocation().distanceSquaredTo(target) > rc.getType().actionRadiusSquared){
             if(rc.isMovementReady()){
-                Direction moveDir = Pathfinder.pathBF(rc, target);
+                Direction moveDir = Pathfinder.pathGreedy(rc, target);
                 if(canMove(rc, moveDir)){
                     rc.move(moveDir);
                 }
@@ -682,13 +669,10 @@ public strictfp class Launcher {
             if(movementChange){
                 detachCD =4;
             }
-            if((Pathfinder.rotatingBug || Pathfinder.directBug) && Pathfinder.lastTarget != null
-             && !rc.canSenseLocation(Pathfinder.lastTarget)){
-                dir = Pathfinder.pathBF(rc, Pathfinder.lastTarget);
-            }
-            else if((movementChange || detachCD > 0)  && numNearbyAllyMil < 5 &&
-                    rc.getLocation().distanceSquaredTo(followBot.getLocation()) >2){
-                rc.setIndicatorString("Pathing to ally");
+            if((movementChange || detachCD > 0)  && numNearbyAllyMil < 5 &&
+                    rc.getLocation().distanceSquaredTo(followBot.getLocation()) >2
+                        && (!Pathfinder.rotatingBug && !Pathfinder.directBug)){
+
                 dir = Pathfinder.pathGreedy(rc, followBot.getLocation());
 
             } else{

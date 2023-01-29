@@ -1,4 +1,4 @@
-package FB_VS;
+package FB_carriers;
 
 import battlecode.common.*;
 
@@ -24,46 +24,31 @@ public strictfp class Pathfinder {
 
     public static Direction pathBF(RobotController rc, MapLocation target) throws GameActionException {
 
-
-        exploring = false;
         if(!target.equals(lastTarget)){
-            rotatingBug = false;
             directBug = false;
+            rotatingBug = false;
         }
         lastTarget=target;
-        rc.setIndicatorString("pathing to target BF");
-        if(directBug || (rotatingBug && currentDist>=lowestDist)){
-            rc.setIndicatorString("pathing to target bug");
-            //rc.setIndicatorString("pathing bug, alreadypathing bug " + target);
-            Direction moveDir = pathBugHelper(rc, target);
-            if(directBug || rotatingBug){
-                return moveDir;
+
+        currentDist = Math.sqrt(rc.getLocation().distanceSquaredTo(target));
+        if (directBug || (rotatingBug && currentDist>=lowestDist) ){
+            return pathBug(rc, target);
+        } else{
+            directBug = false;
+            rotatingBug = false;
+            Direction moveDir = BFPathing20.bfPathToTarget(rc, target);
+
+            if(moveDir ==null || moveDir == Direction.CENTER || rc.getLocation().add(moveDir).equals(lastLocation)){
+                directBug = true;
+                return pathBug(rc, target);
             }
 
+            lastLocation = rc.getLocation();
+
+            return moveDir;
         }
-        if(rc.senseCloud(rc.getLocation()) || Clock.getBytecodesLeft() < 7000){
-            rc.setIndicatorString("pathing to target greedy");
-            return pathGreedy(rc, target);
-        }
-
-        directBug = false;
-        rotatingBug = false;
-        currentDist = Math.sqrt(rc.getLocation().distanceSquaredTo(target));
-        Direction moveDir = BFPathing20.bfPathToTarget(rc, target);
-
-
-
-        if(moveDir ==null || moveDir == Direction.CENTER || rc.getLocation().add(moveDir).equals(lastLocation)){
-            directBug = true;
-            rotatingBug = false;
-            moveDir = pathBugHelper(rc, target);
-        }
-        lastLocation = rc.getLocation();
-        return moveDir;
-
 
     }
-
 
     public static Direction pathToExplore(RobotController rc) throws GameActionException {
 
@@ -92,7 +77,7 @@ public strictfp class Pathfinder {
             Explorer.getHQExploreTarget(rc);
         }
         //rc.setIndicatorString(Explorer.target+"");
-        Direction dir = pathBF(rc, Explorer.target);
+        Direction dir = pathGreedy(rc, Explorer.target);
 
         exploring = true;
         return dir;
@@ -135,7 +120,7 @@ public strictfp class Pathfinder {
         if(!exploring || rc.getLocation().distanceSquaredTo(Explorer.target) <= 4){
             Explorer.getExploreTarget(rc, 10, rc.getMapWidth(), rc.getMapHeight());
         }
-        Direction dir = pathGreedy(rc, Explorer.target);
+        Direction dir = pathBF(rc, Explorer.target);
         exploring = true;
         return dir;
     }

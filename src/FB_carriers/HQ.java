@@ -1,4 +1,4 @@
-package FB_VS;
+package FB_carriers;
 
 import battlecode.common.*;
 
@@ -44,6 +44,7 @@ public strictfp class HQ {
     public static void run(RobotController rc) throws GameActionException {
 
         checkEnemies(rc);
+
         readComms(rc);
 
         if(!initialized){
@@ -219,19 +220,16 @@ public strictfp class HQ {
                 carrierBuildTarget = center;
             }
 
-            //P much every 30 launchers build an anchor
-            if(anchorsBuilt * 30 < launchersBuilt && carrierCounter >= 10 &&
-                    totalAnchorCount == 0 && !buildAnchor  && rc.getRobotCount() > 5 * FB_merged.Comms.getNumHQs(rc)){
-                System.out.println("anchor scale");
+            if((rc.getRoundNum() == 250 || (anchorsBuilt < 20 * carriersBuilt
+                    && rc.getRobotCount() >= ANCHOR_BUILD_THRESHOLD && carrierCounter >= 20)) &&
+                    totalAnchorCount == 0 && !buildAnchor  && rc.getRobotCount() > 5 * Comms.getNumHQs(rc)){
                 buildAnchor = true;
                 buildAmp = false;
                 carrierCounter = 0;
             }
 
-            //P much every 15 * x launchers built an amp (where x is number of amps + 1)
-            if(!buildAnchor && rc.getRobotCount() > 10 + (5 * FB_merged.Comms.getNumHQs(rc))
-                    && (launcherCounter >= 15 * (ampsBuilt + 1))){
-                System.out.println("amps descale");
+            if(!buildAnchor  && rc.getRobotCount() > 10 * Comms.getNumHQs(rc) && ampsBuilt < 10 * launchersBuilt
+                    && rc.getRobotCount() >= AMP_BUILD_THRESHOLD && launcherCounter >= 10){
                 buildAmp = true;
                 launcherCounter = 0;
             }
