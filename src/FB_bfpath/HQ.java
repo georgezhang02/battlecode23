@@ -219,20 +219,21 @@ public strictfp class HQ {
                 carrierBuildTarget = center;
             }
 
-            if(totalAnchorCount == 0 &&
-                    !buildAnchor  && rc.getRobotCount() > 5 * Comms.getNumHQs(rc) && anchorsBuilt < 20 * carriersBuilt
-                    && rc.getRobotCount() >= ANCHOR_BUILD_THRESHOLD && carrierCounter >= 20){
+            if((anchorsBuilt <= 1 && ((anchorsBuilt + 1) * 30 < launchersBuilt)
+                    || (anchorsBuilt > 1 && ((anchorsBuilt + 1) * 40 < launchersBuilt)))
+                    && carrierCounter >= 5 &&
+                    totalAnchorCount == 0 && !buildAnchor  && rc.getRobotCount() > 5 * Comms.getNumHQs(rc)){
                 buildAnchor = true;
                 buildAmp = false;
                 carrierCounter = 0;
             }
-
-            if(!buildAnchor  && rc.getRobotCount() > 10 * Comms.getNumHQs(rc) && ampsBuilt < 10 * launchersBuilt
-                    && rc.getRobotCount() >= AMP_BUILD_THRESHOLD && launcherCounter >= 10){
+            
+            if(!buildAnchor && rc.getRobotCount() > 10 + (5 * Comms.getNumHQs(rc))
+                    && (launcherCounter >= 15 * (ampsBuilt + 1))){
                 buildAmp = true;
                 launcherCounter = 0;
             }
-
+            
             if (!enemiesFound) {
                 if(buildAnchor){
                     if(rc.canBuildAnchor(Anchor.STANDARD)){
