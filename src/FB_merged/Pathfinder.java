@@ -120,7 +120,7 @@ public strictfp class Pathfinder {
         if(!exploring || rc.getLocation().distanceSquaredTo(Explorer.target) <= 4){
             Explorer.getExploreTarget(rc, 10, rc.getMapWidth(), rc.getMapHeight());
         }
-        Direction dir = pathBF(rc, Explorer.target);
+        Direction dir = pathGreedy(rc, Explorer.target);
         exploring = true;
         return dir;
     }
@@ -144,7 +144,7 @@ public strictfp class Pathfinder {
     }
 
     public static double pathGreedyHelper(RobotController rc, MapLocation loc, MapLocation target, int depth) throws GameActionException {
-
+        rc.setIndicatorLine(rc.getLocation(), target, 255, 255, 0);
         double lowestCost = 10000;
         Direction moveDir = loc.directionTo(target);
         Direction left = moveDir.rotateLeft();
@@ -237,6 +237,8 @@ public strictfp class Pathfinder {
         }
         lastTarget=target;
 
+        currentDist = Math.sqrt(rc.getLocation().distanceSquaredTo(target));
+
         if(directBug || (rotatingBug && currentDist>=lowestDist)){
             //rc.setIndicatorString("pathing bug, alreadypathing bug " + target);
             Direction moveDir = pathBugHelper(rc, target);
@@ -246,7 +248,7 @@ public strictfp class Pathfinder {
 
         }
 
-        rc.setIndicatorString("pathing Greedy" + target);
+        //rc.setIndicatorString("pathing Greedy" + target);
 
         double lowestCost = 10000;
 
@@ -375,8 +377,8 @@ public strictfp class Pathfinder {
                     }else if(canMoveThrough(rc, lastBugDir.rotateLeft(), rc.getLocation().add(lastBugDir.rotateLeft()))){
                         Direction ans = lastBugDir.rotateLeft();
                         lastBugDir = lastBugDir.rotateLeft().rotateLeft();
-                        rc.setIndicatorString("turning corner " + target+" "
-                            +currentDist +" "+lowestDist);
+                        rc.setIndicatorString("turning corner walleft" + rc.getLocation()+" "
+                            +(int)currentDist +" "+(int)lowestDist);
                         rotationCount ++;
                         return ans;
                     } else if(canMoveThrough(rc, lastBugDir, rc.getLocation().add(lastBugDir))){
@@ -400,8 +402,8 @@ public strictfp class Pathfinder {
                         Direction ans = lastBugDir.rotateRight();
                         lastBugDir = lastBugDir.rotateRight().rotateRight();
                         rotationCount ++;
-                        rc.setIndicatorString("turning corner " + target+" "
-                                +currentDist);
+                        rc.setIndicatorString("turning corner wallright" + rc.getLocation()+" "
+                                +(int)currentDist +" "+(int)lowestDist);
                         return ans;
                     } else if(canMoveThrough(rc, lastBugDir, rc.getLocation().add(lastBugDir))){
                         return lastBugDir;
@@ -455,7 +457,7 @@ public strictfp class Pathfinder {
                         } else{
                             lastBugDir= left;
                         }
-                        //rc.setIndicatorString("starting rotation wall right"+target.toString() +" "+lastBugDir.toString()+ " ");
+                        rc.setIndicatorString("starting rotation wall right"+rc.getLocation()+" "+lowestDist+ " ");
 
 
 
@@ -468,7 +470,7 @@ public strictfp class Pathfinder {
                             lastBugDir= right;
                         }
 
-                        //rc.setIndicatorString("starting rotation wall left"+target.toString() +" "+lastBugDir.toString()+ " ");
+                        rc.setIndicatorString("starting rotation wall left"+rc.getLocation() +" "+lowestDist+ " ");
 
 
                         return right;
