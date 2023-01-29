@@ -24,32 +24,39 @@ public strictfp class Pathfinder {
 
     public static Direction pathBF(RobotController rc, MapLocation target) throws GameActionException {
 
-
         exploring = false;
         if(!target.equals(lastTarget)){
             rotatingBug = false;
             directBug = false;
         }
         lastTarget=target;
-        rc.setIndicatorString("pathing to target BF");
+
         if(directBug || (rotatingBug && currentDist>=lowestDist)){
-            rc.setIndicatorString("pathing to target bug");
+
             //rc.setIndicatorString("pathing bug, alreadypathing bug " + target);
             Direction moveDir = pathBugHelper(rc, target);
+            rc.setIndicatorString("PathBF called, pathing to target bug "+ target+" "+moveDir);
             if(directBug || rotatingBug){
+                lastLocation = rc.getLocation();
                 return moveDir;
             }
 
         }
-        if(rc.senseCloud(rc.getLocation()) || Clock.getBytecodesLeft() < 7000){
-            rc.setIndicatorString("pathing to target greedy");
-            return pathGreedy(rc, target);
+        Direction dirToTarget = rc.getLocation().directionTo(target);
+        MapLocation loc = rc.getLocation().add(dirToTarget);
+        if(rc.senseCloud(rc.getLocation()) || (rc.onTheMap(loc) && rc.senseCloud(loc))
+                || Clock.getBytecodesLeft() < 7000){
+            Direction moveDir = pathGreedy(rc, target);
+            rc.setIndicatorString("PathBF called, pathing to target greedy " + target+" "+moveDir);
+            lastLocation = rc.getLocation();
+            return moveDir;
         }
 
         directBug = false;
         rotatingBug = false;
         currentDist = Math.sqrt(rc.getLocation().distanceSquaredTo(target));
         Direction moveDir = BFPathing20.bfPathToTarget(rc, target);
+        rc.setIndicatorString("pathing to target BF" + target+" "+moveDir);
 
 
 
@@ -57,6 +64,7 @@ public strictfp class Pathfinder {
             directBug = true;
             rotatingBug = false;
             moveDir = pathBugHelper(rc, target);
+            rc.setIndicatorString("Pathing BF failed, returning Bug "+ target+" "+moveDir);
         }
         lastLocation = rc.getLocation();
         return moveDir;

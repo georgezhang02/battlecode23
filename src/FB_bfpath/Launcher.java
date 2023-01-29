@@ -67,6 +67,8 @@ public strictfp class Launcher {
 
     static MapLocation[]clouds;
 
+    static boolean followNearby = true;
+
 
     static final Direction[] directions = {
             Direction.NORTH,
@@ -143,7 +145,6 @@ public strictfp class Launcher {
         cloudAttack(rc);
 
 
-        rc.setIndicatorString(time1+" "+time2+" "+time3+" "+time4+" "+time5+" "+time6+" "+time7 +" "+time8);
 
 
 
@@ -682,12 +683,15 @@ public strictfp class Launcher {
             if(movementChange){
                 detachCD =4;
             }
+            if(numAllyMil > 5){
+                followNearby = false;
+            }
             if((Pathfinder.rotatingBug || Pathfinder.directBug) && Pathfinder.lastTarget != null
              && !rc.canSenseLocation(Pathfinder.lastTarget)){
                 dir = Pathfinder.pathBF(rc, Pathfinder.lastTarget);
             }
             else if((movementChange || detachCD > 0)  && numNearbyAllyMil < 5 &&
-                    rc.getLocation().distanceSquaredTo(followBot.getLocation()) >2){
+                    rc.getLocation().distanceSquaredTo(followBot.getLocation()) >2 && followNearby){
                 rc.setIndicatorString("Pathing to ally");
                 dir = Pathfinder.pathGreedy(rc, followBot.getLocation());
 
@@ -730,7 +734,7 @@ public strictfp class Launcher {
         }
     }
 
-    static void checkMovement(RobotController rc){
+    static void checkMovement(RobotController rc) throws GameActionException {
 
         String checked ="";
 
@@ -753,7 +757,7 @@ public strictfp class Launcher {
                         //If the previous ally location is different from before
 
 
-                        if(loc != alliesPrevious[j].getLocation()){
+                        if(loc != alliesPrevious[j].getLocation() && rc.senseMapInfo(loc).getCurrentDirection() == Direction.CENTER){
                             movementChange = true;
                             dirChange = alliesPrevious[j].getLocation().directionTo(loc);
                             followBot = ally;

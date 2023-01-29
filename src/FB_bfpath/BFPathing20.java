@@ -478,28 +478,45 @@ public strictfp class BFPathing20 {
         ml67 = ml66.add(Direction.SOUTH);
         ml68 = ml67.add(Direction.SOUTH);
         if(Pathfinder.canMoveThrough(rc, Direction.SOUTH, ml1)){
-            dist1 = 10;
+            if (Pathfinder.canMoveThrough(rc, ml1.directionTo(target), ml1)){
+                dist1 = 10;
+            }
+
         }
         if(Pathfinder.canMoveThrough(rc, Direction.SOUTHEAST, ml2)){
-            dist2 = 10;
+            if (Pathfinder.canMoveThrough(rc, ml2.directionTo(target), ml2)){
+                dist2 = 10;
+            }
         }
         if(Pathfinder.canMoveThrough(rc, Direction.EAST, ml3)){
-            dist3 = 10;
+            if (Pathfinder.canMoveThrough(rc, ml3.directionTo(target), ml3)){
+                dist3 = 10;
+            }
         }
         if(Pathfinder.canMoveThrough(rc, Direction.NORTHEAST, ml4)){
-            dist4 = 10;
+            if (Pathfinder.canMoveThrough(rc, ml4.directionTo(target), ml4)){
+                dist4 = 10;
+            }
         }
         if(Pathfinder.canMoveThrough(rc, Direction.NORTH, ml5)){
-            dist5 = 10;
+            if (Pathfinder.canMoveThrough(rc, ml5.directionTo(target), ml5)){
+                dist5 = 10;
+            }
         }
         if(Pathfinder.canMoveThrough(rc, Direction.NORTHWEST, ml6)){
-            dist6 = 10;
+            if (Pathfinder.canMoveThrough(rc, ml6.directionTo(target), ml6)){
+                dist6 = 10;
+            }
         }
         if(Pathfinder.canMoveThrough(rc, Direction.WEST, ml7)){
-            dist7 = 10;
+            if (Pathfinder.canMoveThrough(rc, ml7.directionTo(target), ml7)){
+                dist7 = 10;
+            }
         }
         if(Pathfinder.canMoveThrough(rc, Direction.SOUTHWEST, ml8)){
-            dist8 = 10;
+            if (Pathfinder.canMoveThrough(rc, ml8.directionTo(target), ml8)){
+                dist8 = 10;
+            }
         }
         if(rc.canSenseLocation(ml9) && rc.sensePassability(ml9)){
             cost9 = 10;
