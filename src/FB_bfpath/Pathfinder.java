@@ -31,6 +31,8 @@ public strictfp class Pathfinder {
         }
         lastTarget=target;
 
+        currentDist = Math.sqrt(rc.getLocation().distanceSquaredTo(target));
+
         if(directBug || (rotatingBug && currentDist>=lowestDist)){
 
             //rc.setIndicatorString("pathing bug, alreadypathing bug " + target);
@@ -260,6 +262,7 @@ public strictfp class Pathfinder {
         }
         lastTarget=target;
 
+        currentDist = Math.sqrt(rc.getLocation().distanceSquaredTo(target));
         if(directBug || (rotatingBug && currentDist>=lowestDist)){
             //rc.setIndicatorString("pathing bug, alreadypathing bug " + target);
             Direction moveDir = pathBugHelper(rc, target);
