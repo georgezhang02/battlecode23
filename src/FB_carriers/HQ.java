@@ -1,8 +1,5 @@
 package FB_carriers;
 
-import FB_merged.Comms;
-import FB_merged.Database;
-import FB_merged.Helper;
 import battlecode.common.*;
 
 public strictfp class HQ {
@@ -61,10 +58,10 @@ public strictfp class HQ {
         //act part should be triggered by think part, see methods below
         build(rc);
 
-        rc.setIndicatorString(FB_merged.Database.rotational+" "+ FB_merged.Database.horizontal+" "+ FB_merged.Database.vertical);
+        rc.setIndicatorString(Database.rotational+" "+ Database.horizontal+" "+ Database.vertical);
 
         writeComms(rc);
-        FB_merged.Database.checkSymmetries(rc);
+        Database.checkSymmetries(rc);
 
     }
 
@@ -77,21 +74,21 @@ public strictfp class HQ {
             if (!(enemy.getType() == RobotType.HEADQUARTERS || enemy.getType() == RobotType.CARRIER || enemy.getType() == RobotType.AMPLIFIER)) {
                 enemiesFound = true;
 
-                if(reportEnemy == null || FB_merged.Comms.getCommPrio(enemy.getType()) > FB_merged.Comms.getCommPrio(reportEnemy.getType())){
+                if(reportEnemy == null || Comms.getCommPrio(enemy.getType()) > Comms.getCommPrio(reportEnemy.getType())){
                     reportEnemy = enemy;
                 }
             }
         }
 
         if(reportEnemy != null){
-            FB_merged.Comms.setAttackCommand(rc, reportEnemy.getLocation(), reportEnemy.getType());
+            Comms.setAttackCommand(rc, reportEnemy.getLocation(), reportEnemy.getType());
         }
     }
 
     static void onUnitInit(RobotController rc) throws GameActionException {
         location = rc.getLocation();
         id = rc.getID();
-        HQIndex = FB_merged.Comms.setTeamHQLocation(rc, location, id);
+        HQIndex = Comms.setTeamHQLocation(rc, location, id);
         width = rc.getMapWidth();
         height = rc.getMapHeight();
         smallMap = width <= 40 || height <= 40;
@@ -100,7 +97,7 @@ public strictfp class HQ {
         // Find any enemy HQs
         for (RobotInfo enemy : enemies) {
             if (enemy.getType() == RobotType.HEADQUARTERS) {
-                FB_merged.Database.addEnemyHQ(rc, enemy);
+                Database.addEnemyHQ(rc, enemy);
                 smallMap = true;
                 launchersFirst = true;
             }
@@ -109,11 +106,11 @@ public strictfp class HQ {
         // Initialize all the wells within vision range
         WellInfo[] wells = rc.senseNearbyWells();
         for (WellInfo well : wells) {
-            FB_merged.Database.addWell(rc, well);
+            Database.addWell(rc, well);
         }
 
-        MNWells = FB_merged.Comms.getAllManaWells(rc);
-        closestMN = FB_merged.Helper.getClosest(MNWells, location);
+        MNWells = Comms.getAllManaWells(rc);
+        closestMN = Helper.getClosest(MNWells, location);
 
         // Don't see any ad wells, explore
         boolean MNInRange = closestMN != null && closestMN.isWithinDistanceSquared(location, 34);
@@ -129,31 +126,31 @@ public strictfp class HQ {
 
     static void sense(RobotController rc) throws GameActionException {
         totalAnchorCount = rc.senseRobot(id).getTotalAnchors();
-        MNWells = FB_merged.Database.getKnownManaLocations();
+        MNWells = Database.getKnownManaLocations();
         closestMN = Helper.getClosest(MNWells, location);
     }
 
 
     static void readComms(RobotController rc) throws GameActionException {
-        FB_merged.Database.init(rc);
-        FB_merged.Database.downloadLocations(rc);
-        FB_merged.Database.downloadSymmetry(rc);
+        Database.init(rc);
+        Database.downloadLocations(rc);
+        Database.downloadSymmetry(rc);
 
         wipeComms(rc);
 
     }
 
     static void writeComms(RobotController rc) throws GameActionException {
-        FB_merged.Database.uploadSymmetry(rc);
+        Database.uploadSymmetry(rc);
         Database.uploadLocations(rc);
         if (carriersBuilt <= 12) {
-            FB_merged.Comms.writeHQCommand(rc, HQIndex, new MapLocation(0, 0), carriersBuilt);
+            Comms.writeHQCommand(rc, HQIndex, new MapLocation(0, 0), carriersBuilt);
         }
     }
 
     static void wipeComms(RobotController rc) throws GameActionException{
-        FB_merged.Comms.Island[] teamIslands = FB_merged.Comms.getAllIslands(rc);
-        FB_merged.Comms.Island[] reports = FB_merged.Comms.getAllIslandReports(rc);
+        Comms.Island[] teamIslands = Comms.getAllIslands(rc);
+        Comms.Island[] reports = Comms.getAllIslandReports(rc);
 
         MapLocation[]islands = new MapLocation[teamIslands.length + reports.length];
 
@@ -175,22 +172,22 @@ public strictfp class HQ {
         }
 
         if(removed){
-            if(!FB_merged.Comms.isCommsCleaned(rc)){
-                FB_merged.Comms.wipeComms(rc, false, false, true);
+            if(!Comms.isCommsCleaned(rc)){
+                Comms.wipeComms(rc, false, false, true);
             }
-            for (FB_merged.Comms.Island teamIsland : teamIslands) {
+            for (Comms.Island teamIsland : teamIslands) {
                 if (teamIsland != null) {
-                    FB_merged.Comms.setIsland(rc, teamIsland.location, rc.getTeam());
+                    Comms.setIsland(rc, teamIsland.location, rc.getTeam());
                 }
             }
         } else{
-            if(!FB_merged.Comms.isCommsCleaned(rc)){
-                FB_merged.Comms.wipeComms(rc);
+            if(!Comms.isCommsCleaned(rc)){
+                Comms.wipeComms(rc);
             }
         }
-        for (FB_merged.Comms.Island report : reports) {
+        for (Comms.Island report : reports) {
             if (report != null && report.owner == rc.getTeam()) {
-                FB_merged.Comms.setIsland(rc, report.location, rc.getTeam());
+                Comms.setIsland(rc, report.location, rc.getTeam());
             }
         }
 
@@ -225,7 +222,7 @@ public strictfp class HQ {
 
             if((rc.getRoundNum() == 250 || (anchorsBuilt < 20 * carriersBuilt
                     && rc.getRobotCount() >= ANCHOR_BUILD_THRESHOLD && carrierCounter >= 20)) &&
-                    totalAnchorCount == 0 && !buildAnchor  && rc.getRobotCount() > 5 * FB_merged.Comms.getNumHQs(rc)){
+                    totalAnchorCount == 0 && !buildAnchor  && rc.getRobotCount() > 5 * Comms.getNumHQs(rc)){
                 buildAnchor = true;
                 buildAmp = false;
                 carrierCounter = 0;

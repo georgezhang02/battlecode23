@@ -1,7 +1,5 @@
 package FB_carriers;
 
-import FB_merged.Comms;
-import FB_merged.Database;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
@@ -42,11 +40,11 @@ public class Explorer {
     public static void getHQExploreTarget(RobotController rc) throws GameActionException {
 
         if(!HQInit){
-            numHQs = FB_merged.Comms.getNumHQs(rc);
-            HQLoc1 = FB_merged.Comms.getTeamHQLocation(rc, 0);
-            if(numHQs <= 2)  HQLoc2 = FB_merged.Comms.getTeamHQLocation(rc, 1);
-            if(numHQs <= 3)  HQLoc3 = FB_merged.Comms.getTeamHQLocation(rc, 2);
-            if(numHQs <= 4)  HQLoc4 = FB_merged.Comms.getTeamHQLocation(rc, 3);
+            numHQs = Comms.getNumHQs(rc);
+            HQLoc1 = Comms.getTeamHQLocation(rc, 0);
+            if(numHQs <= 2)  HQLoc2 = Comms.getTeamHQLocation(rc, 1);
+            if(numHQs <= 3)  HQLoc3 = Comms.getTeamHQLocation(rc, 2);
+            if(numHQs <= 4)  HQLoc4 = Comms.getTeamHQLocation(rc, 3);
 
             rotHQsExplored = new boolean[numHQs];
             horizHQsExplored = new boolean[numHQs];
@@ -58,20 +56,20 @@ public class Explorer {
         target = null;
 
 
-        if(FB_merged.Database.rotational){
-            target = getNearestUnexploredHQ(rc, FB_merged.Database.rotationalEnemyHQs, rotHQsExplored);
+        if(Database.rotational){
+            target = getNearestUnexploredHQ(rc, Database.rotationalEnemyHQs, rotHQsExplored);
             curExploring = rotHQsExplored;
             exploreRot = true;
             exploreHor = false;
             exploreVrt = false;
-        } else if(FB_merged.Database.horizontal){
-            target = getNearestUnexploredHQ(rc, FB_merged.Database.horizontalEnemyHQs, horizHQsExplored);
+        } else if(Database.horizontal){
+            target = getNearestUnexploredHQ(rc, Database.horizontalEnemyHQs, horizHQsExplored);
             curExploring = horizHQsExplored;
             exploreRot = false;
             exploreHor = true;
             exploreVrt = false;
-        } else if(FB_merged.Database.vertical){
-            target = getNearestUnexploredHQ(rc, FB_merged.Database.verticalEnemyHQs, vertHQsExplored);
+        } else if(Database.vertical){
+            target = getNearestUnexploredHQ(rc, Database.verticalEnemyHQs, vertHQsExplored);
             curExploring = vertHQsExplored;
             exploreRot = false;
             exploreHor = false;
@@ -118,10 +116,10 @@ public class Explorer {
     public static void getExploreTarget(RobotController rc, int tries, int mapWidth, int mapHeight) throws GameActionException {
         curHQExploreIndex = -1;
         if(!HQInit){
-            int numHQs = FB_merged.Comms.getNumHQs(rc);
-            HQLoc1 = FB_merged.Comms.getTeamHQLocation(rc, 0);
-            if(numHQs <= 2)  HQLoc2 = FB_merged.Comms.getTeamHQLocation(rc, 1);
-            if(numHQs <= 3)  HQLoc3 = FB_merged.Comms.getTeamHQLocation(rc, 2);
+            int numHQs = Comms.getNumHQs(rc);
+            HQLoc1 = Comms.getTeamHQLocation(rc, 0);
+            if(numHQs <= 2)  HQLoc2 = Comms.getTeamHQLocation(rc, 1);
+            if(numHQs <= 3)  HQLoc3 = Comms.getTeamHQLocation(rc, 2);
             if(numHQs <= 4)  HQLoc4 = Comms.getTeamHQLocation(rc, 3);
         }
 

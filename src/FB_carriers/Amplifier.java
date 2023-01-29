@@ -1,8 +1,5 @@
 package FB_carriers;
 
-import FB_merged.Comms;
-import FB_merged.Database;
-import FB_merged.Pathfinder;
 import battlecode.common.*;
 
 public strictfp class Amplifier {
@@ -32,7 +29,7 @@ public strictfp class Amplifier {
 
     static int[] islands;
 
-    static FB_merged.Comms.Attack attackCommand;
+    static Comms.Attack attackCommand;
 
     static void run(RobotController rc) throws GameActionException {
         // interpret overall macro state
@@ -70,7 +67,7 @@ public strictfp class Amplifier {
         }
 
         writeComms(rc);
-        FB_merged.Database.checkSymmetries(rc);
+        Database.checkSymmetries(rc);
     }
 
     static void onUnitInit(RobotController rc) throws GameActionException{
@@ -82,16 +79,16 @@ public strictfp class Amplifier {
     }
 
     static void readComms(RobotController rc)throws GameActionException {
-        FB_merged.Database.init(rc);
-        FB_merged.Database.downloadSymmetry(rc);
-        FB_merged.Database.downloadLocations(rc);
+        Database.init(rc);
+        Database.downloadSymmetry(rc);
+        Database.downloadLocations(rc);
 
-        FB_merged.Comms.Attack[] attackCommands = FB_merged.Comms.getAllAttackCommands(rc);
-        int maxPrio = (attackCommand==null) ? 0 : FB_merged.Comms.getCommPrio(attackCommand.type);
+        Comms.Attack[] attackCommands = Comms.getAllAttackCommands(rc);
+        int maxPrio = (attackCommand==null) ? 0 : Comms.getCommPrio(attackCommand.type);
 
         for(int i = 0; i< attackCommands.length; i++){
             MapLocation loc = attackCommands[i].location;
-            int prio = FB_merged.Comms.getCommPrio(attackCommands[i].type);
+            int prio = Comms.getCommPrio(attackCommands[i].type);
             if(prio > maxPrio){
                 attackCommand = attackCommands[i];
                 maxPrio = prio;
@@ -107,10 +104,10 @@ public strictfp class Amplifier {
 
         if(rc.canWriteSharedArray(0,0)){
             if(nearestEnemyMil != null){
-                FB_merged.Comms.setAttackCommand(rc, nearestEnemyMil.getLocation(), nearestEnemyMil.getType() );
+                Comms.setAttackCommand(rc, nearestEnemyMil.getLocation(), nearestEnemyMil.getType() );
             }
-            FB_merged.Database.uploadSymmetry(rc);
-            FB_merged.Database.uploadLocations(rc);
+            Database.uploadSymmetry(rc);
+            Database.uploadLocations(rc);
         }
     }
 
@@ -130,7 +127,7 @@ public strictfp class Amplifier {
                     minRange = range;
                 }
             } else if(enemy.getType() == RobotType.HEADQUARTERS){
-                FB_merged.Database.addEnemyHQ(rc, enemy);
+                Database.addEnemyHQ(rc, enemy);
             }
         }
 
@@ -162,7 +159,7 @@ public strictfp class Amplifier {
             if(numEnemyMil == 0 && !commandSent && rc.senseTeamOccupyingIsland(islands[i]) != rc.getTeam()
                     && rc.canWriteSharedArray(0,0)){
                 commandSent = true;
-                FB_merged.Comms.setAnchorCommand(rc, rc.senseNearbyIslandLocations(islands[i])[0]);
+                Comms.setAnchorCommand(rc, rc.senseNearbyIslandLocations(islands[i])[0]);
             }
         }
 
@@ -208,7 +205,7 @@ public strictfp class Amplifier {
                 Comms.setAttackCommand(rc, nearestEnemyMil.getLocation(), nearestEnemyMil.getType());
             }
             if(rc.isMovementReady()){
-                Direction moveDir = FB_merged.Pathfinder.pathAwayFrom(rc, nearestEnemyMil.getLocation());
+                Direction moveDir = Pathfinder.pathAwayFrom(rc, nearestEnemyMil.getLocation());
                 if(moveDir != null && rc.canMove(moveDir)){
                     rc.move(moveDir);
                 }
@@ -219,9 +216,9 @@ public strictfp class Amplifier {
     static void follow(RobotController rc) throws GameActionException{
         Direction dir;
         if(ampInRange){
-            dir = FB_merged.Pathfinder.pathAwayFrom(rc, closestAmp);
+            dir = Pathfinder.pathAwayFrom(rc, closestAmp);
         } else{
-            dir = FB_merged.Pathfinder.pathBug(rc,furthestAllyMil.getLocation());
+            dir = Pathfinder.pathBug(rc,furthestAllyMil.getLocation());
         }
         if (rc.canMove(dir)) {
             rc.move(dir);
@@ -232,9 +229,9 @@ public strictfp class Amplifier {
         MapLocation target= attackCommand.location;
         Direction dir;
         if(ampInRange){
-            dir = FB_merged.Pathfinder.pathAwayFrom(rc, closestAmp);
+            dir = Pathfinder.pathAwayFrom(rc, closestAmp);
         } else{
-            dir = FB_merged.Pathfinder.pathBug(rc,target);
+            dir = Pathfinder.pathBug(rc,target);
         }
         if (rc.canMove(dir)) {
             rc.move(dir);
@@ -244,7 +241,7 @@ public strictfp class Amplifier {
     static void explore(RobotController rc) throws GameActionException{
         Direction dir;
         if(ampInRange){
-            dir = FB_merged.Pathfinder.pathAwayFrom(rc, closestAmp);
+            dir = Pathfinder.pathAwayFrom(rc, closestAmp);
         } else{
             dir = Pathfinder.pathToExploreBug(rc);
         }

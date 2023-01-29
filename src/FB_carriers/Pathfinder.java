@@ -1,8 +1,5 @@
 package FB_carriers;
 
-import FB_merged.BFPathing20;
-import FB_merged.Database;
-import FB_merged.Explorer;
 import battlecode.common.*;
 
 public strictfp class Pathfinder {
@@ -55,32 +52,32 @@ public strictfp class Pathfinder {
 
     public static Direction pathToExplore(RobotController rc) throws GameActionException {
 
-        if(!exploring || rc.getLocation().distanceSquaredTo(FB_merged.Explorer.target) <= 16){
-            FB_merged.Explorer.getExploreTarget(rc, 10, rc.getMapWidth(), rc.getMapHeight());
+        if(!exploring || rc.getLocation().distanceSquaredTo(Explorer.target) <= 16){
+            Explorer.getExploreTarget(rc, 10, rc.getMapWidth(), rc.getMapHeight());
         }
-        Direction dir = pathGreedy(rc, FB_merged.Explorer.target);
+        Direction dir = pathGreedy(rc, Explorer.target);
         exploring = true;
         return dir;
     }
 
     public static Direction pathToExploreHQ(RobotController rc) throws GameActionException {
 
-        if(!exploring || rc.getLocation().distanceSquaredTo(FB_merged.Explorer.target) <= 16){
-            if(FB_merged.Explorer.curExploring != null && FB_merged.Explorer.curHQExploreIndex!=-1){
-                FB_merged.Explorer.curExploring[FB_merged.Explorer.curHQExploreIndex] = true;
+        if(!exploring || rc.getLocation().distanceSquaredTo(Explorer.target) <= 16){
+            if(Explorer.curExploring != null && Explorer.curHQExploreIndex!=-1){
+                Explorer.curExploring[Explorer.curHQExploreIndex] = true;
             }
-            FB_merged.Explorer.getHQExploreTarget(rc);
+            Explorer.getHQExploreTarget(rc);
         }
 
-        if(FB_merged.Explorer.exploreRot && !FB_merged.Database.rotational){
-            FB_merged.Explorer.getHQExploreTarget(rc);
-        } else if(FB_merged.Explorer.exploreHor && !FB_merged.Database.horizontal){
-            FB_merged.Explorer.getHQExploreTarget(rc);
-        }  else if(FB_merged.Explorer.exploreVrt && !Database.vertical){
-            FB_merged.Explorer.getHQExploreTarget(rc);
+        if(Explorer.exploreRot && !Database.rotational){
+            Explorer.getHQExploreTarget(rc);
+        } else if(Explorer.exploreHor && !Database.horizontal){
+            Explorer.getHQExploreTarget(rc);
+        }  else if(Explorer.exploreVrt && !Database.vertical){
+            Explorer.getHQExploreTarget(rc);
         }
         //rc.setIndicatorString(Explorer.target+"");
-        Direction dir = pathGreedy(rc, FB_merged.Explorer.target);
+        Direction dir = pathGreedy(rc, Explorer.target);
 
         exploring = true;
         return dir;
@@ -88,11 +85,11 @@ public strictfp class Pathfinder {
 
     public static Direction pathToExploreBug(RobotController rc) throws GameActionException {
 
-        if(!exploring || rc.getLocation().distanceSquaredTo(FB_merged.Explorer.target) <= 16){
-            FB_merged.Explorer.getExploreTarget(rc, 10, rc.getMapWidth(), rc.getMapHeight());
+        if(!exploring || rc.getLocation().distanceSquaredTo(Explorer.target) <= 16){
+            Explorer.getExploreTarget(rc, 10, rc.getMapWidth(), rc.getMapHeight());
         }
-        rc.setIndicatorLine(rc.getLocation(), FB_merged.Explorer.target, 0, 255, 255);
-        Direction dir = pathBug(rc, FB_merged.Explorer.target);
+        rc.setIndicatorLine(rc.getLocation(), Explorer.target, 0, 255, 255);
+        Direction dir = pathBug(rc, Explorer.target);
 
 
         exploring = true;
@@ -120,8 +117,8 @@ public strictfp class Pathfinder {
             return pathBug(rc, pathToAlly.getLocation());
         }
 
-        if(!exploring || rc.getLocation().distanceSquaredTo(FB_merged.Explorer.target) <= 4){
-            FB_merged.Explorer.getExploreTarget(rc, 10, rc.getMapWidth(), rc.getMapHeight());
+        if(!exploring || rc.getLocation().distanceSquaredTo(Explorer.target) <= 4){
+            Explorer.getExploreTarget(rc, 10, rc.getMapWidth(), rc.getMapHeight());
         }
         Direction dir = pathBF(rc, Explorer.target);
         exploring = true;

@@ -1,11 +1,5 @@
 package FB_carriers;
 
-import FB_merged.Amplifier;
-import FB_merged.Booster;
-import FB_merged.Carrier;
-import FB_merged.Destabilizer;
-import FB_merged.HQ;
-import FB_merged.Launcher;
 import battlecode.common.Clock;
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;

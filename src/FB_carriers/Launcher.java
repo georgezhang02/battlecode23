@@ -1,9 +1,5 @@
 package FB_carriers;
 
-import FB_merged.Comms;
-import FB_merged.Database;
-import FB_merged.Pathfinder;
-import FB_merged.RobotPlayer;
 import battlecode.common.*;
 
 
@@ -61,7 +57,7 @@ public strictfp class Launcher {
 
     static int detachCD = 0;
 
-    static FB_merged.Comms.Attack attackCommand;
+    static Comms.Attack attackCommand;
 
     static MapLocation closestEnemyHQ;
 
@@ -131,7 +127,7 @@ public strictfp class Launcher {
         }
 
         writeComms(rc);
-        FB_merged.Database.checkSymmetries(rc);
+        Database.checkSymmetries(rc);
 
         cloudAttack(rc);
 
@@ -161,9 +157,9 @@ public strictfp class Launcher {
     }
 
     static void readComms(RobotController rc)throws GameActionException{
-        FB_merged.Database.init(rc);
-        FB_merged.Database.downloadSymmetry(rc);
-        FB_merged.Database.downloadLocations(rc);
+        Database.init(rc);
+        Database.downloadSymmetry(rc);
+        Database.downloadLocations(rc);
     }
     static void sense(RobotController rc) throws GameActionException{
         int minRange = RobotType.LAUNCHER.visionRadiusSquared+1;
@@ -231,7 +227,7 @@ public strictfp class Launcher {
             } else if(rc.senseTeamOccupyingIsland(islands[i]) != rc.getTeam() &&numEnemyMil == 0
                     && !commandSent && rc.canWriteSharedArray(0,0)){
                 commandSent = true;
-                FB_merged.Comms.setAnchorCommand(rc, rc.senseNearbyIslandLocations(islands[i])[0]);
+                Comms.setAnchorCommand(rc, rc.senseNearbyIslandLocations(islands[i])[0]);
             }
         }
 
@@ -278,7 +274,7 @@ public strictfp class Launcher {
                 if (rc.canSenseLocation(fallbackIsland)) {
                     if (rc.senseTeamOccupyingIsland(rc.senseIsland(fallbackIsland)) != rc.getTeam()) {
                         if(rc.canWriteSharedArray(0,0)){
-                            FB_merged.Comms.reportIslandLocation(rc, fallbackIsland, null);
+                            Comms.reportIslandLocation(rc, fallbackIsland, null);
                         }
                         state = LauncherState.Exploring;
                     }
@@ -333,7 +329,7 @@ public strictfp class Launcher {
             fallbackIsland = rc.getLocation();
         }
         //move towards the fallbackIsland spot
-        Direction dir = FB_merged.Pathfinder.pathGreedy(rc, fallbackIsland);
+        Direction dir = Pathfinder.pathGreedy(rc, fallbackIsland);
         if(rc.canMove(dir)) {
             rc.move(dir);
             sense(rc);
@@ -379,7 +375,7 @@ public strictfp class Launcher {
             if(nearestEnemyMil != null &&
                     (nearestEnemyMil.getLocation().distanceSquaredTo(rc.getLocation()) <= 16 && rc.getActionCooldownTurns()<=1)){
 
-                return FB_merged.Pathfinder.pathAwayFrom(rc, nearestEnemyMil.getLocation());
+                return Pathfinder.pathAwayFrom(rc, nearestEnemyMil.getLocation());
             }  else if(attackRobot!= null){
 
                 pursuitLocation = attackRobot.getLocation();
@@ -397,7 +393,7 @@ public strictfp class Launcher {
                     moveFirst = false;
                     if(nearestEnemyMil != null){
                         pursuitLocation = nearestEnemyMil.getLocation();
-                        return FB_merged.Pathfinder.pathAwayFrom(rc, nearestEnemyMil.getLocation());
+                        return Pathfinder.pathAwayFrom(rc, nearestEnemyMil.getLocation());
                     }
                 } else {
                     // attack not in radius
@@ -462,7 +458,7 @@ public strictfp class Launcher {
                     if(moveToAttack){
 
                         moveFirst = true;
-                        return FB_merged.Pathfinder.pathBug(rc, attackLoc);
+                        return Pathfinder.pathBug(rc, attackLoc);
                     }
 
                 }
@@ -551,7 +547,7 @@ public strictfp class Launcher {
         }
         if(!attackSent && enemyToAttack != null){
             if(rc.canWriteSharedArray(0,0)){
-                FB_merged.Comms.setAttackCommand(rc, enemyToAttack.getLocation(), enemyToAttack.getType());
+                Comms.setAttackCommand(rc, enemyToAttack.getLocation(), enemyToAttack.getType());
                 attackSent = true;
             }
         }
@@ -584,7 +580,7 @@ public strictfp class Launcher {
     static void pursue(RobotController rc) throws GameActionException{
 
         if(rc.isMovementReady()){
-            Direction moveDir = FB_merged.Pathfinder.pathGreedy(rc, pursuitLocation);
+            Direction moveDir = Pathfinder.pathGreedy(rc, pursuitLocation);
 
             if(canMove(rc, moveDir)){
                 rc.move(moveDir);
@@ -607,7 +603,7 @@ public strictfp class Launcher {
 
         if(!rc.canSenseLocation(target) || rc.getLocation().distanceSquaredTo(target) > rc.getType().actionRadiusSquared){
             if(rc.isMovementReady()){
-                Direction moveDir = FB_merged.Pathfinder.pathGreedy(rc, target);
+                Direction moveDir = Pathfinder.pathGreedy(rc, target);
                 if(canMove(rc, moveDir)){
                     rc.move(moveDir);
                 }
@@ -627,14 +623,14 @@ public strictfp class Launcher {
         }
     }
 
-    static FB_merged.Comms.Attack getAttackCommand(RobotController rc) throws GameActionException {
-        FB_merged.Comms.Attack[] attackCommands = FB_merged.Comms.getAllAttackCommands(rc);
-        int maxPrio = (attackCommand==null) ? 0 : FB_merged.Comms.getCommPrio(attackCommand.type);
+    static Comms.Attack getAttackCommand(RobotController rc) throws GameActionException {
+        Comms.Attack[] attackCommands = Comms.getAllAttackCommands(rc);
+        int maxPrio = (attackCommand==null) ? 0 : Comms.getCommPrio(attackCommand.type);
         int minRange = 10000;
 
         for(int i = 0; i< attackCommands.length; i++){
             MapLocation loc = attackCommands[i].location;
-            int prio = FB_merged.Comms.getCommPrio(attackCommands[i].type);
+            int prio = Comms.getCommPrio(attackCommands[i].type);
             int range = rc.getLocation().distanceSquaredTo(attackCommands[i].location);
             if(range > rc.getType().actionRadiusSquared &&
                     (loc.distanceSquaredTo(rc.getLocation()) <=50 ||
@@ -660,7 +656,7 @@ public strictfp class Launcher {
         if(RobotPlayer.turnCount < 2 && numAllyMil > 0 &&
                 nearestAllyMil.getLocation().distanceSquaredTo(rc.getLocation()) >=2){
             canExplore = true;
-            dir = FB_merged.Pathfinder.pathGreedy(rc, nearestAllyMil.getLocation());
+            dir = Pathfinder.pathGreedy(rc, nearestAllyMil.getLocation());
             if(canMoveToExplore(rc, dir)) {
                 rc.move(dir);
             }
@@ -675,12 +671,12 @@ public strictfp class Launcher {
             }
             if((movementChange || detachCD > 0)  && numNearbyAllyMil < 5 &&
                     rc.getLocation().distanceSquaredTo(followBot.getLocation()) >2
-                        && (!FB_merged.Pathfinder.rotatingBug && !FB_merged.Pathfinder.directBug)){
+                        && (!Pathfinder.rotatingBug && !Pathfinder.directBug)){
 
-                dir = FB_merged.Pathfinder.pathGreedy(rc, followBot.getLocation());
+                dir = Pathfinder.pathGreedy(rc, followBot.getLocation());
 
             } else{
-                dir = FB_merged.Pathfinder.pathToExploreHQ(rc);
+                dir = Pathfinder.pathToExploreHQ(rc);
 
             }
             if(canMoveToExplore(rc, dir)){
@@ -700,7 +696,7 @@ public strictfp class Launcher {
     }
 
     static void campHQ(RobotController rc) throws GameActionException{
-        Direction dir = FB_merged.Pathfinder.pathBug(rc, closestEnemyHQ);
+        Direction dir = Pathfinder.pathBug(rc, closestEnemyHQ);
         if(rc.getLocation().isWithinDistanceSquared(closestEnemyHQ,9)){
             dir = Pathfinder.pathAwayFrom(rc,closestEnemyHQ);
         } else if(rc.getLocation().add(dir).isWithinDistanceSquared(closestEnemyHQ,9)){
@@ -756,7 +752,7 @@ public strictfp class Launcher {
 
     //Find closest capped island
     static MapLocation getFallback(RobotController rc) throws GameActionException{
-        FB_merged.Comms.Island[] islands = Comms.getAllIslands(rc);
+        Comms.Island[] islands = Comms.getAllIslands(rc);
         int min = Integer.MAX_VALUE;
         for(int i = 0; i < islands.length; i++){
                 int dist = rc.getLocation().distanceSquaredTo(islands[i].location);
@@ -771,11 +767,11 @@ public strictfp class Launcher {
     static void updateDatabase(RobotController rc) throws GameActionException{
         for(RobotInfo enemy: enemies){
             if(enemy.getType().equals(RobotType.HEADQUARTERS)){
-                FB_merged.Database.addEnemyHQ(rc, enemy);
+                Database.addEnemyHQ(rc, enemy);
             }
         }
         for(WellInfo well: wells){
-            FB_merged.Database.addWell(rc, well);
+            Database.addWell(rc, well);
         }
 
     }
@@ -783,7 +779,7 @@ public strictfp class Launcher {
     static void writeComms(RobotController rc) throws GameActionException {
 
         if(rc.canWriteSharedArray(0,0)){
-            FB_merged.Database.uploadSymmetry(rc);
+            Database.uploadSymmetry(rc);
             Database.uploadLocations(rc);
         }
     }

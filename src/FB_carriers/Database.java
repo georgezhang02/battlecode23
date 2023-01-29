@@ -1,7 +1,5 @@
 package FB_carriers;
 
-import FB_merged.Comms;
-import FB_merged.HashSet;
 import battlecode.common.*;
 
 public class Database {
@@ -54,8 +52,8 @@ public class Database {
     public static boolean uploadedAllLocations = false;
 
     static int globalSymmetryCount = 3;
-    static FB_merged.HashSet<MapLocation> globalKnownLocations;
-    static FB_merged.HashSet<MapLocation> localKnownLocations;
+    static HashSet<MapLocation> globalKnownLocations;
+    static HashSet<MapLocation> localKnownLocations;
 
     private static int width;
     private static int height;
@@ -69,9 +67,9 @@ public class Database {
             horizontal = true;
             vertical = true;
 
-            globalKnownLocations = new FB_merged.HashSet<>();
+            globalKnownLocations = new HashSet<>();
             localKnownLocations = new HashSet<>();
-            allyHQs = FB_merged.Comms.getAllHQs(rc);
+            allyHQs = Comms.getAllHQs(rc);
 
 
             width = rc.getMapWidth();
@@ -140,17 +138,17 @@ public class Database {
     }
 
     public static void downloadLocations(RobotController rc) throws GameActionException {
-        if(allyHQs == null || allyHQs.length < FB_merged.Comms.getNumHQs(rc)){
-            allyHQs = FB_merged.Comms.getAllHQs(rc);
+        if(allyHQs == null || allyHQs.length < Comms.getNumHQs(rc)){
+            allyHQs = Comms.getAllHQs(rc);
             processHQSymmetries(rc);
         }
-        int numCommEnemyHQ = FB_merged.Comms.getNumEnemyHQs(rc);
-        int numCommAD = FB_merged.Comms.getNumADWells(rc);
-        int numCommMana = FB_merged.Comms.getNumManaWells(rc);
+        int numCommEnemyHQ = Comms.getNumEnemyHQs(rc);
+        int numCommAD = Comms.getNumADWells(rc);
+        int numCommMana = Comms.getNumManaWells(rc);
 
         if(numCommEnemyHQ > numGlobalEnemyHQs){
             for(;numGlobalEnemyHQs < numCommEnemyHQ; numGlobalEnemyHQs++){
-                globalEnemyHQs[numGlobalEnemyHQs] = FB_merged.Comms.getEnemyHQLocation(rc, numGlobalEnemyHQs);
+                globalEnemyHQs[numGlobalEnemyHQs] = Comms.getEnemyHQLocation(rc, numGlobalEnemyHQs);
                 globalKnownLocations.add(globalEnemyHQs[numGlobalEnemyHQs] );
 
                 if(!localKnownLocations.contains(globalEnemyHQs[numGlobalEnemyHQs])) {
@@ -162,7 +160,7 @@ public class Database {
 
         if(numCommAD > numGlobalAD){
             for(;numGlobalAD < numCommAD; numGlobalAD++){
-                globalADWells[numGlobalAD] = FB_merged.Comms.getADWell(rc, numGlobalAD);
+                globalADWells[numGlobalAD] = Comms.getADWell(rc, numGlobalAD);
                 globalKnownLocations.add(globalADWells[numGlobalAD] );
 
                 if(!localKnownLocations.contains(globalADWells[numGlobalAD])) {
@@ -174,7 +172,7 @@ public class Database {
 
         if(numCommMana > numGlobalMana){
             for(;numGlobalMana < numCommMana; numGlobalMana++){
-                globalManaWells[numGlobalMana] = FB_merged.Comms.getManaWell(rc, numGlobalMana);
+                globalManaWells[numGlobalMana] = Comms.getManaWell(rc, numGlobalMana);
                 globalKnownLocations.add(globalManaWells[numGlobalMana]);
 
                 if(!localKnownLocations.contains(globalManaWells[numGlobalMana])){
@@ -187,7 +185,7 @@ public class Database {
     }
 
     public static void downloadSymmetry(RobotController rc) throws GameActionException {
-        boolean[]symmetries = FB_merged.Comms.getSymmetries(rc);
+        boolean[]symmetries = Comms.getSymmetries(rc);
 
         if(symmetries[0])globalSymmetryCount ++;
         if(symmetries[1])globalSymmetryCount ++;
@@ -216,7 +214,7 @@ public class Database {
 
     public static void uploadSymmetry(RobotController rc) throws GameActionException {
         if(symmetryUpload && rc.canWriteSharedArray(0,0) && Clock.getBytecodesLeft() > BYTECODE_LIMIT) {
-            FB_merged.Comms.setSymmetries(rc, rotational, horizontal, vertical);
+            Comms.setSymmetries(rc, rotational, horizontal, vertical);
             symmetryUpload = false;
         }
     }
@@ -230,7 +228,7 @@ public class Database {
                         localEnemyHQs[i] = null;
                         numLocalHQs--;
                     } else{
-                        boolean added = FB_merged.Comms.setEnemyHQLocation(rc, localEnemyHQs[i].getLocation(), localEnemyHQs[i].getID());
+                        boolean added = Comms.setEnemyHQLocation(rc, localEnemyHQs[i].getLocation(), localEnemyHQs[i].getID());
 
                         if(added){
                             globalEnemyHQs[numGlobalEnemyHQs] = localEnemyHQs[i].getLocation();
@@ -251,7 +249,7 @@ public class Database {
                         localADWells[i] = null;
                         numLocalADWells--;
                     } else{
-                        boolean added = FB_merged.Comms.setADWell(rc, localADWells[i]);
+                        boolean added = Comms.setADWell(rc, localADWells[i]);
                         if(added){
                             globalADWells[numGlobalAD] = localADWells[i];
                             globalKnownLocations.add(localADWells[i]);
@@ -271,7 +269,7 @@ public class Database {
                         localManaWells[i] = null;
                         numLocalManaWells--;
                     } else{
-                        boolean added = FB_merged.Comms.setManaWell(rc, localManaWells[i]);
+                        boolean added = Comms.setManaWell(rc, localManaWells[i]);
 
                         if(added){
                             globalManaWells[numGlobalMana] = localManaWells[i];
@@ -296,7 +294,7 @@ public class Database {
             if(!globalKnownLocations.contains(loc) && !localKnownLocations.contains(loc)){
                 if(rc.canWriteSharedArray(0,0)){
                     if(info.getResourceType().equals(ResourceType.ADAMANTIUM) && numGlobalAD < 8){
-                        boolean added = FB_merged.Comms.setADWell(rc, info.getMapLocation());
+                        boolean added = Comms.setADWell(rc, info.getMapLocation());
                         if(added){
                             globalADWells[numGlobalAD] = info.getMapLocation();
                             globalKnownLocations.add(info.getMapLocation());
@@ -308,7 +306,7 @@ public class Database {
                         }
 
                     } else if (info.getResourceType().equals(ResourceType.MANA) && numGlobalMana < 8){
-                        boolean added = FB_merged.Comms.setManaWell(rc, info.getMapLocation());
+                        boolean added = Comms.setManaWell(rc, info.getMapLocation());
                         if(added){
                             globalManaWells[numGlobalMana] = info.getMapLocation();
                             globalKnownLocations.add(info.getMapLocation());

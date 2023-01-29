@@ -1,9 +1,5 @@
 package FB_carriers;
 
-import FB_merged.Comms;
-import FB_merged.Database;
-import FB_merged.Helper;
-import FB_merged.Pathfinder;
 import battlecode.common.*;
 
 import java.util.Arrays;
@@ -64,7 +60,7 @@ public strictfp class Carrier {
 
 
         writeComms(rc);
-        FB_merged.Database.checkSymmetries(rc);
+        Database.checkSymmetries(rc);
     }
 
     static void onUnitInit(RobotController rc) throws GameActionException {
@@ -73,12 +69,12 @@ public strictfp class Carrier {
         for (RobotInfo ally : allies) {
             if (ally.getType() == RobotType.HEADQUARTERS) {
                 HQ_LOCATION = ally.getLocation();
-                HQIndex = FB_merged.Comms.getHQIndexByID(rc, ally.getID());
+                HQIndex = Comms.getHQIndexByID(rc, ally.getID());
             }
         }
-        knownADWells = FB_merged.Database.getKnownADLocations();
+        knownADWells = Database.getKnownADLocations();
         //closestAD = Helper.getClosest(knownADWells, HQ_LOCATION);
-        knownMNWells = FB_merged.Database.getKnownManaLocations();
+        knownMNWells = Database.getKnownManaLocations();
         //closestMN = Helper.getClosest(knownMNWells, HQ_LOCATION);
 
         assignClosest(rc);
@@ -130,16 +126,16 @@ public strictfp class Carrier {
     }
 
     static void readComms(RobotController rc) throws GameActionException {
-        FB_merged.Database.init(rc);
-        FB_merged.Database.downloadSymmetry(rc);
-        FB_merged.Database.downloadLocations(rc);
-        carrierCount = FB_merged.Comms.getHQCommand(rc, HQIndex).num;
+        Database.init(rc);
+        Database.downloadSymmetry(rc);
+        Database.downloadLocations(rc);
+        carrierCount = Comms.getHQCommand(rc, HQIndex).num;
     }
 
     static void writeComms(RobotController rc) throws GameActionException {
         if(rc.canWriteSharedArray(0,0)){
-            FB_merged.Database.uploadSymmetry(rc);
-            FB_merged.Database.uploadLocations(rc);
+            Database.uploadSymmetry(rc);
+            Database.uploadLocations(rc);
             uploaded = true;
         }
     }
@@ -151,17 +147,17 @@ public strictfp class Carrier {
         manaAmount = rc.getResourceAmount(ResourceType.MANA);
         elixirAmount = rc.getResourceAmount(ResourceType.ELIXIR);
 
-        HQ_LOCATION = FB_merged.Comms.getClosestTeamHQLocation(rc, location);
-        HQIndex = FB_merged.Comms.getHQIndexByLocation(rc, HQ_LOCATION);
+        HQ_LOCATION = Comms.getClosestTeamHQLocation(rc, location);
+        HQIndex = Comms.getHQIndexByLocation(rc, HQ_LOCATION);
 
         WellInfo[] wells = rc.senseNearbyWells();
         for (WellInfo well : wells) {
-            boolean known = FB_merged.Database.globalKnownLocations.contains(well.getMapLocation())
-                    || FB_merged.Database.localKnownLocations.contains(well.getMapLocation());
+            boolean known = Database.globalKnownLocations.contains(well.getMapLocation())
+                    || Database.localKnownLocations.contains(well.getMapLocation());
 
             //otherwise, mark this as known and return to base
             if (!known) {
-                FB_merged.Database.addWell(rc, well);
+                Database.addWell(rc, well);
                 uploaded = false;
             }
         }
@@ -170,15 +166,15 @@ public strictfp class Carrier {
             state = CarrierState.Returning;
         }
 
-        knownADWells = FB_merged.Database.getKnownADLocations();
-        knownMNWells = FB_merged.Database.getKnownManaLocations();
+        knownADWells = Database.getKnownADLocations();
+        knownMNWells = Database.getKnownManaLocations();
 
         int[] islands  = rc.senseNearbyIslands();
         boolean commandSent = false;
         for (int island : islands) {
             if (!enemiesFound(rc) && !commandSent && rc.senseTeamOccupyingIsland(island) != rc.getTeam()
                     && rc.canWriteSharedArray(0, 0)) {
-                FB_merged.Comms.setAnchorCommand(rc, rc.senseNearbyIslandLocations(island)[0]);
+                Comms.setAnchorCommand(rc, rc.senseNearbyIslandLocations(island)[0]);
                 commandSent = true;
             }
         }
@@ -191,14 +187,14 @@ public strictfp class Carrier {
         for (RobotInfo enemy : enemies) {
             if(enemy.getType() == RobotType.CARRIER){
                 if(rc.canWriteSharedArray(0,0) && !attackSent){
-                    FB_merged.Comms.setAttackCommand(rc, enemy.getLocation(), enemy.getType());
+                    Comms.setAttackCommand(rc, enemy.getLocation(), enemy.getType());
                     attackSent = true;
                 }
             }
             if (!(enemy.getType() == RobotType.HEADQUARTERS || enemy.getType() == RobotType.CARRIER || enemy.getType() == RobotType.AMPLIFIER)) {
                 enemiesFound = true;
                 if(rc.canWriteSharedArray(0,0) && !attackSent){
-                    FB_merged.Comms.setAttackCommand(rc, enemy.getLocation(), enemy.getType());
+                    Comms.setAttackCommand(rc, enemy.getLocation(), enemy.getType());
                     attackSent = true;
                 }
             }
@@ -314,12 +310,12 @@ public strictfp class Carrier {
             if ((robotCount >= limit || availableSquares <= 0) && location.distanceSquaredTo(assignedWell) > 2) {
                 visitedWells.add(assignedWell);
                 if (assignedType == ResourceType.ADAMANTIUM) {
-                    MapLocation nextWell = FB_merged.Helper.getClosest(knownMNWells, HQ_LOCATION, visitedWells);
+                    MapLocation nextWell = Helper.getClosest(knownMNWells, HQ_LOCATION, visitedWells);
                     if (nextWell != null) {
                         assignedWell = nextWell;
                         assignedType = ResourceType.MANA;
                     } else {
-                        nextWell = FB_merged.Helper.getClosest(knownADWells, HQ_LOCATION, visitedWells);
+                        nextWell = Helper.getClosest(knownADWells, HQ_LOCATION, visitedWells);
                         if (nextWell != null) {
                             assignedWell = nextWell;
                             assignedType = ResourceType.ADAMANTIUM;
@@ -328,12 +324,12 @@ public strictfp class Carrier {
                         }
                     }
                 } else {
-                    MapLocation nextWell = FB_merged.Helper.getClosest(knownADWells, HQ_LOCATION, visitedWells);
+                    MapLocation nextWell = Helper.getClosest(knownADWells, HQ_LOCATION, visitedWells);
                     if (nextWell != null) {
                         assignedWell = nextWell;
                         assignedType = ResourceType.ADAMANTIUM;
                     } else {
-                        nextWell = FB_merged.Helper.getClosest(knownMNWells, HQ_LOCATION, visitedWells);
+                        nextWell = Helper.getClosest(knownMNWells, HQ_LOCATION, visitedWells);
                         if (nextWell != null) {
                             assignedWell = nextWell;
                             assignedType = ResourceType.MANA;
@@ -467,7 +463,7 @@ public strictfp class Carrier {
                     anchorCommand = null;
 
                     if(rc.canWriteSharedArray(0, 0)){
-                        FB_merged.Comms.reportIslandLocation(rc, rc.getLocation(), rc.getTeam());
+                        Comms.reportIslandLocation(rc, rc.getLocation(), rc.getTeam());
                     }
                     if (!uploaded) {
                         state = CarrierState.Returning;
@@ -479,7 +475,7 @@ public strictfp class Carrier {
         } else if( (anchorCommand != null || searchAnchorCommands(rc) != null)
                 && !rc.canSenseLocation(anchorCommand)){
             if(rc.isMovementReady()){
-                Direction moveDir = FB_merged.Pathfinder.pathGreedy(rc, anchorCommand);
+                Direction moveDir = Pathfinder.pathGreedy(rc, anchorCommand);
                 if(moveDir != null && rc.canMove(moveDir)){
                     rc.move(moveDir);
                 }
@@ -522,7 +518,7 @@ public strictfp class Carrier {
 
     static void pathExplore(RobotController rc) throws GameActionException {
         if(rc.isMovementReady()) {
-            Direction moveDir = FB_merged.Pathfinder.pathToExplore(rc);
+            Direction moveDir = Pathfinder.pathToExplore(rc);
             if(moveDir != null && rc.canMove(moveDir)){
                 rc.move(moveDir);
                 run(rc);
