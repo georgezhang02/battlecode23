@@ -57,7 +57,7 @@ public strictfp class Carrier {
         sense(rc);
         updateState(rc);
         runState(rc);
-        rc.setIndicatorString(state + " " + assignedWell + " " + carrierCount + " " + ADlimit + " " + MNlimit + " " + HQ_LOCATION);
+
 
         writeComms(rc);
         Database.checkSymmetries(rc);
@@ -152,7 +152,6 @@ public strictfp class Carrier {
 
         WellInfo[] wells = rc.senseNearbyWells();
         for (WellInfo well : wells) {
-            //rc.setIndicatorDot(well.getMapLocation(), 255, 255, 255);
             boolean known = Database.globalKnownLocations.contains(well.getMapLocation())
                     || Database.localKnownLocations.contains(well.getMapLocation());
 
@@ -518,8 +517,13 @@ public strictfp class Carrier {
     */
 
     static void pathExplore(RobotController rc) throws GameActionException {
-        MapLocation target = Pathfinder.locationToExplore(rc);
-        pathTowards(rc, target);
+        if(rc.isMovementReady()) {
+            Direction moveDir = Pathfinder.pathToExplore(rc);
+            if(moveDir != null && rc.canMove(moveDir)){
+                rc.move(moveDir);
+                run(rc);
+            }
+        }
     }
 
     static void pathTowards(RobotController rc, MapLocation target) throws GameActionException {
