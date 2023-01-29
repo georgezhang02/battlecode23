@@ -162,6 +162,7 @@ public strictfp class Carrier {
                 uploaded = false;
                 if (assignedWell != null) {
                     assignClosest(rc);
+                    visitedWells = new HashSet<>();
                 }
             }
         }
