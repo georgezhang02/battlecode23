@@ -4,9 +4,9 @@ import battlecode.common.*;
 
 public strictfp class HQ {
 
-    static int ANCHOR_BUILD_THRESHOLD = 30;
+    // static int ANCHOR_BUILD_THRESHOLD = 30;
 
-    static int AMP_BUILD_THRESHOLD = 30;
+    //static int AMP_BUILD_THRESHOLD = 30;
     static boolean initialized = false;
     static MapLocation location;
     static int HQIndex;
@@ -57,8 +57,8 @@ public strictfp class HQ {
         //act part should be triggered by think part, see methods below
         build(rc);
 
-        rc.setIndicatorString(Database.rotational+" "+ Database.horizontal+" "+ Database.vertical);
-
+        //rc.setIndicatorString(Database.rotational+" "+ Database.horizontal+" "+ Database.vertical);
+        rc.setIndicatorString(launchersBuilt + "");
         writeComms(rc);
         Database.checkSymmetries(rc);
 
@@ -219,19 +219,24 @@ public strictfp class HQ {
                 carrierBuildTarget = center;
             }
 
-            //P much every 30 launchers build an anchor
-            if(anchorsBuilt * 30 < launchersBuilt && carrierCounter >= 10 &&
-                    totalAnchorCount == 0 && !buildAnchor  && rc.getRobotCount() > 5 * FB_merged.Comms.getNumHQs(rc)){
-                System.out.println("anchor scale");
+            if(rc.getRoundNum() < 1000 && rc.getRoundNum() % 250 == 0
+                    && ((anchorsBuilt + 1) * (20) <= launchersBuilt)
+                    && carrierCounter >= 5 &&
+                    totalAnchorCount == 0 && !buildAnchor  && rc.getRobotCount() > 5 * Comms.getNumHQs(rc)){
+                //System.out.println("ANCHOR");
                 buildAnchor = true;
                 buildAmp = false;
                 carrierCounter = 0;
+            } else if(rc.getRoundNum() >= 1000 && rc.getRoundNum() % 100 == 0 &&
+                    totalAnchorCount == 0 && !buildAnchor  && rc.getRobotCount() > 15 * Comms.getNumHQs(rc)){
+                //System.out.println("ANCHOR");
+                buildAnchor = true;
+                buildAmp = false;
             }
 
-            //P much every 15 * x launchers built an amp (where x is number of amps + 1)
-            if(!buildAnchor && rc.getRobotCount() > 10 + (5 * FB_merged.Comms.getNumHQs(rc))
+            if(!buildAnchor && rc.getRobotCount() > 10 + (5 * Comms.getNumHQs(rc))
                     && (launcherCounter >= 15 * (ampsBuilt + 1))){
-                System.out.println("amps descale");
+                //System.out.println("AMP");
                 buildAmp = true;
                 launcherCounter = 0;
             }
@@ -240,6 +245,7 @@ public strictfp class HQ {
                 if(buildAnchor){
                     if(rc.canBuildAnchor(Anchor.STANDARD)){
                         rc.buildAnchor(Anchor.STANDARD);
+                        anchorsBuilt++;
                         buildAnchor = false;
                         buildAmp = false;
                     }
@@ -248,6 +254,7 @@ public strictfp class HQ {
                             rc.canBuildRobot(RobotType.CARRIER, carrierBuildLoc)) {
                         rc.buildRobot(RobotType.CARRIER, carrierBuildLoc);
                         carrierBuildLoc = buildTowards(rc, carrierBuildTarget);
+                        carrierCounter++;
                         carriersBuilt++;
                     }
 
@@ -255,6 +262,7 @@ public strictfp class HQ {
                         rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);
                         centerBuildLoc = buildTowards(rc, center);
                         launchersBuilt++;
+                        launcherCounter++;
                     }
 
                 }else if(buildAmp){
@@ -272,12 +280,14 @@ public strictfp class HQ {
                         rc.buildRobot(RobotType.CARRIER, carrierBuildLoc);
                         carrierBuildLoc = buildTowards(rc, carrierBuildTarget);
                         carriersBuilt++;
+                        carrierCounter++;
                     }
 
                     while (rc.getResourceAmount(ResourceType.MANA) > 75 && rc.canBuildRobot(RobotType.LAUNCHER, centerBuildLoc)) {
                         rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);
                         centerBuildLoc = buildTowards(rc, center);
                         launchersBuilt++;
+                        launcherCounter++;
                     }
 
                 }else{
@@ -287,18 +297,14 @@ public strictfp class HQ {
                         rc.buildRobot(RobotType.CARRIER, carrierBuildLoc);
                         carrierBuildLoc = buildTowards(rc, carrierBuildTarget);
                         carriersBuilt++;
-                        if(rc.getRoundNum() > 100){
-                            carrierCounter++;
-                        }
+                        carrierCounter++;
                     }
                     while (rc.canBuildRobot(RobotType.LAUNCHER, centerBuildLoc)) {
                         rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);
                         centerBuildLoc = buildTowards(rc, center);
                         launchersBuilt++;
                         //
-                        if(rc.getRoundNum() > 100){
-                            launcherCounter++;
-                        }
+                        launcherCounter++;
                     }
                 }
             } else {
@@ -306,6 +312,7 @@ public strictfp class HQ {
                     rc.buildRobot(RobotType.LAUNCHER, centerBuildLoc);
                     centerBuildLoc = buildTowards(rc, center);
                     launchersBuilt++;
+                    launcherCounter++;
                 }
             }
         }
@@ -336,6 +343,7 @@ public strictfp class HQ {
             rc.buildRobot(RobotType.CARRIER, buildTowards(rc, new MapLocation(location.x - 2, location.y + 2)));
             rc.buildRobot(RobotType.CARRIER, buildTowards(rc, new MapLocation(location.x + 2, location.y - 2)));
             rc.buildRobot(RobotType.CARRIER, buildTowards(rc, new MapLocation(location.x + 2, location.y + 2)));
+            carrierCounter += 4;
             carriersBuilt += 4;
         }
         // Build towards a well
@@ -344,6 +352,7 @@ public strictfp class HQ {
             rc.buildRobot(RobotType.CARRIER, buildTowards(rc, carrierBuildTarget));
             rc.buildRobot(RobotType.CARRIER, buildTowards(rc, carrierBuildTarget));
             rc.buildRobot(RobotType.CARRIER, buildTowards(rc, carrierBuildTarget));
+            carrierCounter += 4;
             carriersBuilt += 4;
         }
     }
@@ -353,6 +362,7 @@ public strictfp class HQ {
         rc.buildRobot(RobotType.LAUNCHER, buildTowards(rc, center));
         rc.buildRobot(RobotType.LAUNCHER, buildTowards(rc, center));
         rc.buildRobot(RobotType.LAUNCHER, buildTowards(rc, center));
+        launcherCounter+=4;
         launchersBuilt += 4;
     }
     /*
