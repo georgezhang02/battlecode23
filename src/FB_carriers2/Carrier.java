@@ -159,6 +159,10 @@ public strictfp class Carrier {
             if (!known) {
                 Database.addWell(rc, well);
                 uploaded = false;
+                if (assignedWell != null) {
+                    assignClosest(rc);
+                    visitedWells = new HashSet<>();
+                }
             }
         }
 
@@ -280,15 +284,18 @@ public strictfp class Carrier {
                 MNlimit = 9;
             }
             MNlimit += Math.max(0, (1600 - rc.getMapWidth() * rc.getMapHeight()) / 240);
+            if (Comms.getNumHQs(rc) - Comms.getNumManaWells(rc) > 0) {
+                MNlimit += (Comms.getNumHQs(rc) * 4) / Comms.getNumManaWells(rc);
+            }
             MNlimit = Math.min(9, MNlimit);
 
             int robotCount = 0;
             int availableSquares = 0;
             for (MapLocation loc : aroundWell) {
-                if (rc.canSenseRobotAtLocation(loc)) {
+                if (rc.canSenseRobotAtLocation(loc) && !loc.equals(location)) {
                     RobotInfo bot = rc.senseRobotAtLocation(loc);
                     if (bot.team == rc.getTeam() && bot.type == RobotType.CARRIER) {
-                        if (bot.getResourceAmount(assignedType) > 0) {
+                        if (bot.getResourceAmount(assignedType) > 0 ) {
                             robotCount++;
                         }
                     } else{
@@ -298,7 +305,7 @@ public strictfp class Carrier {
                     availableSquares++;
                 }
             }
-            int limit = 8;
+            int limit = 9;
             switch(assignedType) {
                 case ADAMANTIUM:
                     limit = ADlimit;
@@ -307,7 +314,7 @@ public strictfp class Carrier {
                     limit = MNlimit;
                     break;
             }
-            if ((robotCount >= limit || availableSquares <= 0) && location.distanceSquaredTo(assignedWell) > 2) {
+            if ((robotCount >= limit || availableSquares <= 0) && (rc.getResourceAmount(assignedType) == 0 || limit == 0)) {
                 visitedWells.add(assignedWell);
                 if (assignedType == ResourceType.ADAMANTIUM) {
                     MapLocation nextWell = Helper.getClosest(knownMNWells, HQ_LOCATION, visitedWells);
@@ -354,7 +361,7 @@ public strictfp class Carrier {
     }
 
     static void exploreUpdate(RobotController rc) {
-        if (assignedWell == null) {
+        if (assignedWell == null && exploreCounter > 5) {
             assignClosest(rc);
         }
     }
