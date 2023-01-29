@@ -61,6 +61,7 @@ public strictfp class Carrier {
 
         writeComms(rc);
         Database.checkSymmetries(rc);
+        rc.setIndicatorString(state + " " + assignedWell + " " + ADlimit + " " + MNlimit);
     }
 
     static void onUnitInit(RobotController rc) throws GameActionException {
@@ -295,7 +296,7 @@ public strictfp class Carrier {
                 if (rc.canSenseRobotAtLocation(loc) && !loc.equals(location)) {
                     RobotInfo bot = rc.senseRobotAtLocation(loc);
                     if (bot.team == rc.getTeam() && bot.type == RobotType.CARRIER) {
-                        if (bot.getResourceAmount(assignedType) > 0 ) {
+                        if (bot.getResourceAmount(assignedType) > 0) {
                             robotCount++;
                         }
                     } else{
