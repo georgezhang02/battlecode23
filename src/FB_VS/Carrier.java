@@ -46,20 +46,15 @@ public strictfp class Carrier {
     static int MNlimit;
     static boolean runningFromEnemy = false;
 
-    static int turnsStuck;
-
     static void run(RobotController rc) throws GameActionException {
         readComms(rc);
         if(!initialized){
             onUnitInit(rc); // first time starting the bot, do some setup
             initialized = true;
         }
-
         sense(rc);
         updateState(rc);
         runState(rc);
-
-
         writeComms(rc);
         Database.checkSymmetries(rc);
         rc.setIndicatorString(state + " " + assignedWell + " " + ADlimit + " " + MNlimit);
