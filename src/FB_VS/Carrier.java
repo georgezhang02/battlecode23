@@ -159,14 +159,10 @@ public strictfp class Carrier {
             if (!known) {
                 Database.addWell(rc, well);
                 uploaded = false;
-                if (assignedWell != null) {
-                    assignClosest(rc);
-                    visitedWells = new HashSet<>();
-                }
             }
         }
 
-        if (!uploaded) {
+        if (!uploaded && state != CarrierState.Anchoring) {
             state = CarrierState.Returning;
         }
 
@@ -438,7 +434,13 @@ public strictfp class Carrier {
     static void anchorUpdate(RobotController rc) throws GameActionException {
         //If the robot no longer has an anchor (thrown), explore
         if (rc.getAnchor() == null) {
-            state = CarrierState.Exploring;
+            if (!uploaded) {
+                state = CarrierState.Returning;
+            } else if (assignedWell == null) {
+                assignClosest(rc);
+            } else {
+                state = CarrierState.Gathering;
+            }
         }
     }
 
@@ -471,11 +473,6 @@ public strictfp class Carrier {
 
                     if(rc.canWriteSharedArray(0, 0)){
                         Comms.reportIslandLocation(rc, rc.getLocation(), rc.getTeam());
-                    }
-                    if (!uploaded) {
-                        state = CarrierState.Returning;
-                    } else {
-                        state = CarrierState.Exploring;
                     }
                 }
             }
