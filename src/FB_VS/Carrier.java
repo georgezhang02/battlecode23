@@ -44,6 +44,7 @@ public strictfp class Carrier {
     static int carrierCount;
     static int ADlimit;
     static int MNlimit;
+    static boolean runningFromEnemy = false;
 
     static int turnsStuck;
 
@@ -211,6 +212,7 @@ public strictfp class Carrier {
             state = CarrierState.Returning;
             assignedWell = null;
             visitedWells = new HashSet<>();
+            runningFromEnemy = true;
         } else {
             // Update states
             switch (state) {
@@ -382,7 +384,9 @@ public strictfp class Carrier {
 
     static void returnUpdate(RobotController rc) throws GameActionException {
         //HQ_LOCATION.distanceSquaredTo(location) <= 2 &&
-        if (adAmount == 0 && manaAmount == 0 && elixirAmount == 0 && uploaded) {
+        if (adAmount == 0 && manaAmount == 0 && elixirAmount == 0 && uploaded &&
+                (!runningFromEnemy || HQ_LOCATION.distanceSquaredTo(location) <= 2)) {
+            runningFromEnemy = false;
             // Get anchor if available
             if (rc.canTakeAnchor(HQ_LOCATION, Anchor.STANDARD)) {
                 rc.takeAnchor(HQ_LOCATION, Anchor.STANDARD);
