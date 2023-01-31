@@ -62,6 +62,7 @@ public strictfp class Carrier {
 
         writeComms(rc);
         Database.checkSymmetries(rc);
+        rc.setIndicatorString(state + " " + assignedWell + " " + ADlimit + " " + MNlimit);
     }
 
     static void onUnitInit(RobotController rc) throws GameActionException {
