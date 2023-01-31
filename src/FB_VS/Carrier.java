@@ -277,7 +277,7 @@ public strictfp class Carrier {
                 ADlimit = 9;
                 MNlimit = 9;
             }
-            MNlimit += Math.max(0, (1600 - rc.getMapWidth() * rc.getMapHeight()) / 240);
+            MNlimit += ManaIncrement;
             if (Comms.getNumHQs(rc) - Comms.getNumManaWells(rc) > 0) {
                 MNlimit += (Comms.getNumHQs(rc) * 4) / Comms.getNumManaWells(rc);
             }
