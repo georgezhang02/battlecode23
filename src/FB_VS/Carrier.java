@@ -130,7 +130,7 @@ public strictfp class Carrier {
         Database.init(rc);
         Database.downloadSymmetry(rc);
         Database.downloadLocations(rc);
-        carrierCount = Comms.getHQCommand(rc, HQIndex).num;
+        carrierCount = Comms.getHQCommand(rc, HQIndex);
     }
 
     static void writeComms(RobotController rc) throws GameActionException {
@@ -293,7 +293,7 @@ public strictfp class Carrier {
                 if (rc.canSenseRobotAtLocation(loc) && !loc.equals(location)) {
                     RobotInfo bot = rc.senseRobotAtLocation(loc);
                     if (bot.team == rc.getTeam() && bot.type == RobotType.CARRIER) {
-                        if (bot.getResourceAmount(assignedType) > 0 ) {
+                        if (bot.getResourceAmount(assignedType) > 0) {
                             robotCount++;
                         }
                     } else{
