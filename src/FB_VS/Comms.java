@@ -303,16 +303,14 @@ public class Comms {
         return allEnemyHQs;
     }
 
-    public static Command getHQCommand(RobotController rc, int HQIndex) throws GameActionException {
+    public static int getHQCommand(RobotController rc, int HQIndex) throws GameActionException {
         int value = rc.readSharedArray(HQ_COMM_OFFSET + HQIndex);
-        int x = decode(value, 0);
-        int y = decode(value, 1);
-        int num = decode(value, 2);
+        int carriers = decode(value, 0);
 
-        return new Command(new MapLocation(x, y), num);
+        return carriers;
     }
-    public static void writeHQCommand(RobotController rc, int HQIndex, MapLocation loc, int num) throws GameActionException {
-        rc.writeSharedArray(HQIndex + HQ_COMM_OFFSET, encode(loc.x, loc.y, num));
+    public static void writeHQCommand(RobotController rc, int HQIndex, int carriers) throws GameActionException {
+        rc.writeSharedArray(HQIndex + HQ_COMM_OFFSET, encode(carriers, 0, 0));
     }
     public static void clearHQCommand(RobotController rc, int HQIndex) throws GameActionException {
         rc.writeSharedArray(HQIndex + HQ_COMM_OFFSET, encode(0, 0, 0));
