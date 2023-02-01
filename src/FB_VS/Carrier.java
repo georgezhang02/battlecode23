@@ -204,7 +204,7 @@ public strictfp class Carrier {
 
     static void updateState(RobotController rc) throws GameActionException {
         // Check enemies
-        if(enemiesFound(rc)){
+        if (enemiesFound(rc) && (state != CarrierState.Anchoring || rc.senseNearbyIslands().length == 0)){
             state = CarrierState.Returning;
             assignedWell = null;
             visitedWells = new HashSet<>();
@@ -260,19 +260,34 @@ public strictfp class Carrier {
         } else if (location.distanceSquaredTo(assignedWell) <= 10) {
             //THIS SECTION IS INTENDED TO MAKE IT SO THAT THE CARRIERS SWITCH THE WELL THEY'RE ASSIGNED TO IF IT'S FULL
             MapLocation[] aroundWell = rc.getAllLocationsWithinRadiusSquared(assignedWell, 2);
-            int ManaIncrement = Math.max(0, (1600 - rc.getMapWidth() * rc.getMapHeight()) / 240);
+            int ManaIncrement = Math.max(0, (1600 - rc.getMapWidth() * rc.getMapHeight()) / 240); // from 0 to 5
             if (carrierCount <= 4 + ManaIncrement) {
                 ADlimit = 0;
                 MNlimit = 4;
-            } else if (carrierCount <= 6 + ManaIncrement) {
+            } else if (carrierCount <= 5 + ManaIncrement) {
+                ADlimit = 2;
+                MNlimit = 3;
+            }  else if (carrierCount <= 6 + ManaIncrement) {
                 ADlimit = 2;
                 MNlimit = 4;
-            } else if (carrierCount <= 10 + Math.min(1, MNlimit)) {
+            } else if (carrierCount <= 9 + ManaIncrement) {
                 ADlimit = 2;
-                MNlimit = 8;
-            } else if (carrierCount <= 11 + Math.min(1, MNlimit)) {
+                MNlimit = 7;
+            } else if (carrierCount <= 10 + ManaIncrement) {
                 ADlimit = 3;
-                MNlimit = 8;
+                MNlimit = 7;
+            } else if (carrierCount <= 12 + ManaIncrement) {
+                ADlimit = 3;
+                MNlimit = 9;
+            } else if (carrierCount <= 15 + ManaIncrement) {
+                ADlimit = 3;
+                MNlimit = 9;
+            } else if (carrierCount <= 18 + ManaIncrement) {
+                ADlimit = 6;
+                MNlimit = 9;
+            } else if (carrierCount <= 21 + ManaIncrement) {
+                ADlimit = 6;
+                MNlimit = 9;
             } else {
                 ADlimit = 9;
                 MNlimit = 9;
