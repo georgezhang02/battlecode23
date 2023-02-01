@@ -294,7 +294,7 @@ public strictfp class Carrier {
             }
             MNlimit += ManaIncrement;
             if (Comms.getNumHQs(rc) - Comms.getNumManaWells(rc) > 0) {
-                MNlimit += (Comms.getNumHQs(rc) * 4) / Comms.getNumManaWells(rc);
+                MNlimit += ((Comms.getNumHQs(rc) - Comms.getNumManaWells(rc)) * 4) / Comms.getNumManaWells(rc);
             }
             MNlimit = Math.min(9, MNlimit);
 
