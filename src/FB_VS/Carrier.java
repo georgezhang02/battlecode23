@@ -262,8 +262,8 @@ public strictfp class Carrier {
             MapLocation[] aroundWell = rc.getAllLocationsWithinRadiusSquared(assignedWell, 2);
             int ManaIncrement = Math.max(0, (1600 - rc.getMapWidth() * rc.getMapHeight()) / 240); // from 0 to 5
             if (carrierCount <= 4 + ManaIncrement) {
-                ADlimit = 0;
-                MNlimit = 4;
+                ADlimit = 1;
+                MNlimit = 3;
             } else if (carrierCount <= 5 + ManaIncrement) {
                 ADlimit = 2;
                 MNlimit = 3;
