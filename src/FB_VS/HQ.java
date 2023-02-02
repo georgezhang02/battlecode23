@@ -87,7 +87,7 @@ public strictfp class HQ {
     static void onUnitInit(RobotController rc) throws GameActionException {
         location = rc.getLocation();
         id = rc.getID();
-        HQIndex = Comms.setTeamHQLocation(rc, location, id);
+        HQIndex = Comms.setTeamHQLocation(rc, location);
         width = rc.getMapWidth();
         height = rc.getMapHeight();
         smallMap = width <= 40 || height <= 40;

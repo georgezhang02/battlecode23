@@ -228,7 +228,7 @@ public class Database {
                         localEnemyHQs[i] = null;
                         numLocalHQs--;
                     } else{
-                        boolean added = Comms.setEnemyHQLocation(rc, localEnemyHQs[i].getLocation(), localEnemyHQs[i].getID());
+                        boolean added = Comms.setEnemyHQLocation(rc, localEnemyHQs[i].getLocation());
 
                         if(added){
                             globalEnemyHQs[numGlobalEnemyHQs] = localEnemyHQs[i].getLocation();
@@ -369,7 +369,7 @@ public class Database {
             MapLocation loc = info.getLocation();
             if (!globalKnownLocations.contains(loc) && !localKnownLocations.contains(loc)) {
                 if (rc.canWriteSharedArray(0, 0)) {
-                    boolean added = Comms.setEnemyHQLocation(rc, info.getLocation(), info.getID());
+                    boolean added = Comms.setEnemyHQLocation(rc, info.getLocation());
                     if (added) {
                         globalEnemyHQs[numGlobalEnemyHQs] = info.getLocation();
                         globalKnownLocations.add(info.getLocation());

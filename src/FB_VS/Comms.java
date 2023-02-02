@@ -205,22 +205,13 @@ public class Comms {
      * Sets the team HQ location in the next available location
      * @return the index corresponding to the HQ
      */
-    public static int setTeamHQLocation(RobotController rc, MapLocation HQLocation, int id) throws GameActionException {
+    public static int setTeamHQLocation(RobotController rc, MapLocation HQLocation) throws GameActionException {
         int[] count = getAllCount1(rc);
-        rc.writeSharedArray(count[0] + ALLY_HQ_OFFSET, encode(HQLocation.x, HQLocation.y, id));
+        rc.writeSharedArray(count[0] + ALLY_HQ_OFFSET, encode(HQLocation.x, HQLocation.y, 0));
         rc.writeSharedArray(COUNT_OFFSET_1, encode(count[0] + 1, count[1], count[2]));
         return count[0];
     }
 
-    public static int getHQIndexByID(RobotController rc, int HQID) throws GameActionException {
-        for (int i = 0; i < getNumHQs(rc); i++) {
-            int id = decode(rc.readSharedArray(i + ALLY_HQ_OFFSET), 2);
-            if (HQID == id) {
-                return i;
-            }
-        }
-        return -1;
-    }
 
     public static int getHQIndexByLocation(RobotController rc, MapLocation location) throws GameActionException {
         for (int i = 0; i < getNumHQs(rc); i++) {
@@ -269,7 +260,7 @@ public class Comms {
         return closest;
     }
 
-    public static boolean setEnemyHQLocation(RobotController rc, MapLocation HQLocation, int id) throws GameActionException {
+    public static boolean setEnemyHQLocation(RobotController rc, MapLocation HQLocation) throws GameActionException {
         int[] count3 = getAllCount3(rc);
         int enemyHQCount = count3[0];
 
@@ -279,7 +270,7 @@ public class Comms {
                     return false;
                 }
             }
-            rc.writeSharedArray(enemyHQCount + ENEMY_HQ_OFFSET, encode(HQLocation.x, HQLocation.y, id));
+            rc.writeSharedArray(enemyHQCount + ENEMY_HQ_OFFSET, encode(HQLocation.x, HQLocation.y));
             rc.writeSharedArray(COUNT_OFFSET_3, encode(enemyHQCount+1, count3[1], count3[2]));
             return true;
         }

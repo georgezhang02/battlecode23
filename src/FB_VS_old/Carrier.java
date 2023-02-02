@@ -66,7 +66,7 @@ public strictfp class Carrier {
         for (RobotInfo ally : allies) {
             if (ally.getType() == RobotType.HEADQUARTERS) {
                 HQ_LOCATION = ally.getLocation();
-                HQIndex = Comms.getHQIndexByID(rc, ally.getID());
+                HQIndex = Comms.getHQIndexByLocation(rc, HQ_LOCATION);
             }
         }
         knownADWells = Database.getKnownADLocations();
