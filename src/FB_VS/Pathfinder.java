@@ -2,6 +2,8 @@ package FB_VS;
 
 import battlecode.common.*;
 
+import java.awt.*;
+
 public strictfp class Pathfinder {
 
     static boolean directBug;
@@ -241,13 +243,42 @@ public strictfp class Pathfinder {
 
 
         if(directBug || (rotatingBug && currentDist>=lowestDist)){
-            //rc.setIndicatorString("pathing bug, alreadypathing bug " + target);
+            rc.setIndicatorString("pathing bug, alreadypathing bug " + target);
             Direction moveDir = pathBugHelper(rc, target);
             if(directBug || rotatingBug){
                 return moveDir;
             }
 
         }
+
+        if(rotatingBug && currentDist < lowestDist){
+            
+            if(wallLeft){
+                Direction leftWallDir = lastBugDir.rotateLeft().rotateLeft();
+                if(rc.onTheMap(rc.getLocation().add(leftWallDir)) &&
+                        !currentPassable(rc, lastBugDir, rc.senseMapInfo(rc.getLocation().add(leftWallDir)).getCurrentDirection())){
+                    lowestDist = currentDist;
+                    Direction moveDir = pathBugHelper(rc, target);
+                    if(directBug || rotatingBug){
+                        return moveDir;
+                    }
+                }
+
+            } else {
+                Direction rightWallDir = lastBugDir.rotateRight().rotateRight();
+                if(rc.onTheMap(rc.getLocation().add(rightWallDir)) &&
+                        !currentPassable(rc, lastBugDir, rc.senseMapInfo(rc.getLocation().add(rightWallDir)).getCurrentDirection())){
+                    lowestDist = currentDist;
+                    Direction moveDir = pathBugHelper(rc, target);
+                    if(directBug || rotatingBug){
+                        return moveDir;
+                    }
+                }
+
+            }
+        }
+
+        rc.setIndicatorString("pathing greedy");
 
 
 
@@ -493,25 +524,30 @@ public strictfp class Pathfinder {
         if(rc.canSenseLocation(loc) && rc.sensePassability(loc) && !rc.isLocationOccupied(loc)){
             MapInfo info = rc.senseMapInfo(loc);
             Direction current = info.getCurrentDirection();
-            if(current != Direction.CENTER){
+            return currentPassable(rc, dir, current);
 
-                Direction opposite = dir.opposite();
-                Direction oppositeLeft = opposite.rotateLeft();
-                Direction oppositeRight = opposite.rotateRight();
-                if(current == opposite || current == oppositeLeft || current == oppositeRight){
+        }
+        return false;
+
+    }
+
+    static boolean currentPassable(RobotController rc, Direction dir, Direction current){
+        if(current != Direction.CENTER){
+
+            Direction opposite = dir.opposite();
+            Direction oppositeLeft = opposite.rotateLeft();
+            Direction oppositeRight = opposite.rotateRight();
+            if(current == opposite || current == oppositeLeft || current == oppositeRight){
                     /*if(rc.getType().equals(RobotType.CARRIER) &&
                             (rc.getResourceAmount(ResourceType.ADAMANTIUM)
                                     + rc.getResourceAmount(ResourceType.MANA)
                                     + rc.getResourceAmount(ResourceType.ELIXIR) <= 8)) {
                         return true;
                     }*/
-                    return false;
-                }
-                return true;
+                return false;
             }
             return true;
         }
-        return false;
-
+        return true;
     }
 }

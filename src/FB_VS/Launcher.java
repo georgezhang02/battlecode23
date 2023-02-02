@@ -131,7 +131,7 @@ public strictfp class Launcher {
             s += attackCommand.location.toString();
         }
 
-        rc.setIndicatorString(s);
+        //rc.setIndicatorString(s);
 
         writeComms(rc);
         Database.checkSymmetries(rc);
@@ -369,7 +369,7 @@ public strictfp class Launcher {
                 }
             }
             if(attackRobot!= null &&  rc.canAttack(attackRobot.getLocation())){
-                rc.setIndicatorString(attackRobot.getLocation().toString());
+                //rc.setIndicatorString(attackRobot.getLocation().toString());
                 rc.attack(attackRobot.getLocation());
             }
 
