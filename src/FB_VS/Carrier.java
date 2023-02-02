@@ -46,6 +46,9 @@ public strictfp class Carrier {
     static int MNlimit;
     static boolean runningFromEnemy = false;
 
+    static int islandID = -1;
+    static MapLocation islandToCapture = null;
+
     static void run(RobotController rc) throws GameActionException {
         readComms(rc);
         if(!initialized){
@@ -57,7 +60,7 @@ public strictfp class Carrier {
         runState(rc);
         writeComms(rc);
         Database.checkSymmetries(rc);
-        rc.setIndicatorString(state + " " + assignedWell + " " + ADlimit + " " + MNlimit);
+        //rc.setIndicatorString(state + " " + assignedWell + " " + ADlimit + " " + MNlimit);
     }
 
     static void onUnitInit(RobotController rc) throws GameActionException {
@@ -469,18 +472,20 @@ public strictfp class Carrier {
             }
         }
 
-        Set<MapLocation> islandLocs = new HashSet<>();
-        if (islands.length - inc > 0) {
-            for (int id : islands) {
-                if(rc.senseTeamOccupyingIsland(id) != rc.getTeam()){
-                    MapLocation[] thisIslandLocs = rc.senseNearbyIslandLocations(id);
-                    islandLocs.addAll(Arrays.asList(thisIslandLocs));
+        if (islands.length - inc > 0 || islandID != -1) {
+            if(islandID == -1 || (rc.canSenseLocation(islandToCapture) && rc.senseTeamOccupyingIsland(islandID) == rc.getTeam())){
+                islandID = -1;
+                for (int id : islands) {
+                    if(rc.senseTeamOccupyingIsland(id) != rc.getTeam()){
+                        MapLocation[] thisIslandLocs = rc.senseNearbyIslandLocations(id);
+                        islandID = id;
+                        islandToCapture = thisIslandLocs[0];
+                    }
                 }
             }
-            if (islandLocs.size() > 0) {
+            if (islandID != -1) {
                 anchorCommand = null;
-                MapLocation islandLocation = islandLocs.iterator().next();
-                pathTowards(rc, islandLocation);
+                pathTowards(rc, islandToCapture);
 
                 if (rc.canPlaceAnchor() && rc.senseTeamOccupyingIsland(rc.senseIsland(location)) != rc.getTeam()) {
                     rc.placeAnchor();
@@ -491,6 +496,7 @@ public strictfp class Carrier {
                     }
                 }
             }
+
         } else if( (anchorCommand != null || searchAnchorCommands(rc) != null)
                 && !rc.canSenseLocation(anchorCommand)){
             if(rc.isMovementReady()){

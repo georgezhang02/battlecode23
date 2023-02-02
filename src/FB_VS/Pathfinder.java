@@ -239,8 +239,9 @@ public strictfp class Pathfinder {
 
         currentDist = Math.sqrt(rc.getLocation().distanceSquaredTo(target));
 
+
         if(directBug || (rotatingBug && currentDist>=lowestDist)){
-            //rc.setIndicatorString("pathing bug, alreadypathing bug " + target);
+            rc.setIndicatorString("pathing bug, alreadypathing bug " + target);
             Direction moveDir = pathBugHelper(rc, target);
             if(directBug || rotatingBug){
                 return moveDir;
@@ -248,7 +249,7 @@ public strictfp class Pathfinder {
 
         }
 
-        //rc.setIndicatorString("pathing Greedy" + target);
+
 
         double lowestCost = 10000;
 
@@ -292,7 +293,7 @@ public strictfp class Pathfinder {
         } else{
             directBug = true;
             rotatingBug = false;
-            //rc.setIndicatorString("greedy fail, pathing bug" + target);
+            rc.setIndicatorString("greedy fail, pathing bug" + target);
             return pathBugHelper(rc, target);
         }
 
@@ -457,7 +458,7 @@ public strictfp class Pathfinder {
                         } else{
                             lastBugDir= left;
                         }
-                        rc.setIndicatorString("starting rotation wall right"+rc.getLocation()+" "+lowestDist+ " ");
+                        rc.setIndicatorString("starting rotation wall right"+rc.getLocation()+" "+(lowestDist-currentDist));
 
 
 
@@ -470,7 +471,7 @@ public strictfp class Pathfinder {
                             lastBugDir= right;
                         }
 
-                        rc.setIndicatorString("starting rotation wall left"+rc.getLocation() +" "+lowestDist+ " ");
+                        rc.setIndicatorString("starting rotation wall left"+rc.getLocation() +" "+(lowestDist-currentDist));
 
 
                         return right;
