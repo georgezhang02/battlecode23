@@ -37,12 +37,12 @@ public strictfp class RobotPlayer {
                 // use different strategies on different robots. If you wish, you are free to rewrite
                 // this into a different control structure!
                 switch (rc.getType()) {
-                    case HEADQUARTERS:     HQ.run(rc);  break;
-                    case CARRIER:      Carrier.run(rc);   break;
-                    case LAUNCHER: Launcher.run(rc); break;
-                    case BOOSTER: Booster.run(rc); break;
-                    case DESTABILIZER: Destabilizer.run(rc); break;
-                    case AMPLIFIER:   Amplifier.run(rc); break;
+                    case RobotType.HEADQUARTERS:     HQ.run(rc);  break;
+                    case RobotType.CARRIER:      Carrier.run(rc);   break;
+                    case RobotType.LAUNCHER: Launcher.run(rc); break;
+                    case RobotType.BOOSTER: Booster.run(rc); break;
+                    case RobotType.DESTABILIZER: Destabilizer.run(rc); break;
+                    case RobotType.AMPLIFIER:   Amplifier.run(rc); break;
                 }
 
             } catch (GameActionException e) {

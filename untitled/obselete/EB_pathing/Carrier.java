@@ -579,28 +579,28 @@ public strictfp class Carrier {
             } else {
                 Direction toMove = null;
                 switch (toWell) {
-                    case NORTH:
+                    case Direction.NORTH:
                         toMove = Direction.WEST;
                         break;
-                    case NORTHEAST:
+                    case Direction.NORTHEAST:
                         toMove = Direction.NORTH;
                         break;
-                    case EAST:
+                    case Direction.EAST:
                         toMove = Direction.NORTH;
                         break;
-                    case SOUTHEAST:
+                    case Direction.SOUTHEAST:
                         toMove = Direction.EAST;
                         break;
-                    case SOUTH:
+                    case Direction.SOUTH:
                         toMove = Direction.EAST;
                         break;
-                    case SOUTHWEST:
+                    case Direction.SOUTHWEST:
                         toMove = Direction.SOUTH;
                         break;
-                    case WEST:
+                    case Direction.WEST:
                         toMove = Direction.SOUTH;
                         break;
-                    case NORTHWEST:
+                    case Direction.NORTHWEST:
                         toMove = Direction.WEST;
                         break;
                 }

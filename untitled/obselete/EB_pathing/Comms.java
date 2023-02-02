@@ -942,17 +942,17 @@ public class Comms {
             return 0;
         }
         switch (type) {
-            case HEADQUARTERS:
+            case RobotType.HEADQUARTERS:
                 return 10;
-            case DESTABILIZER:
+            case RobotType.DESTABILIZER:
                 return 8;
-            case BOOSTER:
+            case RobotType.BOOSTER:
                 return 8;
-            case AMPLIFIER:
+            case RobotType.AMPLIFIER:
                 return 7;
-            case LAUNCHER:
+            case RobotType.LAUNCHER:
                 return 6;
-            case CARRIER:
+            case RobotType.CARRIER:
                 return 4;
 
 
