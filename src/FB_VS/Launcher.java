@@ -68,6 +68,7 @@ public strictfp class Launcher {
     static MapLocation[]clouds;
 
 
+
     static final Direction[] directions = {
             Direction.NORTH,
             Direction.NORTHEAST,
@@ -125,6 +126,12 @@ public strictfp class Launcher {
                 campHQ(rc);
                 break;
         }
+        String s = state + " ";
+        if(state == LauncherState.FollowingCommand){
+            s += attackCommand.location.toString();
+        }
+
+        rc.setIndicatorString(s);
 
         writeComms(rc);
         Database.checkSymmetries(rc);
@@ -136,7 +143,11 @@ public strictfp class Launcher {
     }
 
     static void onUnitInit(RobotController rc) throws GameActionException{
-        state = LauncherState.Exploring;
+        if(getAttackCommand(rc) != null){
+            state = LauncherState.FollowingCommand;
+        }else{
+            state = LauncherState.Exploring;
+        }
         diagonal= (float) Math.sqrt(rc.getMapHeight()* rc.getMapHeight()+rc.getMapWidth()* rc.getMapHeight());
         fallbackIsland = null;
     }
@@ -358,6 +369,7 @@ public strictfp class Launcher {
                 }
             }
             if(attackRobot!= null &&  rc.canAttack(attackRobot.getLocation())){
+                rc.setIndicatorString(attackRobot.getLocation().toString());
                 rc.attack(attackRobot.getLocation());
             }
 
@@ -626,7 +638,7 @@ public strictfp class Launcher {
     static Comms.Attack getAttackCommand(RobotController rc) throws GameActionException {
         Comms.Attack[] attackCommands = Comms.getAllAttackCommands(rc);
         int maxPrio = (attackCommand==null) ? 0 : Comms.getCommPrio(attackCommand.type);
-        int minRange = 10000;
+        int minRange = Integer.MAX_VALUE;
 
         for(int i = 0; i< attackCommands.length; i++){
             MapLocation loc = attackCommands[i].location;
@@ -634,7 +646,7 @@ public strictfp class Launcher {
             int range = rc.getLocation().distanceSquaredTo(attackCommands[i].location);
             if(range > rc.getType().actionRadiusSquared &&
                     (loc.distanceSquaredTo(rc.getLocation()) <=50 ||
-                            Math.sqrt(loc.distanceSquaredTo(rc.getLocation()))< diagonal/3)){
+                            Math.sqrt(loc.distanceSquaredTo(rc.getLocation()))< diagonal/3 || !initialized)){
 
                 if(prio > maxPrio){
                     attackCommand = attackCommands[i];
