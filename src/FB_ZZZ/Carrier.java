@@ -206,7 +206,7 @@ public strictfp class Carrier {
 
     static void updateState(RobotController rc) throws GameActionException {
         // Check enemies
-        if (enemiesFound(rc) && (state != CarrierState.Anchoring || rc.senseNearbyIslands().length == 0)){
+        if (enemiesFound(rc)){
             state = CarrierState.Returning;
             assignedWell = null;
             visitedWells = new HashSet<>();
@@ -256,10 +256,13 @@ public strictfp class Carrier {
     }
 
     static void gatherUpdate(RobotController rc) throws GameActionException {
+        boolean meOrWellInCloud = rc.senseCloud(location) ||
+                (rc.canSenseLocation(assignedWell) && rc.senseCloud(assignedWell)) ||
+                (!rc.canSenseLocation(assignedWell) && location.distanceSquaredTo(assignedWell) <= 20);
         //if a carrier cannot get anymore resources, return to base
         if(adAmount + manaAmount + elixirAmount == 40){
             state = CarrierState.Returning;
-        } else if (location.distanceSquaredTo(assignedWell) <= 10) {
+        } else if ((meOrWellInCloud && location.distanceSquaredTo(assignedWell) <= 4) || (!meOrWellInCloud && location.distanceSquaredTo(assignedWell) <= 10)) {
             //THIS SECTION IS INTENDED TO MAKE IT SO THAT THE CARRIERS SWITCH THE WELL THEY'RE ASSIGNED TO IF IT'S FULL
             MapLocation[] aroundWell = rc.getAllLocationsWithinRadiusSquared(assignedWell, 2);
             int ManaIncrement = Math.max(0, (1600 - rc.getMapWidth() * rc.getMapHeight()) / 240); // from 0 to 5
