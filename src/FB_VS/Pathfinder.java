@@ -428,7 +428,8 @@ public strictfp class Pathfinder {
                         lastBugDir = lastBugDir.rotateLeft().rotateLeft();
                         rotationCount ++;
                         return ans;
-                    } else if(canMoveThrough(rc, lastBugDir, rc.getLocation().add(lastBugDir))){
+                    } else if(canMoveThrough(rc, lastBugDir, rc.getLocation().add(lastBugDir)) &&
+                            (!turnedCurrentCorner || canMoveThrough(rc, lastBugDir.rotateRight().rotateRight(), rc.getLocation().add(lastBugDir)))){
                         return lastBugDir;
                     }
                     lastBugDir = lastBugDir.rotateRight().rotateRight();
@@ -459,7 +460,8 @@ public strictfp class Pathfinder {
                         lastBugDir = lastBugDir.rotateRight().rotateRight();
                         rotationCount ++;
                         return ans;
-                    } else if(canMoveThrough(rc, lastBugDir, rc.getLocation().add(lastBugDir))){
+                    } else if(canMoveThrough(rc, lastBugDir, rc.getLocation().add(lastBugDir)) &&
+                            (!turnedCurrentCorner || canMoveThrough(rc, lastBugDir.rotateLeft().rotateLeft(), rc.getLocation().add(lastBugDir)))){
                         return lastBugDir;
                     }
                     lastBugDir = lastBugDir.rotateLeft().rotateLeft();
