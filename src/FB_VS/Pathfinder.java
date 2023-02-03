@@ -526,60 +526,71 @@ public strictfp class Pathfinder {
 
                 Direction left = moveDir.rotateLeft();
                 Direction right = moveDir.rotateRight();
+                boolean leftFound = false;
+                boolean rightFound = false;
                 int i;
-                for(i = 1; i<= 4; i++){
-                    if(!canMoveThrough(rc,left, rc.getLocation().add(left))){
+                for(i = 1; i<= 4 && (!leftFound || !rightFound); i++){
+                    if(!leftFound && !canMoveThrough(rc,left, rc.getLocation().add(left))){
                         left = left.rotateLeft();
-                    } else{
-                        wallLeft = false;
-                        break;
+                        leftFound = true;
                     }
 
-                    if(!canMoveThrough(rc,right, rc.getLocation().add(right))){
+                    if(!rightFound && !canMoveThrough(rc,right, rc.getLocation().add(right))){
                         right = right.rotateRight();
-                    } else{
-                        wallLeft = true;
-                        break;
+                        rightFound = true;
                     }
                 }
 
 
-                if(i <=4){
-                    lowestDist = Math.sqrt(rc.getLocation().distanceSquaredTo(target));
-                    rotatingBug = true;
-                    directBug = false;
-                    rotationCount=0;
-                    if(!wallLeft){
-
-                        if(left==Direction.NORTHEAST||left==Direction.NORTHWEST||left==Direction.SOUTHEAST||
-                                left==Direction.SOUTHWEST){
-                            lastBugDir= left.rotateRight();
-                        } else{
-                            lastBugDir= left;
-                        }
-                        //rc.setIndicatorString("starting rotation wall right"+rc.getLocation()+" "+(lowestDist-currentDist));
-
-
-
-                        return left;
+                if(leftFound && rightFound){
+                    int leftDist = rc.getLocation().add(left).distanceSquaredTo(target);
+                    int rightDist = rc.getLocation().add(right).distanceSquaredTo(target);
+                    if(leftDist < rightDist){
+                        wallLeft = false;
                     } else{
-                        if(right==Direction.NORTHEAST||right==Direction.NORTHWEST||right==Direction.SOUTHEAST||
-                                right==Direction.SOUTHWEST){
-                            lastBugDir= right.rotateLeft();
-                        } else{
-                            lastBugDir= right;
-                        }
-
-                      //  rc.setIndicatorString("starting rotation wall left"+rc.getLocation() +" "+(lowestDist-currentDist));
-
-
-                        return right;
-
+                        wallLeft = true;
                     }
-
+                } else if(leftFound){
+                    wallLeft = false;
+                } else if(rightFound){
+                    wallLeft = true;
                 } else{
                     return Direction.CENTER;
                 }
+                lowestDist = Math.sqrt(rc.getLocation().distanceSquaredTo(target));
+                rotatingBug = true;
+                directBug = false;
+
+                rotationCount=0;
+                if(!wallLeft){
+
+                    if(left==Direction.NORTHEAST||left==Direction.NORTHWEST||left==Direction.SOUTHEAST||
+                            left==Direction.SOUTHWEST){
+                        lastBugDir= left.rotateRight();
+                    } else{
+                        lastBugDir= left;
+                    }
+                    //rc.setIndicatorString("starting rotation wall right"+rc.getLocation()+" "+(lowestDist-currentDist));
+
+
+
+                    return left;
+                } else{
+                    if(right==Direction.NORTHEAST||right==Direction.NORTHWEST||right==Direction.SOUTHEAST||
+                            right==Direction.SOUTHWEST){
+                        lastBugDir= right.rotateLeft();
+                    } else{
+                        lastBugDir= right;
+                    }
+
+                  //  rc.setIndicatorString("starting rotation wall left"+rc.getLocation() +" "+(lowestDist-currentDist));
+
+
+                    return right;
+
+                }
+
+
             }
         }
         return Direction.CENTER;
