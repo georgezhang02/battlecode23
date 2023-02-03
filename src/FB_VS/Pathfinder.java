@@ -409,6 +409,10 @@ public strictfp class Pathfinder {
                     }
                     //rc.setIndicatorString("can move through now");
                 }
+
+                if(turnedCurrentCorner && currentPassable(rc, lastBugDir.rotateRight().rotateRight(), rc.getLocation().add(leftWallDir))){
+                    turnedCurrentCorner = false;
+                }
             } else{
                 Direction rightWallDir = lastBugDir.rotateRight().rotateRight();
                 if(canMoveThrough(rc, lastBugDir, rc.getLocation().add(rightWallDir)) &&
@@ -418,7 +422,7 @@ public strictfp class Pathfinder {
                         rotatingBug = false;
                         turnedCurrentCorner = false;
                         directBug = false;
-                        rc.setIndicatorString("off the map");
+                        //rc.setIndicatorString("off the map");
                     } else if(robotWall){
                         robotWall = false;
                         return rightWallDir;
@@ -426,10 +430,16 @@ public strictfp class Pathfinder {
                         rotatingBug = false;
                         turnedCurrentCorner = false;
                     }
-                    rc.setIndicatorString("can move through now");
+                    //rc.setIndicatorString("can move through now");
+                }
+
+                if(turnedCurrentCorner && currentPassable(rc, lastBugDir.rotateLeft().rotateLeft(), rc.getLocation().add(rightWallDir))){
+                    turnedCurrentCorner = false;
                 }
             }
         }
+
+
 
 
 
@@ -490,8 +500,6 @@ public strictfp class Pathfinder {
                         if(!currentPassable(rc, lastBugDir, rc.getLocation().add(rightWallDir))){
                             turnedCurrentCorner = true;
                         }
-
-                        rc.setIndicatorString("turning corner" + ans);
 
                         lastBugDir = lastBugDir.rotateRight().rotateRight();
                         rotationCount ++;
