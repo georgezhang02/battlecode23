@@ -27,6 +27,9 @@ public strictfp class Pathfinder {
 
 
     public static Direction pathBF(RobotController rc, MapLocation target) throws GameActionException {
+        if(!rc.isMovementReady()){
+            return Direction.CENTER;
+        }
 
         if(!target.equals(lastTarget)){
             directBug = false;
@@ -57,6 +60,9 @@ public strictfp class Pathfinder {
     }
 
     public static Direction pathToExplore(RobotController rc) throws GameActionException {
+        if(!rc.isMovementReady()){
+            return Direction.CENTER;
+        }
 
         if(!exploring || rc.getLocation().distanceSquaredTo(Explorer.target) <= 16){
             Explorer.getExploreTarget(rc, 10, rc.getMapWidth(), rc.getMapHeight());
@@ -67,6 +73,9 @@ public strictfp class Pathfinder {
     }
 
     public static Direction pathToExploreHQ(RobotController rc) throws GameActionException {
+        if(!rc.isMovementReady()){
+            return Direction.CENTER;
+        }
 
         if(!exploring || rc.getLocation().distanceSquaredTo(Explorer.target) <= 16){
             if(Explorer.curExploring != null && Explorer.curHQExploreIndex!=-1){
@@ -90,6 +99,9 @@ public strictfp class Pathfinder {
     }
 
     public static Direction pathToExploreBug(RobotController rc) throws GameActionException {
+        if(!rc.isMovementReady()){
+            return Direction.CENTER;
+        }
 
         if(!exploring || rc.getLocation().distanceSquaredTo(Explorer.target) <= 16){
             Explorer.getExploreTarget(rc, 10, rc.getMapWidth(), rc.getMapHeight());
@@ -103,6 +115,9 @@ public strictfp class Pathfinder {
     }
 
     public static Direction pathToExplore(RobotController rc, RobotInfo[]allies) throws GameActionException {
+        if(!rc.isMovementReady()){
+            return Direction.CENTER;
+        }
         int lowestID = rc.getID();
         int lowestHealth = rc.getHealth();
         RobotInfo pathToAlly = null;
@@ -134,6 +149,9 @@ public strictfp class Pathfinder {
 
 
     public static Direction pathAwayFrom(RobotController rc, MapLocation target) throws GameActionException{
+        if(!rc.isMovementReady()){
+            return Direction.CENTER;
+        }
         exploring = false;
         MapLocation curLoc = rc.getLocation();
         int distXToTarget = target.x - curLoc.x;
@@ -144,12 +162,16 @@ public strictfp class Pathfinder {
 
     }
     public static Direction pathGreedy(RobotController rc, MapLocation target)throws GameActionException {
+        if(!rc.isMovementReady()){
+            return Direction.CENTER;
+        }
         exploring = false;
         return pathGreedyDepth(rc, rc.getLocation(),  target, 2);
 
     }
 
     public static double pathGreedyHelper(RobotController rc, MapLocation loc, MapLocation target, int depth) throws GameActionException {
+
         //rc.setIndicatorLine(rc.getLocation(), target, 255, 255, 0);
         double lowestCost = 10000;
         Direction moveDir = loc.directionTo(target);
@@ -236,6 +258,9 @@ public strictfp class Pathfinder {
     }
 
     public static Direction pathGreedyDepth(RobotController rc, MapLocation loc, MapLocation target, int depth)throws GameActionException {
+        if(!rc.isMovementReady()){
+            return Direction.CENTER;
+        }
         exploring = false;
         if(!target.equals(lastTarget)){
             rotatingBug = false;
@@ -257,7 +282,6 @@ public strictfp class Pathfinder {
         }
 
         if(rotatingBug && currentDist < lowestDist){
-            rc.setIndicatorString("pathing around current");
             if(wallLeft){
                 Direction leftWallDir = lastBugDir.rotateLeft().rotateLeft();
                 if(!currentPassable(rc, lastBugDir, rc.getLocation().add(leftWallDir))){
@@ -332,6 +356,9 @@ public strictfp class Pathfinder {
     }
 
     public static Direction pathBug(RobotController rc, MapLocation target)throws GameActionException {
+        if(!rc.isMovementReady()){
+            return Direction.CENTER;
+        }
         exploring = false;
         directBug = true;
 
@@ -347,9 +374,11 @@ public strictfp class Pathfinder {
     }
 
     public static Direction pathBugHelper(RobotController rc, MapLocation target) throws GameActionException {
+        if(!rc.isMovementReady()){
+            return Direction.CENTER;
+        }
         currentDist = Math.sqrt(rc.getLocation().distanceSquaredTo(target));
 
-        rc.setIndicatorString(rotatingBug +" "+turnedCurrentCorner);
         if(rotatingBug && rotationCount>=4){
             rotationCount = 0;
             rotatingBug = false;
@@ -389,7 +418,7 @@ public strictfp class Pathfinder {
                         rotatingBug = false;
                         turnedCurrentCorner = false;
                         directBug = false;
-                       // rc.setIndicatorString("off the map");
+                        rc.setIndicatorString("off the map");
                     } else if(robotWall){
                         robotWall = false;
                         return rightWallDir;
@@ -397,10 +426,14 @@ public strictfp class Pathfinder {
                         rotatingBug = false;
                         turnedCurrentCorner = false;
                     }
-                    //rc.setIndicatorString("can move through now");
+                    rc.setIndicatorString("can move through now");
                 }
             }
         }
+
+
+
+
 
 
         if(rotatingBug){
@@ -449,6 +482,7 @@ public strictfp class Pathfinder {
                         break;
                     } else if(canMoveThrough(rc, lastBugDir.rotateRight(), rc.getLocation().add(lastBugDir.rotateRight())) &&
                             (!turnedCurrentCorner || canMoveThrough(rc, lastBugDir.rotateLeft().rotateLeft(), rc.getLocation().add(lastBugDir.rotateRight())))){
+
                         Direction ans = lastBugDir.rotateRight();
 
                         Direction rightWallDir = lastBugDir.rotateRight().rotateRight();
@@ -456,6 +490,8 @@ public strictfp class Pathfinder {
                         if(!currentPassable(rc, lastBugDir, rc.getLocation().add(rightWallDir))){
                             turnedCurrentCorner = true;
                         }
+
+                        rc.setIndicatorString("turning corner" + ans);
 
                         lastBugDir = lastBugDir.rotateRight().rotateRight();
                         rotationCount ++;

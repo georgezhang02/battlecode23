@@ -381,6 +381,9 @@ public strictfp class Launcher {
         }
     }
     static Direction findMovementCombat(RobotController rc, RobotInfo attackRobot) throws GameActionException {
+        if(!rc.isMovementReady()){
+            return Direction.CENTER;
+        }
 
         if(!rc.isActionReady()){
             // no action available, run from enemies
